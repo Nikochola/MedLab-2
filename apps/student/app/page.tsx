@@ -104,7 +104,7 @@ export default function MarketingLandingPage() {
 
       {/* Header */}
       <motion.header
-        initial={{ y: -20, opacity: 0 }}
+        initial={false}
         animate={{ y: 0, opacity: 1 }}
         className="sticky top-0 z-50 border-b border-white/20 bg-white/60 backdrop-blur-2xl shadow-sm"
       >
