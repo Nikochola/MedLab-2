@@ -1,0 +1,14 @@
+{
+    "name": "medlab",
+    "private": true,
+    "packageManager": "pnpm@9.0.0",
+    "scripts": {
+        "dev:university": "pnpm --filter university dev",
+        "dev:student": "pnpm --filter student dev",
+        "build:university": "pnpm --filter university build",
+        "build:student": "pnpm --filter student build"
+    },
+    "dependencies": {
+        "rough-notation": "^0.5.1"
+    }
+}
