@@ -10,8 +10,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
-        mono: ["var(--font-geist-mono)", "monospace"],
+        sans: ["var(--font-figtree)", "system-ui", "sans-serif"],
+        mono: ["var(--font-figtree)", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       colors: {
         background: "#ffffff",
@@ -60,4 +60,3 @@ const config: Config = {
 };
 
 export default config;
-

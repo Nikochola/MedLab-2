@@ -5,17 +5,17 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 uppercase tracking-wide",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-2xl text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "bg-white text-black border-slate-300 border-2 border-b-[4px] active:border-b-[2px] hover:bg-slate-100 text-slate-500",
-        bug: "bg-white text-amber-500 border-amber-500 border-2 border-b-[4px] active:border-b-[2px] hover:bg-slate-100",
-        tritary: "bg-blue-500 text-black border-blue-600  border-b-[4px] active:border-b-[0px] hover:bg-blue-400 text-white",
+        default: "bg-white text-black border-2 border-slate-300 hover:bg-slate-50 hover:border-slate-400",
+        bug: "bg-white text-amber-500 border-2 border-amber-500 hover:bg-slate-100",
+        tritary: "bg-blue-500 text-white border-2 border-blue-500 hover:bg-blue-600",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+          "border border-input bg-background hover:bg-slate-100",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
@@ -49,7 +49,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
-  />
+        {...props}
+      />
     )
   }
 )

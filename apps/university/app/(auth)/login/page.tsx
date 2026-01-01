@@ -1,32 +1,38 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { Activity, ArrowLeft } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { Logo } from "@/components/ui/Logo"
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const { login } = useAuth()
-  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!username.trim()) return
+    setError("")
+
+    if (!email.trim() || !password) {
+      setError("Please enter both email and password")
+      return
+    }
 
     setIsLoading(true)
-    // Simulate login (since it's free, just validate username exists)
-    setTimeout(() => {
-      login(username.trim(), "")
-      setIsLoading(false)
-    }, 500)
+    const result = await login(email, password)
+    setIsLoading(false)
+
+    if (!result.success) {
+      setError(result.error || "Login failed")
+    }
   }
 
   return (
@@ -44,7 +50,7 @@ export default function LoginPage() {
             Welcome Back
           </h1>
           <p className="text-muted-foreground mt-2">
-            Enter your name to continue learning
+            Sign in to continue learning
           </p>
         </div>
 
@@ -52,28 +58,47 @@ export default function LoginPage() {
           <CardHeader>
             <CardTitle>Get Started</CardTitle>
             <CardDescription>
-              Free access - no payment required. Just enter your name to begin.
+              Sign in with your university account to continue learning.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="p-3 rounded-md bg-red-50 border border-red-200 text-red-600 text-sm">
+                  {error}
+                </div>
+              )}
+
               <div className="space-y-2">
-                <Label htmlFor="username">Your Name</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="username"
-                  type="text"
-                  placeholder="Enter your name"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={isLoading}
                   className="bg-background"
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
               <Button
                 type="submit"
                 className="w-full"
-                disabled={isLoading || !username.trim()}
+                disabled={isLoading || !email.trim() || !password}
               >
                 {isLoading ? "Signing in..." : "Continue"}
               </Button>
@@ -88,4 +113,3 @@ export default function LoginPage() {
     </div>
   )
 }
-

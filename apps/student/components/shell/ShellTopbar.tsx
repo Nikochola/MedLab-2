@@ -58,7 +58,7 @@ export function ShellTopbar() {
               size="lg"
               onClick={() => setMenuOpen((open) => !open)}
               className={cn(
-                "border-slate-200 bg-white text-slate-900 hover:bg-slate-50 !text-slate-900 [&_*]:!text-slate-900",
+                "border-slate-200 bg-white text-slate-900 hover:bg-slate-50 [&_*]:!text-slate-900",
                 menuOpen && "ring-2 ring-slate-200"
               )}
             >
