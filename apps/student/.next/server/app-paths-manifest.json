@@ -1,8 +1,0 @@
-{
-  "/page": "app/page.js",
-  "/api/student/stats/route": "app/api/student/stats/route.js",
-  "/(auth)/login/page": "app/(auth)/login/page.js",
-  "/(shell)/ecg/practice/page": "app/(shell)/ecg/practice/page.js",
-  "/(auth)/student/login/page": "app/(auth)/student/login/page.js",
-  "/(shell)/ecg/cases/page": "app/(shell)/ecg/cases/page.js"
-}

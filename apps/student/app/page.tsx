@@ -103,11 +103,7 @@ export default function MarketingLandingPage() {
       </div>
 
       {/* Header */}
-      <motion.header
-        initial={false}
-        animate={{ y: 0, opacity: 1 }}
-        className="sticky top-0 z-50 border-b border-white/20 bg-white/60 backdrop-blur-2xl shadow-sm"
-      >
+      <header className="sticky top-0 z-50 min-h-[72px] border-b border-white/20 bg-white/60 backdrop-blur-2xl shadow-sm">
         <div className="container mx-auto px-6 py-5">
           <div className="relative flex items-center justify-between">
             {/* Logo - shifted right with margin */}
@@ -135,7 +131,7 @@ export default function MarketingLandingPage() {
             </div>
           </div>
         </div>
-      </motion.header>
+      </header>
 
       <main>
         {/* Hero Section - Clean & Centered */}
