@@ -35,7 +35,7 @@ export function ShellTopbar() {
   }, [])
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur text-slate-900 [&_*]:text-slate-900 [&_svg]:text-slate-900">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-6">
         {/* LEFT */}
         <div className="min-w-0">
@@ -58,18 +58,18 @@ export function ShellTopbar() {
               size="lg"
               onClick={() => setMenuOpen((open) => !open)}
               className={cn(
-                "border-slate-200 bg-white text-slate-900 hover:bg-slate-50",
+                "border-slate-200 bg-white text-slate-900 hover:bg-slate-50 !text-slate-900 [&_*]:!text-slate-900",
                 menuOpen && "ring-2 ring-slate-200"
               )}
             >
-              <UserCircle className="mr-2 h-5 w-5 text-slate-700" />
+              <UserCircle className="mr-2 h-5 w-5" />
 
               {/* Always show a label (no hidden sm:inline) */}
               <span className="max-w-[160px] truncate font-semibold">
                 {user?.name || user?.email || "Profile"}
               </span>
 
-              <ChevronDown className="ml-2 h-4 w-4 text-slate-700" />
+              <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
 
             {menuOpen && (
@@ -78,7 +78,7 @@ export function ShellTopbar() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 6 }}
                 transition={{ duration: 0.18 }}
-                className="absolute right-0 mt-3 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl ring-1 ring-slate-900/5"
+                className="absolute right-0 mt-3 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl ring-1 ring-slate-900/5 text-slate-900 [&_*]:text-slate-900"
               >
                 <div className="px-3 py-2 text-xs text-slate-500">
                   Signed in as
