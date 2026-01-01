@@ -211,6 +211,12 @@ export async function getClassroomProgress(
     totalTimeSpent: row.total_time_spent,
     stepsAttempted: row.steps_attempted ?? {},
     lastActivity: row.last_activity,
+    totalXP: row.total_xp ?? 0,
+    currentLevel: row.current_level ?? 1,
+    currentStreak: row.current_streak ?? 0,
+    longestStreak: row.longest_streak ?? 0,
+    lastActivityDate: row.last_activity_date ?? null,
+    ecgStepsCorrect: row.ecg_steps_correct ?? 0,
   }))
 }
 
