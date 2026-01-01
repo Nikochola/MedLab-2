@@ -103,32 +103,40 @@ export default function MarketingLandingPage() {
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-slate-200/60 bg-white/80 backdrop-blur-xl shadow-sm">
-        <div className="container mx-auto px-6 py-4">
-          <div className="relative flex items-center justify-between">
-            {/* Logo */}
-            <div className="flex items-center">
-              <Link href="/" className="flex items-center gap-3">
-                <Logo width={120} height={34} />
-              </Link>
-            </div>
+      <header
+        className={cn(
+          "sticky top-0 z-50 border-b border-slate-200/60 bg-white/80 backdrop-blur-xl shadow-sm",
+          // Force visible text in production even if a global `text-transparent`/opacity style wins
+          "text-slate-900 opacity-100",
+          "[color:rgb(15,23,42)]",
+          "[&_*]:!opacity-100 [&_*]:!text-slate-900",
+          "[&_svg]:!text-slate-900"
+        )}
+        style={{ color: "rgb(15, 23, 42)" }}
+      >
+        <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-6">
+          {/* Logo */}
+          <div className="flex items-center">
+            <Link href="/" className="flex items-center gap-3">
+              <Logo width={120} height={34} />
+            </Link>
+          </div>
 
-            {/* Navigation - centered on desktop */}
-            <nav className="hidden absolute left-1/2 -translate-x-1/2 lg:flex items-center gap-10 text-sm font-semibold text-slate-600">
-              <a href="#features" className="transition-colors hover:text-slate-900">Features</a>
-              <a href="#how-it-works" className="transition-colors hover:text-slate-900">How it works</a>
-              <a href="#pricing" className="transition-colors hover:text-slate-900">Pricing</a>
-            </nav>
+          {/* Navigation - centered on desktop */}
+          <nav className="hidden lg:flex items-center gap-10 text-sm font-semibold">
+            <a href="#features" className="transition-colors hover:text-slate-700">Features</a>
+            <a href="#how-it-works" className="transition-colors hover:text-slate-700">How it works</a>
+            <a href="#pricing" className="transition-colors hover:text-slate-700">Pricing</a>
+          </nav>
 
-            {/* Buttons */}
-            <div className="flex items-center gap-4">
-              <Button asChild variant="ghost" size="lg" className="font-semibold">
-                <Link href="/login">Log in</Link>
-              </Button>
-              <Button asChild variant="tritary" size="lg" className="font-bold shadow-lg shadow-blue-200">
-                <Link href="/login">Get Started</Link>
-              </Button>
-            </div>
+          {/* Buttons */}
+          <div className="flex items-center gap-4">
+            <Button asChild variant="ghost" size="lg" className="font-semibold !text-slate-900">
+              <Link href="/login">Log in</Link>
+            </Button>
+            <Button asChild variant="tritary" size="lg" className="font-bold shadow-lg shadow-blue-200 !text-white">
+              <Link href="/login">Get Started</Link>
+            </Button>
           </div>
         </div>
       </header>
