@@ -103,9 +103,15 @@ export default function MarketingLandingPage() {
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-50 min-h-[72px] border-b border-white/20 bg-white/60 backdrop-blur-2xl shadow-sm">
-        <div className="container mx-auto px-6 py-5">
-          <div className="relative flex items-center justify-between">
+      <header
+        className="sticky top-0 z-50 border-b border-white/20 bg-white/60 backdrop-blur-2xl shadow-sm text-slate-900"
+        style={{ minHeight: 72, opacity: 1, visibility: "visible" }}
+      >
+        <div className="container mx-auto px-6 py-5" style={{ paddingTop: 20, paddingBottom: 20, opacity: 1, visibility: "visible" }}>
+          <div
+            className="relative flex items-center justify-between"
+            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", opacity: 1, visibility: "visible" }}
+          >
             {/* Logo - shifted right with margin */}
             <div className="flex items-center ml-12">
               <Link href="/" className="flex items-center gap-3">
@@ -114,7 +120,7 @@ export default function MarketingLandingPage() {
             </div>
 
             {/* Navigation - absolutely centered */}
-            <nav className="absolute left-1/2 -translate-x-1/2 hidden items-center gap-12 text-base font-medium text-slate-600 md:flex">
+            <nav className="absolute left-1/2 -translate-x-1/2 flex items-center gap-12 text-base font-medium text-slate-900">
               <a href="#features" className="transition-colors hover:text-slate-900">Features</a>
               <a href="#how-it-works" className="transition-colors hover:text-slate-900">How it works</a>
               <a href="#pricing" className="transition-colors hover:text-slate-900">Pricing</a>
