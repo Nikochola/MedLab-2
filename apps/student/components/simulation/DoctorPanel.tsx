@@ -79,7 +79,7 @@ export function DoctorPanel({
     }
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !isLoading) {
       handleSubmit()
     }
@@ -188,7 +188,7 @@ export function DoctorPanel({
           <Input
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             placeholder="Type your answer here..."
             disabled={isLoading || feedback.type === "correct"}
             className="bg-background"

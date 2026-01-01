@@ -79,7 +79,7 @@ export function AssessmentForm({ patientCase, ecgFindings }: AssessmentFormProps
   const [showFeedback, setShowFeedback] = useState(false)
   const { user } = useAuth()
 
-  const normalizeFeedbackPayload = (payload: any): CaseFeedback => {
+  const normalizeFeedbackPayload = (payload: Partial<CaseFeedback>): CaseFeedback => {
     if (!payload) {
       return {
         strengths: [],

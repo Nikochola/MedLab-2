@@ -2,7 +2,6 @@
 
 import { useMemo, useEffect, useRef, useState } from "react"
 import { usePathname } from "next/navigation"
-import Link from "next/link"
 import { motion } from "framer-motion"
 import { ChevronDown, Flame, UserCircle } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
@@ -28,9 +27,7 @@ export function ShellTopbar() {
 
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
-      if (!menuRef.current?.contains(event.target as Node)) {
-        setMenuOpen(false)
-      }
+      if (!menuRef.current?.contains(event.target as Node)) setMenuOpen(false)
     }
 
     document.addEventListener("mousedown", handleClick)
@@ -38,58 +35,73 @@ export function ShellTopbar() {
   }, [])
 
   return (
-    <div className="relative z-50 flex h-20 items-center justify-between gap-4 border-b border-slate-200/80 bg-white/80 px-6 backdrop-blur transition-all">
-      <div className="min-w-0">
-        <h1 className="truncate text-xl font-semibold text-slate-900">{title}</h1>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <div className="hidden items-center gap-3 lg:flex">
-          <StatsDisplay />
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-6">
+        {/* LEFT */}
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-semibold text-slate-900">{title}</h1>
+          <div className="truncate text-xs text-slate-500">
+            {user?.email ?? ""}
+          </div>
         </div>
 
-        <div ref={menuRef} className="relative">
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => setMenuOpen((open) => !open)}
-            className={cn(
-              "",
-              menuOpen && ""
-            )}
-          >
-            <UserCircle className="mr-2 h-5 w-5 text-slate-400" />
-            <span className="hidden max-w-[120px] truncate font-semibold sm:inline">
-              {user?.name || user?.email || "Profile"}
-            </span>
-            <ChevronDown className="ml-2 h-4 w-4 text-slate-400" />
-          </Button>
+        {/* RIGHT */}
+        <div className="flex items-center gap-3">
+          {/* Show stats at md+ (not only lg) */}
+          <div className="hidden md:flex items-center gap-3">
+            <StatsDisplay />
+          </div>
 
-          {menuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 6 }}
-              transition={{ duration: 0.18 }}
-              className="absolute right-0 mt-3 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl ring-1 ring-slate-900/5"
+          <div ref={menuRef} className="relative">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => setMenuOpen((open) => !open)}
+              className={cn(
+                "border-slate-200 bg-white text-slate-900 hover:bg-slate-50",
+                menuOpen && "ring-2 ring-slate-200"
+              )}
             >
-              <div className="px-3 py-2 text-xs text-slate-500">
-                Signed in as
-                <div className="truncate text-sm font-semibold text-slate-800">{user?.email || "student"}</div>
-              </div>
-              <div className="my-2 h-px bg-slate-100" />
-              <Button
-                variant="ghost"
-                className="w-full justify-start rounded-xl px-3 py-2 text-left text-sm font-semibold text-slate-600 hover:bg-red-50 hover:text-red-600"
-                onClick={logout}
+              <UserCircle className="mr-2 h-5 w-5 text-slate-700" />
+
+              {/* Always show a label (no hidden sm:inline) */}
+              <span className="max-w-[160px] truncate font-semibold">
+                {user?.name || user?.email || "Profile"}
+              </span>
+
+              <ChevronDown className="ml-2 h-4 w-4 text-slate-700" />
+            </Button>
+
+            {menuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 6 }}
+                transition={{ duration: 0.18 }}
+                className="absolute right-0 mt-3 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl ring-1 ring-slate-900/5"
               >
-                Logout
-              </Button>
-            </motion.div>
-          )}
+                <div className="px-3 py-2 text-xs text-slate-500">
+                  Signed in as
+                  <div className="truncate text-sm font-semibold text-slate-800">
+                    {user?.email || "student"}
+                  </div>
+                </div>
+
+                <div className="my-2 h-px bg-slate-100" />
+
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start rounded-xl px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-red-50 hover:text-red-600"
+                  onClick={logout}
+                >
+                  Logout
+                </Button>
+              </motion.div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </header>
   )
 }
 
@@ -111,32 +123,35 @@ function StatsDisplay() {
     {
       label: "Streak",
       value: `${stats.currentStreak}d`,
-      active: stats.currentStreak > 0
+      active: stats.currentStreak > 0,
     },
     {
       label: "XP",
       value: stats.totalXP.toLocaleString(),
-      active: false
+      active: false,
     },
     {
       label: "Level",
       value: `L${stats.currentLevel}`,
-      active: false
+      active: false,
     },
   ]
 
   return (
     <>
       {items.map((stat) => (
-        <div key={stat.label} className={cn(
-          "rounded-xl border px-3 py-2 text-xs transition-colors duration-300",
-          stat.active
-            ? "border-orange-200 bg-orange-50/50"
-            : "border-slate-200/80 bg-white"
-        )}>
+        <div
+          key={stat.label}
+          className={cn(
+            "rounded-xl border px-3 py-2 text-xs transition-colors duration-300",
+            stat.active ? "border-orange-200 bg-orange-50/50" : "border-slate-200/80 bg-white"
+          )}
+        >
           <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-slate-400">
             {stat.label}
-            {stat.label === "Streak" && stats.currentStreak > 0 && <Flame className="h-3 w-3 text-orange-500" />}
+            {stat.label === "Streak" && stats.currentStreak > 0 && (
+              <Flame className="h-3 w-3 text-orange-500" />
+            )}
           </div>
           <div className="text-sm font-semibold text-slate-900">{stat.value}</div>
         </div>

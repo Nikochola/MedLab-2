@@ -26,7 +26,7 @@ export interface StudentActivity {
   studentId: string
   classroomId?: string | null
   activityType: string
-  data: Record<string, any>
+  data: Record<string, unknown>
   timestamp: string
   xpAwarded?: number
   xpReason?: string
@@ -39,7 +39,7 @@ export interface StudentProgress {
   simulationsCompleted: number
   casesCompleted: number
   totalTimeSpent: number
-  stepsAttempted: Record<string, any>
+  stepsAttempted: Record<string, unknown>
   lastActivity: string
   // Gamification fields
   totalXP: number
@@ -57,7 +57,7 @@ export interface CaseAssessment {
   classroomId: string | null
   teacherId: string | null
   submittedAt: string
-  patientCase: Record<string, any> | null
-  ecgFindings: Record<string, any> | null
-  assessment: Record<string, any> | null
+  patientCase: Record<string, unknown> | null
+  ecgFindings: Record<string, unknown> | null
+  assessment: Record<string, unknown> | null
 }

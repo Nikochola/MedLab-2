@@ -57,7 +57,10 @@ export function GatingProvider({ children }: { children: React.ReactNode }) {
                 .eq("user_id", user.id);
 
             if (usageData) {
-                const usageMap = usageData.reduce((acc: any, curr: any) => ({ ...acc, [curr.feature]: curr.usage_count }), {});
+                const usageMap = usageData.reduce((acc: Record<string, number>, curr: { feature: string; usage_count: number }) => ({
+                    ...acc,
+                    [curr.feature]: curr.usage_count
+                }), {});
                 setUsage(usageMap);
             }
         } catch (error) {

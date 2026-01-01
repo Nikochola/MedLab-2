@@ -13,25 +13,25 @@ import {
    Mapping Helpers
    ============================================================ */
 
-function mapUserRow(row: any): User {
+function mapUserRow(row: Record<string, any>): User {
   return {
-    id: row.id,
-    email: row.email,
-    name: row.name,
-    role: row.role,
-    classroomId: row.classroom_id ?? null,
-    createdAt: row.created_at,
+    id: row.id as string,
+    email: row.email as string,
+    name: row.name as string,
+    role: row.role as User["role"],
+    classroomId: (row.classroom_id as string | undefined) ?? null,
+    createdAt: row.created_at as string,
   }
 }
 
-function mapClassroomRow(row: any): Classroom {
+function mapClassroomRow(row: Record<string, any>): Classroom {
   return {
-    id: row.id,
-    code: row.code,
-    name: row.name,
-    teacherId: row.teacher_id,
-    isActive: row.is_active,
-    createdAt: row.created_at,
+    id: row.id as string,
+    code: row.code as string,
+    name: row.name as string,
+    teacherId: row.teacher_id as string,
+    isActive: row.is_active as boolean,
+    createdAt: row.created_at as string,
     studentIds: [],
   }
 }
