@@ -37,7 +37,7 @@ export async function sendInviteEmail(
   email: string,
   token: string,
   orgName: string,
-  role: "student" | "teacher",
+  role: "student" | "teacher" | "org_admin",
   orgSlug: string
 ) {
   if (!resendKey || !inviteFromEmail) {
@@ -46,11 +46,14 @@ export async function sendInviteEmail(
   }
 
   const link = buildInviteLink(token, orgSlug)
+  const roleLabel = role === "org_admin" ? "org admin" : role
   const subject =
     role === "teacher"
       ? `You're invited to teach at ${orgName}`
-      : `You're invited to join ${orgName}`
-  const html = `<p>You have been invited to ${orgName} as a ${role}. Click the link below to set your password and join.</p><p><a href="${link}">${link}</a></p>`
+      : role === "org_admin"
+        ? `You're invited to administer ${orgName}`
+        : `You're invited to join ${orgName}`
+  const html = `<p>You have been invited to ${orgName} as a ${roleLabel}. Click the link below to set your password and join.</p><p><a href="${link}">${link}</a></p>`
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",

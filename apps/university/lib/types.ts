@@ -113,7 +113,7 @@ export interface Invite {
   teacherId?: string | null
   email: string
   fullName?: string | null
-  role: "student" | "teacher"
+  role: "student" | "teacher" | "org_admin"
   token: string
   expiresAt: string
   acceptedAt?: string | null

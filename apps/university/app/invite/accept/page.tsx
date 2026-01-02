@@ -82,17 +82,19 @@ async function acceptInvite(formData: FormData) {
     classroomId = classroom.id
   }
 
+  const effectiveUserRole = invite.role === "org_admin" ? "teacher" : invite.role
+
   await admin.from("users").upsert({
     id: userId,
     email,
     name,
-    role: invite.role,
+    role: effectiveUserRole,
     classroom_id: classroomId,
   })
   await admin.from("org_members").upsert({ org_id: invite.orgId, user_id: userId, role: invite.role })
   await admin.from("invites").update({ accepted_at: new Date().toISOString() }).eq("id", invite.id)
 
-  if (invite.role === "teacher") {
+  if (invite.role === "teacher" || invite.role === "org_admin") {
     await ensureTeacherClassroom(admin, userId)
   }
 
