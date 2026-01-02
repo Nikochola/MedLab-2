@@ -104,13 +104,14 @@ async function acceptInvite(formData: FormData) {
 
     const { data: existingLookup, error: existingError } = await admin.auth.admin.listUsers({
       page: 1,
-      perPage: 1,
-      filter: `email.eq.${email}`,
+      perPage: 200,
     })
     if (existingError) {
       console.error("invite lookup existing user error:", existingError)
     }
-    const existingUser = existingLookup?.users?.[0]
+    const existingUser = existingLookup?.users?.find(
+      (candidate) => candidate.email?.toLowerCase() === email.toLowerCase()
+    )
     if (!existingUser) {
       redirect(`/invite/accept?token=${encodeURIComponent(token)}&error=signup`)
     }
