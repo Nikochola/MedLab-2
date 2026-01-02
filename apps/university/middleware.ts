@@ -2,13 +2,14 @@ import { NextResponse, type NextRequest } from "next/server"
 
 const baseDomain = process.env.INVITE_BASE_DOMAIN || "medlabinteractive.com"
 const managementHost = process.env.MANAGEMENT_HOST || `management.${baseDomain}`
+const managementFallbackHost = `management.${baseDomain}`
 
 export function middleware(req: NextRequest) {
   const url = req.nextUrl
   const host = req.headers.get("host") || ""
 
   // Platform admin host passthrough
-  if (host === managementHost) {
+  if (host === managementHost || host === managementFallbackHost) {
     if (url.pathname === "/") {
       url.pathname = "/platform-admin"
       return NextResponse.rewrite(url)
@@ -29,7 +30,7 @@ export function middleware(req: NextRequest) {
       })
 
       if (url.pathname === "/") {
-        url.pathname = `/org/${slug}/student`
+        url.pathname = `/org/${slug}`
         return NextResponse.rewrite(url, res)
       }
       if (url.pathname === "/admin") {
@@ -42,6 +43,10 @@ export function middleware(req: NextRequest) {
       }
       if (url.pathname === "/teacher") {
         url.pathname = "/teacher/dashboard"
+        return NextResponse.rewrite(url, res)
+      }
+      if (url.pathname === "/teacher/signin") {
+        url.pathname = `/org/${slug}/teacher-invite`
         return NextResponse.rewrite(url, res)
       }
       return res

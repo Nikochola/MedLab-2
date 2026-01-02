@@ -4,6 +4,7 @@ const resendKey = process.env.RESEND_API_KEY
 const inviteFromEmail = process.env.INVITE_FROM_EMAIL || process.env.NEXT_PUBLIC_INVITE_FROM_EMAIL
 const baseUrl = process.env.INVITE_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
 const baseDomain = process.env.INVITE_BASE_DOMAIN
+const inviteHost = process.env.INVITE_HOST
 
 export function generateInviteToken() {
   return crypto.randomUUID().replace(/-/g, "") + crypto.randomBytes(8).toString("hex")
@@ -24,9 +25,11 @@ export async function sendInviteEmail(
     return { sent: false, link: fallback }
   }
 
-  const link = baseDomain
-    ? `https://${orgSlug}.${baseDomain}/invite/accept?token=${token}`
-    : `${baseUrl}/invite/accept?token=${token}`
+  const link = inviteHost
+    ? `https://${inviteHost}/invite/accept?token=${token}`
+    : baseDomain
+      ? `https://${orgSlug}.${baseDomain}/invite/accept?token=${token}`
+      : `${baseUrl}/invite/accept?token=${token}`
   const subject =
     role === "teacher"
       ? `You're invited to teach at ${orgName}`
