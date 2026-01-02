@@ -8,6 +8,16 @@ const baseDomain = process.env.INVITE_BASE_DOMAIN
 const inviteHost = process.env.INVITE_HOST
 
 const normalizeBaseUrl = (value?: string) => (value ? value.replace(/\/+$/, "") : "")
+const normalizeDomain = (value?: string) => (value ? value.replace(/^https?:\/\//i, "").replace(/\/+$/, "") : "")
+
+const buildSubdomainHost = (orgSlug: string, domain?: string | null) => {
+  const normalized = normalizeDomain(domain || undefined)
+  if (!normalized) return ""
+  if (normalized === orgSlug || normalized.startsWith(`${orgSlug}.`)) {
+    return normalized
+  }
+  return `${orgSlug}.${normalized}`
+}
 
 const buildInviteLink = (token: string, orgSlug: string) => {
   if (inviteHost) {
@@ -22,7 +32,10 @@ const buildInviteLink = (token: string, orgSlug: string) => {
   }
 
   if (baseDomain) {
-    return `https://${orgSlug}.${baseDomain}/invite/accept?token=${token}`
+    const host = buildSubdomainHost(orgSlug, baseDomain)
+    if (host) {
+      return `https://${host}/invite/accept?token=${token}`
+    }
   }
 
   const normalized = normalizeBaseUrl(baseUrl)

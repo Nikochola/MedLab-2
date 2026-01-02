@@ -12,6 +12,16 @@ const baseDomain = process.env.INVITE_BASE_DOMAIN
 const inviteHost = process.env.INVITE_HOST
 
 const normalizeBaseUrl = (value?: string) => (value ? value.replace(/\/+$/, "") : "")
+const normalizeDomain = (value?: string) => (value ? value.replace(/^https?:\/\//i, "").replace(/\/+$/, "") : "")
+
+const buildSubdomainHost = (orgSlug: string, domain?: string | null) => {
+  const normalized = normalizeDomain(domain || undefined)
+  if (!normalized) return ""
+  if (normalized === orgSlug || normalized.startsWith(`${orgSlug}.`)) {
+    return normalized
+  }
+  return `${orgSlug}.${normalized}`
+}
 
 const buildPostInviteRedirect = (orgSlug?: string | null) => {
   if (explicitBaseUrl) {
@@ -21,7 +31,10 @@ const buildPostInviteRedirect = (orgSlug?: string | null) => {
     return `https://${inviteHost}/login`
   }
   if (baseDomain && orgSlug) {
-    return `https://${orgSlug}.${baseDomain}/login`
+    const host = buildSubdomainHost(orgSlug, baseDomain)
+    if (host) {
+      return `https://${host}/login`
+    }
   }
   return "/login"
 }
