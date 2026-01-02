@@ -44,7 +44,7 @@ export default function LoginPage() {
             Back to home
           </Link>
           <div className="mb-6 flex justify-center">
-            <Logo variant="black" width={150} height={50} />
+            <img src="/logo-black.svg" alt="Logo" className="w-10 h-10" />
           </div>
           <h1 className="text-4xl font-bold tracking-tight mt-4">
             Welcome Back
