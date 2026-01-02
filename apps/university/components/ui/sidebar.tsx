@@ -191,7 +191,7 @@ function NavSection({
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors border-2 border-transparent border-b-4 active:border-b-2",
+                "flex items-center gap-3 rounded-2xl px-3 py-2 text-sm transition-colors border-2 border-transparent active:border-b-2",
                 isActive
                   ? "bg-primary/10 text-primary border-primary/30"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/60"

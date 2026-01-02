@@ -106,12 +106,11 @@ export function DoctorPanel({
       </div>
 
       {/* Speech Bubble */}
-      <div className="p-6 flex-1 overflow-y-auto">
-        <Card className="bg-background/50 border-slate-200 border-2 border-b-4">
+      <div className="p-6 flex-1">
+        <Card>
           <CardContent className="p-4">
-            <div className="relative">
-              <div className="absolute -left-2 -top-2 h-4 w-4 bg-background/50 rotate-45 border-l border-t border-primary/20"></div>
-              <p className="text-sm leading-relaxed relative z-10">
+            <div>
+              <p className="text-sm leading-relaxed z-10">
                 {STEP_QUESTIONS[currentStep]}
               </p>
             </div>

@@ -2,9 +2,32 @@ import crypto from "crypto"
 
 const resendKey = process.env.RESEND_API_KEY
 const inviteFromEmail = process.env.INVITE_FROM_EMAIL || process.env.NEXT_PUBLIC_INVITE_FROM_EMAIL
-const baseUrl = process.env.INVITE_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+const explicitBaseUrl = process.env.INVITE_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL
+const baseUrl = explicitBaseUrl || "http://localhost:3000"
 const baseDomain = process.env.INVITE_BASE_DOMAIN
 const inviteHost = process.env.INVITE_HOST
+
+const normalizeBaseUrl = (value?: string) => (value ? value.replace(/\/+$/, "") : "")
+
+const buildInviteLink = (token: string, orgSlug: string) => {
+  if (inviteHost) {
+    return `https://${inviteHost}/invite/accept?token=${token}`
+  }
+
+  if (explicitBaseUrl) {
+    const normalized = normalizeBaseUrl(explicitBaseUrl)
+    if (normalized) {
+      return `${normalized}/invite/accept?token=${token}`
+    }
+  }
+
+  if (baseDomain) {
+    return `https://${orgSlug}.${baseDomain}/invite/accept?token=${token}`
+  }
+
+  const normalized = normalizeBaseUrl(baseUrl)
+  return `${normalized}/invite/accept?token=${token}`
+}
 
 export function generateInviteToken() {
   return crypto.randomUUID().replace(/-/g, "") + crypto.randomBytes(8).toString("hex")
@@ -19,17 +42,10 @@ export async function sendInviteEmail(
 ) {
   if (!resendKey || !inviteFromEmail) {
     // No email provider configured; surface link to caller
-    const fallback = baseDomain
-      ? `https://${orgSlug}.${baseDomain}/invite/accept?token=${token}`
-      : `${baseUrl}/invite/accept?token=${token}`
-    return { sent: false, link: fallback }
+    return { sent: false, link: buildInviteLink(token, orgSlug) }
   }
 
-  const link = inviteHost
-    ? `https://${inviteHost}/invite/accept?token=${token}`
-    : baseDomain
-      ? `https://${orgSlug}.${baseDomain}/invite/accept?token=${token}`
-      : `${baseUrl}/invite/accept?token=${token}`
+  const link = buildInviteLink(token, orgSlug)
   const subject =
     role === "teacher"
       ? `You're invited to teach at ${orgName}`

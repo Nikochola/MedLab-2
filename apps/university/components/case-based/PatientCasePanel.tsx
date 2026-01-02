@@ -11,7 +11,7 @@ interface PatientCasePanelProps {
 
 export function PatientCasePanel({ case: patientCase }: PatientCasePanelProps) {
   return (
-    <div className="h-full overflow-y-auto bg-card p-6">
+    <div className="h-full bg-card p-6">
       <div className="space-y-6">
         {/* Header */}
         <div>

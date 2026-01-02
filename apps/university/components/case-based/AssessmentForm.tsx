@@ -190,7 +190,7 @@ export function AssessmentForm({ patientCase, ecgFindings }: AssessmentFormProps
   const feedbackSummary = aiFeedback?.summary ?? ""
 
   return (
-    <div className="h-full overflow-y-auto bg-card p-6">
+    <div className="h-full bg-card p-6">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold mb-2">ECG Assessment Form</h2>
