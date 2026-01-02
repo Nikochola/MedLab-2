@@ -7,6 +7,25 @@ interface InviteAcceptProps {
   searchParams: { token?: string; error?: string }
 }
 
+const explicitBaseUrl = process.env.INVITE_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL
+const baseDomain = process.env.INVITE_BASE_DOMAIN
+const inviteHost = process.env.INVITE_HOST
+
+const normalizeBaseUrl = (value?: string) => (value ? value.replace(/\/+$/, "") : "")
+
+const buildPostInviteRedirect = (orgSlug?: string | null) => {
+  if (explicitBaseUrl) {
+    return `${normalizeBaseUrl(explicitBaseUrl)}/login`
+  }
+  if (inviteHost) {
+    return `https://${inviteHost}/login`
+  }
+  if (baseDomain && orgSlug) {
+    return `https://${orgSlug}.${baseDomain}/login`
+  }
+  return "/login"
+}
+
 async function generateClassroomCode(admin: ReturnType<typeof createSupabaseAdminClient>): Promise<string> {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
   const length = 6
@@ -63,6 +82,11 @@ async function acceptInvite(formData: FormData) {
   }
 
   const admin = createSupabaseAdminClient()
+  const { data: org } = await admin
+    .from("organizations")
+    .select("slug")
+    .eq("id", invite.orgId)
+    .maybeSingle()
 
   const { data: signUpData, error: signUpError } = await admin.auth.admin.createUser({
     email,
@@ -99,7 +123,7 @@ async function acceptInvite(formData: FormData) {
   }
 
   revalidatePath("/")
-  redirect("/login")
+  redirect(buildPostInviteRedirect(org?.slug ?? null))
 }
 
 export default async function InviteAcceptPage({ searchParams }: InviteAcceptProps) {
