@@ -39,18 +39,14 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-gray-50 to-gray-100 p-4">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <Link href="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8">
-            <ArrowLeft className="h-4 w-4" />
-            Back to home
-          </Link>
           <div className="mb-6 flex justify-center">
-            <img src="/logo-black.svg" alt="Logo" className="w-10 h-10" />
+            <img src="/images/logo_black.svg" alt="Logo" width={150} height={50} />
           </div>
           <h1 className="text-4xl font-bold tracking-tight mt-4">
             Welcome Back
           </h1>
           <p className="text-muted-foreground mt-2">
-            Sign in to continue learning
+            Sign in to continue
           </p>
         </div>
 
@@ -97,6 +93,7 @@ export default function LoginPage() {
               </div>
               <Button
                 type="submit"
+                variant="tritary"
                 className="w-full"
                 disabled={isLoading || !email.trim() || !password}
               >
@@ -107,7 +104,7 @@ export default function LoginPage() {
         </Card>
 
         <p className="text-center text-sm text-muted-foreground">
-          By continuing, you agree to use this educational tool responsibly.
+        © 2026 ForECGLearner & MedLab Interactive. All rights reserved.
         </p>
       </div>
     </div>
