@@ -120,6 +120,40 @@ export async function getTeacherClassrooms(teacherId: string): Promise<Classroom
   return (data ?? []).map(mapClassroomRow)
 }
 
+export async function getStudentsByClassroom(classroomId: string): Promise<User[]> {
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("classroom_id", classroomId)
+    .eq("role", "student")
+    .order("created_at", { ascending: true })
+
+  if (error) {
+    console.error("getStudentsByClassroom error:", error)
+    return []
+  }
+
+  return (data ?? []).map(mapUserRow)
+}
+
+export async function getStudentsByClassroomIds(classroomIds: string[]): Promise<User[]> {
+  if (!classroomIds.length) return []
+
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .in("classroom_id", classroomIds)
+    .eq("role", "student")
+    .order("created_at", { ascending: true })
+
+  if (error) {
+    console.error("getStudentsByClassroomIds error:", error)
+    return []
+  }
+
+  return (data ?? []).map(mapUserRow)
+}
+
 export async function saveClassroom(input: {
   name: string
   teacherId: string
@@ -214,6 +248,33 @@ export async function getClassroomProgress(
   }))
 }
 
+export async function getClassroomProgressByIds(
+  classroomIds: string[]
+): Promise<StudentProgress[]> {
+  if (!classroomIds.length) return []
+
+  const { data, error } = await supabase
+    .from("student_progress")
+    .select("*")
+    .in("classroom_id", classroomIds)
+
+  if (error) {
+    console.error("getClassroomProgressByIds error:", error)
+    return []
+  }
+
+  return (data ?? []).map((row: any) => ({
+    studentId: row.student_id,
+    studentName: row.student_name,
+    classroomId: row.classroom_id,
+    simulationsCompleted: row.simulations_completed,
+    casesCompleted: row.cases_completed,
+    totalTimeSpent: row.total_time_spent,
+    stepsAttempted: row.steps_attempted ?? {},
+    lastActivity: row.last_activity,
+  }))
+}
+
 /* ============================================================
    ASSESSMENTS
    ============================================================ */
@@ -242,6 +303,7 @@ export async function getClassroomAssessments(
     patientCase: row.patient_case,
     ecgFindings: row.ecg_findings,
     assessment: row.assessment,
+    aiFeedback: row.ai_feedback ?? null,
   }))
 }
 
@@ -253,15 +315,30 @@ export async function saveCaseAssessment(input: {
   patientCase: any
   ecgFindings: any
   assessment: any
+  aiFeedback?: any
 }): Promise<void> {
+  let teacherId = input.teacherId ?? null
+  if (!teacherId && input.classroomId) {
+    const { data: classroomRow, error: classroomErr } = await supabase
+      .from("classrooms")
+      .select("teacher_id")
+      .eq("id", input.classroomId)
+      .maybeSingle()
+    if (classroomErr) {
+      console.error("saveCaseAssessment classroom lookup error:", classroomErr)
+    }
+    teacherId = classroomRow?.teacher_id ?? null
+  }
+
   const { error } = await supabase.from("case_assessments").insert({
     student_id: input.studentId,
     student_name: input.studentName,
     classroom_id: input.classroomId,
-    teacher_id: input.teacherId ?? null,
+    teacher_id: teacherId,
     patient_case: input.patientCase,
     ecg_findings: input.ecgFindings,
     assessment: input.assessment,
+    ai_feedback: input.aiFeedback ?? null,
   })
 
   if (error) {
@@ -285,6 +362,32 @@ export async function getStudentActivities(
 
   if (error) {
     console.error("getStudentActivities error:", error)
+    return []
+  }
+
+  return (data ?? []).map((row: any) => ({
+    id: row.id,
+    studentId: row.student_id,
+    classroomId: row.classroom_id,
+    activityType: row.activity_type,
+    data: row.data,
+    timestamp: row.timestamp,
+  }))
+}
+
+export async function getStudentActivitiesByClassroomIds(
+  classroomIds: string[]
+): Promise<StudentActivity[]> {
+  if (!classroomIds.length) return []
+
+  const { data, error } = await supabase
+    .from("student_activities")
+    .select("*")
+    .in("classroom_id", classroomIds)
+    .order("timestamp", { ascending: false })
+
+  if (error) {
+    console.error("getStudentActivitiesByClassroomIds error:", error)
     return []
   }
 
@@ -327,5 +430,6 @@ export async function getCaseAssessmentsByTeacher(
     patientCase: row.patient_case,
     ecgFindings: row.ecg_findings,
     assessment: row.assessment,
+    aiFeedback: row.ai_feedback ?? null,
   }))
 }

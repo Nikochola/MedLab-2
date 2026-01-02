@@ -9,6 +9,8 @@ import {
   getUserById,
   saveUser,
   getClassroomByCode,
+  getTeacherClassrooms,
+  saveClassroom,
 } from "@/lib/storage"
 
 interface AuthContextType {
@@ -32,6 +34,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const router = useRouter()
 
+  const ensureTeacherClassroom = async (teacherId: string, teacherName: string) => {
+    const existing = await getTeacherClassrooms(teacherId)
+    if (existing.length === 0) {
+      const firstName = teacherName.split(" ")[0] || "Teacher"
+      await saveClassroom({
+        name: `${firstName}'s Classroom`,
+        teacherId,
+      })
+    }
+  }
+
   const normalizeClassroomId = async (candidate?: string | null) => {
     if (!candidate) return null
     if (isValidUUID(candidate)) return candidate
@@ -42,11 +55,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const ensureProfile = async (authUser: SupabaseAuthUser, fallbackEmail: string) => {
     const existing = await getUserById(authUser.id)
-    if (existing) return existing
+    if (existing) {
+      if (existing.role === "teacher") {
+        try {
+          await ensureTeacherClassroom(existing.id, existing.name)
+        } catch (error) {
+          console.error("ensureTeacherClassroom error:", error)
+        }
+      }
+      return existing
+    }
 
     const metadata = authUser.user_metadata ?? {}
+    const metadataRole = (metadata.role as string | undefined)?.toLowerCase()
     const derivedRole: UserRole =
-      metadata.role === "teacher" ? "teacher" : "student"
+      metadataRole === "teacher"
+        ? "teacher"
+        : metadataRole === "platform_admin"
+          ? "platform_admin"
+          : "student"
 
     const resolvedClassroomId = await normalizeClassroomId(
       metadata.classroom_id as string | undefined
@@ -70,6 +97,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       await saveUser(profile)
+      if (profile.role === "teacher") {
+        try {
+          await ensureTeacherClassroom(profile.id, profile.name)
+        } catch (error) {
+          console.error("ensureTeacherClassroom error:", error)
+        }
+      }
       return profile
     } catch (error) {
       console.error("Failed to create missing user profile:", error)
@@ -148,8 +182,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(dbUser)
     setIsAuthenticated(true)
 
+    // Try to route students with org membership to their org workspace
+    if (dbUser.role === "platform_admin") {
+      router.push("/platform-admin")
+      return { success: true }
+    }
+
     if (dbUser.role === "teacher") {
       router.push("/teacher/dashboard")
+      return { success: true }
+    }
+
+    const { data: memberships } = await supabase
+      .from("org_members")
+      .select("org_id, role, organizations(slug)")
+      .eq("user_id", authUser.id)
+      .limit(1)
+
+    const orgRelation = (memberships?.[0] as any)?.organizations
+    const slug = Array.isArray(orgRelation) ? orgRelation[0]?.slug : orgRelation?.slug
+
+    if (slug) {
+      router.push(`/org/${slug}/student`)
     } else {
       router.push("/ecg")
     }
@@ -225,7 +279,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { success: false, error: "Failed to create user profile" }
     }
 
-    // Step 3 — Auto-login (create session manually)
+    // Step 3 — Auto-create a classroom for new teachers
+    if (role === "teacher") {
+      try {
+        const existing = await getTeacherClassrooms(authUser.id)
+        if (existing.length === 0) {
+          const firstName = normalizedName.split(" ")[0] || "Teacher"
+          await saveClassroom({
+            name: `${firstName}'s Classroom`,
+            teacherId: authUser.id,
+          })
+        }
+      } catch (classroomError) {
+        console.error("Auto classroom create failed:", classroomError)
+      }
+    }
+
+    // Step 4 — Auto-login (create session manually)
     const { error: loginErr } = await supabase.auth.signInWithPassword({
       email: normalizedEmail,
       password,

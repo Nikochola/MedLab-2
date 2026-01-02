@@ -1,6 +1,6 @@
 // lib/supabase.ts
 
-import { createClient } from "@supabase/supabase-js"
+import { createBrowserClient } from "@supabase/ssr"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -9,5 +9,5 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY")
 }
 
-// Singleton client for browser
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Browser client that persists session and shares it via cookies (for server components/guards)
+export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey)

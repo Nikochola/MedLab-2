@@ -112,6 +112,7 @@ export function AssessmentForm({ patientCase, ecgFindings }: AssessmentFormProps
       patientCase: patientCase ? JSON.parse(patientCase) : null,
       ecgFindings: ecgFindings ? JSON.parse(ecgFindings) : null,
       assessment: formData,
+      aiFeedback: aiFeedback ?? null,
     }
 
     try {

@@ -17,10 +17,18 @@ export function createSupabaseServerClient() {
         return cookieStore.get(name)?.value
       },
       set(name: string, value: string, options: CookieOptions) {
-        cookieStore.set(name, value, options)
+        try {
+          cookieStore.set(name, value, options)
+        } catch (e) {
+          // In Server Components cookies() is read-only; ignore write attempts.
+        }
       },
       remove(name: string, options: CookieOptions) {
-        cookieStore.set(name, "", { ...options, maxAge: 0 })
+        try {
+          cookieStore.set(name, "", { ...options, maxAge: 0 })
+        } catch (e) {
+          // ignore
+        }
       },
     },
   })
