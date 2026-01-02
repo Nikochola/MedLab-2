@@ -22,11 +22,12 @@ async function createInvites(
   if (tenant.membership?.role !== "org_admin" || tenant.organization?.id !== orgId) {
     throw new Error("Not authorized")
   }
+  const admin = createSupabaseAdminClient()
 
   // Create invites and emails
   for (const entry of entries) {
     const token = generateInviteToken()
-    await supabase.from("invites").insert({
+    const { error } = await admin.from("invites").insert({
       org_id: orgId,
       cohort_id: null,
       full_name: entry.name ?? null,
@@ -35,6 +36,10 @@ async function createInvites(
       teacher_id: entry.role === "student" ? entry.teacherId ?? null : null,
       token,
     })
+    if (error) {
+      console.error("createInvites insert failed", error)
+      throw new Error("Invite insert failed")
+    }
     await sendInviteEmail(entry.email, token, tenant.organization!.name, entry.role as any, orgSlug)
   }
 

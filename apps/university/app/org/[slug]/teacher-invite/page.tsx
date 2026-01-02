@@ -22,12 +22,16 @@ async function sendTeacherInvite(slug: string, email: string) {
   }
 
   const token = generateInviteToken()
-  await admin.from("invites").insert({
+  const { error: inviteError } = await admin.from("invites").insert({
     org_id: org.id,
     email,
     role: "teacher",
     token,
   })
+  if (inviteError) {
+    console.error("teacher invite insert failed", inviteError)
+    throw new Error("Invite insert failed")
+  }
 
   await sendInviteEmail(email, token, org.name ?? org.slug, "teacher", slug)
 
