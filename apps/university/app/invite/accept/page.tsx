@@ -23,20 +23,30 @@ const buildSubdomainHost = (orgSlug: string, domain?: string | null) => {
   return `${orgSlug}.${normalized}`
 }
 
-const buildPostInviteRedirect = (orgSlug?: string | null) => {
-  if (explicitBaseUrl) {
-    return `${normalizeBaseUrl(explicitBaseUrl)}/login`
+const buildPostInviteRedirect = (orgSlug: string | null | undefined, role: string) => {
+  const normalizedBase = normalizeBaseUrl(explicitBaseUrl)
+  const isStudent = role === "student"
+  const isAdmin = role === "org_admin"
+  const subdomainPath = isAdmin ? "/admin" : isStudent ? "/student" : "/teacher"
+  const pathWithSlug = isAdmin
+    ? `/org/${orgSlug ?? ""}/admin`
+    : isStudent
+      ? `/org/${orgSlug ?? ""}/student`
+      : "/teacher/dashboard"
+
+  if (normalizedBase) {
+    return `${normalizedBase}${pathWithSlug}`
   }
   if (inviteHost) {
-    return `https://${inviteHost}/login`
+    return `https://${inviteHost}${subdomainPath}`
   }
   if (baseDomain && orgSlug) {
     const host = buildSubdomainHost(orgSlug, baseDomain)
     if (host) {
-      return `https://${host}/login`
+      return `https://${host}${subdomainPath}`
     }
   }
-  return "/login"
+  return pathWithSlug
 }
 
 async function generateClassroomCode(admin: ReturnType<typeof createSupabaseAdminClient>): Promise<string> {
@@ -167,7 +177,7 @@ async function acceptInvite(formData: FormData) {
   }
 
   revalidatePath("/")
-  redirect(buildPostInviteRedirect(org?.slug ?? null))
+  redirect(buildPostInviteRedirect(org?.slug ?? null, invite.role))
 }
 
 export default async function InviteAcceptPage({ searchParams }: InviteAcceptProps) {
