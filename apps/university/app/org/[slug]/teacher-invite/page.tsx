@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
-import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabaseServer"
+import { createSupabaseAdminClient } from "@/lib/supabaseServer"
+import { generateInviteToken, sendInviteEmail } from "@/lib/emailInvites"
 
 interface TeacherInvitePageProps {
   params: { slug: string }
@@ -9,20 +10,26 @@ interface TeacherInvitePageProps {
 async function sendTeacherInvite(slug: string, email: string) {
   "use server"
   const admin = createSupabaseAdminClient()
-  const supabase = createSupabaseServerClient()
 
   // fetch org by slug using service role (bypass RLS for public invite page)
-  const { data: org, error: orgError } = await admin.from("organizations").select("id, slug").eq("slug", slug).maybeSingle()
+  const { data: org, error: orgError } = await admin
+    .from("organizations")
+    .select("id, slug, name")
+    .eq("slug", slug)
+    .maybeSingle()
   if (orgError || !org) {
     throw new Error("Organization not found")
   }
 
-  const invite = await admin.auth.admin.inviteUserByEmail(email)
-  const userId = invite.data.user?.id
-  if (userId) {
-    // bypass RLS using admin client to ensure membership is created
-    await admin.from("org_members").upsert({ org_id: org.id, user_id: userId, role: "teacher" })
-  }
+  const token = generateInviteToken()
+  await admin.from("invites").insert({
+    org_id: org.id,
+    email,
+    role: "teacher",
+    token,
+  })
+
+  await sendInviteEmail(email, token, org.name ?? org.slug, "teacher", slug)
 
   redirect(`/org/${slug}/teacher-invite?success=1`)
 }
@@ -37,12 +44,12 @@ export default function TeacherInvitePage({ params, searchParams }: TeacherInvit
           <p className="text-sm uppercase tracking-wide text-muted-foreground">Teacher onboarding</p>
           <h1 className="text-2xl font-bold">Join as a teacher</h1>
           <p className="text-sm text-muted-foreground">
-            Enter your email to receive a magic link. This will create a teacher account for this university.
+            Enter your email to receive an invite link. You will set your password after opening the link.
           </p>
         </div>
         {success && (
           <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-            Invite sent. Check your email for a magic link.
+            Invite sent. Check your email to set your password.
           </div>
         )}
         <form
