@@ -1,4 +1,6 @@
 import crypto from "crypto"
+import { render } from "@react-email/render"
+import InviteEmail from "@/emails/InviteEmail"
 
 const resendKey = process.env.RESEND_API_KEY
 const inviteFromEmail = process.env.INVITE_FROM_EMAIL || process.env.NEXT_PUBLIC_INVITE_FROM_EMAIL
@@ -42,6 +44,20 @@ const buildInviteLink = (token: string, orgSlug: string) => {
   return `${normalized}/invite/accept?token=${token}`
 }
 
+const buildAssetBaseUrl = (orgSlug: string) => {
+  if (explicitBaseUrl) {
+    return normalizeBaseUrl(explicitBaseUrl)
+  }
+  if (inviteHost) {
+    return `https://${inviteHost}`
+  }
+  if (baseDomain) {
+    const host = buildSubdomainHost(orgSlug, baseDomain)
+    if (host) return `https://${host}`
+  }
+  return normalizeBaseUrl(baseUrl)
+}
+
 export function generateInviteToken() {
   return crypto.randomUUID().replace(/-/g, "") + crypto.randomBytes(8).toString("hex")
 }
@@ -60,13 +76,16 @@ export async function sendInviteEmail(
 
   const link = buildInviteLink(token, orgSlug)
   const roleLabel = role === "org_admin" ? "org admin" : role
+  const logoUrl = `${buildAssetBaseUrl(orgSlug)}/images/logo_black.svg`
   const subject =
     role === "teacher"
       ? `You're invited to teach at ${orgName}`
       : role === "org_admin"
         ? `You're invited to administer ${orgName}`
         : `You're invited to join ${orgName}`
-  const html = `<p>You have been invited to ${orgName} as a ${roleLabel}. Click the link below to set your password and join.</p><p><a href="${link}">${link}</a></p>`
+  const html = render(
+    InviteEmail({ orgName, roleLabel, inviteUrl: link, logoUrl })
+  )
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
