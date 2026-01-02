@@ -95,11 +95,39 @@ async function acceptInvite(formData: FormData) {
     user_metadata: { name },
   })
 
-  if (signUpError || !signUpData.user) {
+  let userId = signUpData.user?.id ?? null
+  let usedExistingUser = false
+
+  if (!userId) {
+    if (signUpError) {
+      console.error("invite signup error:", signUpError)
+    }
+
+    const { data: existingLookup, error: existingError } = await admin.auth.admin.getUserByEmail(email)
+    if (existingError) {
+      console.error("invite lookup existing user error:", existingError)
+    }
+    const existingUser = existingLookup?.user
+    if (!existingUser) {
+      redirect(`/invite/accept?token=${encodeURIComponent(token)}&error=signup`)
+    }
+
+    userId = existingUser.id
+    usedExistingUser = true
+    const { error: updateError } = await admin.auth.admin.updateUserById(userId, {
+      password,
+      email_confirm: true,
+      user_metadata: { name },
+    })
+    if (updateError) {
+      console.error("invite update user error:", updateError)
+    }
+  }
+
+  if (!userId) {
     redirect(`/invite/accept?token=${encodeURIComponent(token)}&error=signup`)
   }
 
-  const userId = signUpData.user.id
   let classroomId: string | null = null
   if (invite.role === "student" && invite.teacherId) {
     const classroom = await ensureTeacherClassroom(admin, invite.teacherId)
