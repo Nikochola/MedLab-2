@@ -4,6 +4,7 @@ import { resolveTenant } from "@/lib/tenant"
 import { createSupabaseServerClient } from "@/lib/supabaseServer"
 import type { OrgMember } from "@/lib/types"
 import { assignStudentTeacher, bulkInviteAction, inviteMemberAction, removeMember, updateMemberRole } from "./actions"
+import { BulkInviteUploader } from "./BulkInviteUploader"
 
 interface OrgMembersPageProps {
   params: { slug: string }
@@ -192,24 +193,12 @@ export default async function OrgMembersPage({ params, searchParams }: OrgMember
             An invite email will be sent. If the user already exists, they are added immediately.
           </p>
           <div className="border-t border-border pt-4 space-y-2">
-            <h3 className="text-sm font-semibold">Bulk invite (CSV or newline emails)</h3>
-            <form action={bulkInviteAction} className="space-y-2">
-              <input type="hidden" name="orgSlug" value={tenant.organization!.slug} />
-              <input type="hidden" name="orgId" value={tenant.organization!.id} />
-              <textarea
-                name="bulk_csv"
-                rows={5}
-                placeholder="email,full name,teacher name\nstudent1@uni.edu,Jane Doe,Dr. Smith"
-                className="w-full rounded-lg border border-input bg-white px-3 py-2 text-sm font-mono"
-              />
-              <button
-                type="submit"
-                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-3 py-2 text-white text-sm hover:bg-blue-700"
-              >
-                Send invites
-              </button>
-              <p className="text-xs text-muted-foreground">Format: email, full name, teacher name. Each row on a new line.</p>
-            </form>
+            <h3 className="text-sm font-semibold">Bulk invite (CSV upload)</h3>
+            <BulkInviteUploader
+              orgSlug={tenant.organization!.slug}
+              orgId={tenant.organization!.id}
+              action={bulkInviteAction}
+            />
           </div>
         </div>
 

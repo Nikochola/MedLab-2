@@ -75,9 +75,17 @@ export async function bulkInviteAction(formData: FormData) {
   const { data: teacherUsers } = teacherIds.length
     ? await supabase.from("users").select("id, name, email").in("id", teacherIds)
     : { data: [] }
-  const teacherMap = new Map<string, { id: string; name?: string | null; email?: string | null }>(
-    (teacherUsers ?? []).map((t) => [((t.name as string | null) ?? (t.email as string | null) ?? "").toLowerCase(), t as any])
-  )
+  const teacherMap = new Map<string, { id: string; name?: string | null; email?: string | null }>()
+  for (const teacher of teacherUsers ?? []) {
+    const nameKey = ((teacher.name as string | null) ?? "").trim().toLowerCase()
+    const emailKey = ((teacher.email as string | null) ?? "").trim().toLowerCase()
+    if (emailKey && !teacherMap.has(emailKey)) {
+      teacherMap.set(emailKey, teacher as any)
+    }
+    if (nameKey && !teacherMap.has(nameKey)) {
+      teacherMap.set(nameKey, teacher as any)
+    }
+  }
 
   const rows = raw
     .split(/\n+/)
@@ -88,8 +96,8 @@ export async function bulkInviteAction(formData: FormData) {
   const entries = rows
     .filter((cols) => cols.length >= 3)
     .map((cols) => {
-      const teacherNameRaw = cols[2] || ""
-      const teacherMatch = teacherMap.get(teacherNameRaw.toLowerCase()) || null
+      const teacherIdentifier = cols[2] || ""
+      const teacherMatch = teacherMap.get(teacherIdentifier.toLowerCase()) || null
       return {
         email: cols[0],
         name: cols[1],
