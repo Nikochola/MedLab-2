@@ -27,12 +27,12 @@ const buildPostInviteRedirect = (orgSlug: string | null | undefined, role: strin
   const normalizedBase = normalizeBaseUrl(explicitBaseUrl)
   const isStudent = role === "student"
   const isAdmin = role === "org_admin"
-  const subdomainPath = isAdmin ? "/admin" : isStudent ? "/student" : "/teacher/dashboard"
+  const subdomainPath = isAdmin ? "/admin" : isStudent ? "/ecg" : "/teacher/dashboard"
   const pathWithSlug = isAdmin
     ? `/org/${orgSlug ?? ""}/admin`
     : isStudent
-      ? `/org/${orgSlug ?? ""}/student`
-    : "/teacher/dashboard"
+      ? "/ecg"
+      : "/teacher/dashboard"
 
   if (normalizedBase) {
     return `${normalizedBase}${pathWithSlug}`
