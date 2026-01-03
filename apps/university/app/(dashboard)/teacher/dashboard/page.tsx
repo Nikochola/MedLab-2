@@ -116,6 +116,14 @@ export default function TeacherDashboardPage() {
     })
     return map
   }, [activities, caseSubmissions])
+  const hintCountMap = useMemo(() => {
+    const map = new Map<string, number>()
+    activities.forEach((activity) => {
+      if (activity.activityType !== "hint") return
+      map.set(activity.studentId, (map.get(activity.studentId) ?? 0) + 1)
+    })
+    return map
+  }, [activities])
   const avgCompletionRate = useMemo(() => {
     const simulationAttempts = activities.filter(
       (activity) => activity.activityType === "simulation" && typeof activity.data?.correct === "boolean"
@@ -359,10 +367,11 @@ export default function TeacherDashboardPage() {
                     <div className="overflow-hidden rounded-xl border border-border bg-white">
                       <div className="grid grid-cols-12 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-700">
                         <div className="col-span-3">Student</div>
-                        <div className="col-span-3">Email</div>
+                        <div className="col-span-2">Email</div>
                         <div className="col-span-2">Class</div>
                         <div className="col-span-1">Sims</div>
                         <div className="col-span-1">Cases</div>
+                        <div className="col-span-1">Hints</div>
                         <div className="col-span-1">Last activity</div>
                         <div className="col-span-1 text-right">Actions</div>
                       </div>
@@ -375,7 +384,7 @@ export default function TeacherDashboardPage() {
                               <div className="col-span-3 font-semibold text-slate-900 truncate">
                                 {student.name || "Unnamed"}
                               </div>
-                              <div className="col-span-3 text-slate-600 truncate">{student.email ?? "—"}</div>
+                              <div className="col-span-2 text-slate-600 truncate">{student.email ?? "—"}</div>
                               <div className="col-span-2 text-slate-600 truncate">
                                 {student.classroomId
                                   ? classroomNameMap.get(student.classroomId) ?? "Unassigned"
@@ -387,6 +396,7 @@ export default function TeacherDashboardPage() {
                               <div className="col-span-1 text-slate-900">
                                 {assessmentCountMap.get(student.id) ?? student.progress.casesCompleted}
                               </div>
+                              <div className="col-span-1 text-slate-900">{hintCountMap.get(student.id) ?? 0}</div>
                               <div className="col-span-1 text-slate-600 text-xs">
                                 {lastActivity
                                   ? new Date(lastActivity).toLocaleDateString()
@@ -419,14 +429,15 @@ export default function TeacherDashboardPage() {
                             </div>
                             {isExpanded && (
                               <div className="border-t border-border bg-slate-50/40 px-4 py-4">
-                                <StudentDetail
-                                  student={student.progress}
-                                  activities={activities.filter((a) => a.studentId === student.id)}
-                                  assessments={caseSubmissions.filter((s) => s.studentId === student.id)}
-                                  onDownload={handleDownload}
-                                />
-                              </div>
-                            )}
+                                  <StudentDetail
+                                    student={student.progress}
+                                    activities={activities.filter((a) => a.studentId === student.id)}
+                                    assessments={caseSubmissions.filter((s) => s.studentId === student.id)}
+                                    onDownload={handleDownload}
+                                    hintCount={hintCountMap.get(student.id) ?? 0}
+                                  />
+                                </div>
+                              )}
                           </Fragment>
                         )
                       })}
@@ -449,11 +460,13 @@ function StudentDetail({
   activities,
   assessments,
   onDownload,
+  hintCount,
 }: {
   student: StudentProgress
   activities: StudentActivity[]
   assessments: any[]
   onDownload: (submission: any) => void
+  hintCount: number
 }) {
   const simulationCount = activities.filter(
     (activity) =>
@@ -480,7 +493,7 @@ function StudentDetail({
   return (
     <div className="rounded-lg border border-border bg-white p-4">
       <h3 className="text-lg font-semibold mb-2">Detail: {student.studentName || "Student"}</h3>
-      <div className="grid gap-3 md:grid-cols-3 text-sm">
+      <div className="grid gap-3 md:grid-cols-4 text-sm">
         <div className="rounded border border-border bg-slate-50 p-3">
           <div className="text-xs text-muted-foreground">Simulations</div>
           <div className="text-xl font-semibold">{simulationCount}</div>
@@ -488,6 +501,10 @@ function StudentDetail({
         <div className="rounded border border-border bg-slate-50 p-3">
           <div className="text-xs text-muted-foreground">Cases</div>
           <div className="text-xl font-semibold">{caseCount}</div>
+        </div>
+        <div className="rounded border border-border bg-slate-50 p-3">
+          <div className="text-xs text-muted-foreground">Hints used</div>
+          <div className="text-xl font-semibold">{hintCount}</div>
         </div>
         <div className="rounded border border-border bg-slate-50 p-3">
           <div className="text-xs text-muted-foreground">Last activity</div>

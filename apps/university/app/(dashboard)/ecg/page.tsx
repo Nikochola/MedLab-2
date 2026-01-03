@@ -125,6 +125,24 @@ export default function ECGPage() {
     }
   }
 
+  const handleHintReveal = async (step: InterpretationStep, hintIndex: number, hintText: string) => {
+    if (!user || user.role !== "student") return
+    try {
+      await logStudentActivity({
+        studentId: user.id,
+        classroomId: user.classroomId ?? undefined,
+        activityType: "hint",
+        data: {
+          step,
+          hintIndex,
+          hint: hintText,
+        },
+      })
+    } catch (err) {
+      console.error("Hint tracking failed", err)
+    }
+  }
+
   const handleStepComplete = () => {
     const currentIndex = INTERPRETATION_STEPS.indexOf(currentStep)
     if (currentIndex < INTERPRETATION_STEPS.length - 1) {
@@ -166,6 +184,7 @@ export default function ECGPage() {
                   onStepComplete={handleStepComplete}
                   hints={hints}
                   ecgParams={ecgParams}
+                  onHintReveal={handleHintReveal}
                 />
               </div>
 

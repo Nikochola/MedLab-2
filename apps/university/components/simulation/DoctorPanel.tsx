@@ -14,6 +14,7 @@ interface DoctorPanelProps {
   onStepComplete: () => void
   hints: Record<InterpretationStep, string[]>
   ecgParams: ECGWaveformParams
+  onHintReveal?: (step: InterpretationStep, hintIndex: number, hintText: string) => void
 }
 
 export function DoctorPanel({
@@ -22,6 +23,7 @@ export function DoctorPanel({
   onStepComplete,
   hints,
   ecgParams,
+  onHintReveal,
 }: DoctorPanelProps) {
   const [answer, setAnswer] = useState("")
   const [feedback, setFeedback] = useState<{
@@ -40,7 +42,12 @@ export function DoctorPanel({
   const revealNextHint = () => {
     const availableHints = hints[currentStep] || []
     if (revealedHints.length >= 3 || revealedHints.length >= availableHints.length) return
-    setRevealedHints([...revealedHints, availableHints[revealedHints.length]])
+    const hintIndex = revealedHints.length
+    const nextHint = availableHints[hintIndex]
+    setRevealedHints([...revealedHints, nextHint])
+    if (onHintReveal && nextHint) {
+      onHintReveal(currentStep, hintIndex, nextHint)
+    }
   }
 
   const handleSubmit = async () => {

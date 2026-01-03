@@ -100,7 +100,8 @@ If the student's answer is clearly too short or nonsensical, mark it incorrect a
           explanation: "Use specific ECG terms (rate, rhythm, axis, ST-T changes) to support your answer.",
         }
       }
-      if (isCorrect && !answerMatchesContext(studentAnswer, correctAnswer, ecgContext)) {
+      const hasReferenceAnswer = Boolean(correctAnswer && correctAnswer.trim().length > 0)
+      if (isCorrect && hasReferenceAnswer && !answerMatchesContext(studentAnswer, correctAnswer, ecgContext)) {
         return {
           isCorrect: false,
           feedback: "Your answer doesn't match the ECG context. Please reference key findings (rate, rhythm, axis, ST-T changes).",
