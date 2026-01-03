@@ -32,6 +32,8 @@ export function Sidebar() {
   const [showAccount, setShowAccount] = useState(false)
   const [showBugReport, setShowBugReport] = useState(false)
   const [bugDetails, setBugDetails] = useState("")
+  const [bugScreenshot, setBugScreenshot] = useState<File | null>(null)
+  const [bugStatus, setBugStatus] = useState<"idle" | "sending" | "sent" | "error">("idle")
 
   return (
     <aside
@@ -135,21 +137,72 @@ export function Sidebar() {
               placeholder="What happened? Steps to reproduce, screenshots/URLs if relevant."
               value={bugDetails}
               onChange={(e) => setBugDetails(e.target.value)}
+              disabled={bugStatus === "sending"}
             />
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground">Screenshot (optional)</label>
+              <input
+                type="file"
+                accept="image/*"
+                className="block w-full text-xs text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-1.5 file:text-xs file:font-medium"
+                onChange={(event) => setBugScreenshot(event.target.files?.[0] ?? null)}
+                disabled={bugStatus === "sending"}
+              />
+              {bugScreenshot && (
+                <p className="text-xs text-muted-foreground">Attached: {bugScreenshot.name}</p>
+              )}
+            </div>
+            {bugStatus === "sent" && (
+              <p className="text-xs text-green-600">Report sent. Thank you!</p>
+            )}
+            {bugStatus === "error" && (
+              <p className="text-xs text-red-600">Could not send report. Please try again.</p>
+            )}
           </div>
-          <DialogFooter className="flex flex-row justify-between sm:justify-between">
-            <Button variant="ghost" onClick={() => setShowBugReport(false)}>
-              Cancel
-            </Button>
+          <DialogFooter className="flex flex-row justify-end sm:justify-end">
             <Button
               variant="outline"
-              onClick={() => {
-                const mailto = `mailto:nikolozchovelidze01@gmail.com?subject=${encodeURIComponent("MedLab Bug Report")}&body=${encodeURIComponent(bugDetails || "")}`
-                window.location.href = mailto
+              onClick={async () => {
+                if (!bugDetails.trim() || bugStatus === "sending") return
+                setBugStatus("sending")
+                try {
+                  const formData = new FormData()
+                  formData.append("message", bugDetails.trim())
+                  formData.append("url", window.location.href)
+                  formData.append("userAgent", navigator.userAgent)
+                  if (user) {
+                    formData.append(
+                      "user",
+                      JSON.stringify({
+                        id: user.id,
+                        email: user.email,
+                        name: user.name,
+                        role: user.role,
+                      })
+                    )
+                  }
+                  if (bugScreenshot) {
+                    formData.append("screenshot", bugScreenshot, bugScreenshot.name)
+                  }
+                  const res = await fetch("/api/bug-report", {
+                    method: "POST",
+                    body: formData,
+                  })
+                  if (!res.ok) {
+                    throw new Error("Bug report failed")
+                  }
+                  setBugDetails("")
+                  setBugScreenshot(null)
+                  setBugStatus("sent")
+                  setTimeout(() => setBugStatus("idle"), 2500)
+                } catch (error) {
+                  console.error(error)
+                  setBugStatus("error")
+                }
               }}
-              disabled={!bugDetails.trim()}
+              disabled={!bugDetails.trim() || bugStatus === "sending"}
             >
-              Send
+              {bugStatus === "sent" ? "Sent" : bugStatus === "sending" ? "Sending..." : "Send"}
             </Button>
           </DialogFooter>
         </DialogContent>
