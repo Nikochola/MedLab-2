@@ -97,6 +97,13 @@ If the student's answer is clearly too short or nonsensical, mark it incorrect a
           explanation: "Use specific ECG terms (rate, rhythm, axis, ST-T changes) to support your answer.",
         }
       }
+      if (isCorrect && !answerMatchesContext(studentAnswer, correctAnswer, ecgContext)) {
+        return {
+          isCorrect: false,
+          feedback: "Your answer doesn't match the ECG context. Please reference key findings (rate, rhythm, axis, ST-T changes).",
+          explanation: "Re-check the ECG and include specific terms that support your interpretation.",
+        }
+      }
       return {
         isCorrect,
         feedback,
@@ -205,22 +212,22 @@ Rules:
           : "Review the ECG details and compare with guideline-based interpretations.",
       }
 
-      if (structuredAssessment && (!aiFeedback.improvements || aiFeedback.improvements.length === 0)) {
-        aiFeedback.improvements = generateDefaultImprovements(structuredAssessment)
-      }
+      const strengthened = structuredAssessment
+        ? strengthenFeedback(aiFeedback, structuredAssessment)
+        : aiFeedback
 
       const hasContent =
-        aiFeedback.strengths.length ||
-        aiFeedback.corrections.length ||
-        aiFeedback.improvements.length ||
-        aiFeedback.resources.length ||
-        (aiFeedback.summary && aiFeedback.summary.trim().length > 0)
+        strengthened.strengths.length ||
+        strengthened.corrections.length ||
+        strengthened.improvements.length ||
+        strengthened.resources.length ||
+        (strengthened.summary && strengthened.summary.trim().length > 0)
 
       if (!hasContent && structuredAssessment) {
         return buildRuleBasedFeedback(structuredAssessment)
       }
 
-      return aiFeedback
+      return strengthened
     }
 
     if (structuredAssessment) {
@@ -453,6 +460,28 @@ function isLowQualityAnswer(answer: string) {
   return false
 }
 
+function extractKeywords(value?: string | null) {
+  if (!value) return []
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9\\s-]/g, " ")
+    .split(/\\s+/)
+    .filter((token) => token.length >= 3)
+}
+
+function answerMatchesContext(answer: string, correctAnswer?: string, ecgContext?: string) {
+  const normalized = answer.toLowerCase()
+  if (hasMedicalKeyword(normalized)) return true
+
+  const expectedTokens = new Set([
+    ...extractKeywords(correctAnswer),
+    ...extractKeywords(ecgContext),
+  ])
+  if (expectedTokens.size === 0) return true
+
+  return Array.from(expectedTokens).some((token) => normalized.includes(token))
+}
+
 function isMeaningfulEntry(value?: string | null) {
   if (!value) return false
   const normalized = value.trim()
@@ -481,4 +510,31 @@ function isLowQualityAssessment(assessment: StructuredAssessment) {
     : false
 
   return meaningfulCount < 2 && !hasWaveformFlags && !hasChamberFlags
+}
+
+function dedupe(items: string[]) {
+  const seen = new Set<string>()
+  const output: string[] = []
+  for (const item of items) {
+    const key = item.trim().toLowerCase()
+    if (!key || seen.has(key)) continue
+    seen.add(key)
+    output.push(item)
+  }
+  return output
+}
+
+function strengthenFeedback(aiFeedback: CaseFeedback, assessment: StructuredAssessment) {
+  const baseline = buildRuleBasedFeedback(assessment)
+  const strengths = dedupe([...(aiFeedback.strengths || []), ...baseline.strengths])
+  const corrections = dedupe([...(aiFeedback.corrections || []), ...baseline.corrections])
+  const improvements = dedupe([...(aiFeedback.improvements || []), ...baseline.improvements])
+
+  return {
+    strengths,
+    corrections: corrections.slice(0, Math.max(2, corrections.length)),
+    improvements: improvements.slice(0, Math.max(2, improvements.length)),
+    resources: aiFeedback.resources?.length ? aiFeedback.resources : baseline.resources,
+    summary: aiFeedback.summary || baseline.summary,
+  }
 }
