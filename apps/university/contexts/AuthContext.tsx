@@ -202,11 +202,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const orgRelation = (memberships?.[0] as any)?.organizations
     const slug = Array.isArray(orgRelation) ? orgRelation[0]?.slug : orgRelation?.slug
 
-    if (slug) {
-      router.push(`/org/${slug}/student`)
-    } else {
-      router.push("/ecg")
-    }
+    router.push("/ecg")
 
     return { success: true }
   }
