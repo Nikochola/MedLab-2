@@ -14,7 +14,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Activity, ChevronDown, ChevronUp, Download, TrendingUp, Users } from "lucide-react"
+import { Activity, ChevronDown, ChevronUp, Download, Trash2, TrendingUp, Users } from "lucide-react"
 import jsPDF from "jspdf"
 import "jspdf-autotable"
 
@@ -249,14 +249,14 @@ export default function TeacherDashboardPage() {
     (p) => p.lastActivity && Date.now() - new Date(p.lastActivity).getTime() < 7 * 24 * 60 * 60 * 1000
   ).length
 
-  const avgCompletionRate =
-    studentProgress.length > 0
-      ? studentProgress.reduce((sum, p) => {
-          const totalSteps = Object.values(p.stepsAttempted).reduce((s, step) => s + step.attempts, 0)
-          const correctSteps = Object.values(p.stepsAttempted).reduce((s, step) => s + step.correct, 0)
-          return sum + (totalSteps > 0 ? correctSteps / totalSteps : 0)
-        }, 0) / studentProgress.length
-      : 0
+  const avgCompletionRate = useMemo(() => {
+    const simulationAttempts = activities.filter(
+      (activity) => activity.activityType === "simulation" && typeof activity.data?.correct === "boolean"
+    )
+    if (!simulationAttempts.length) return 0
+    const correct = simulationAttempts.filter((activity) => activity.data?.correct).length
+    return correct / simulationAttempts.length
+  }, [activities])
 
   const progressMap = new Map(studentProgress.map((p) => [p.studentId, p]))
   const studentList: StudentWithProgress[] = students.map((student) => ({
@@ -357,87 +357,80 @@ export default function TeacherDashboardPage() {
                 </CardHeader>
                 <CardContent>
                   {studentList.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm border-separate border-spacing-y-2">
-                        <thead className="text-xs uppercase text-muted-foreground">
-                          <tr>
-                            <th className="text-left px-3 py-2">Student</th>
-                            <th className="text-left px-3 py-2">Email</th>
-                            <th className="text-left px-3 py-2">Class</th>
-                            <th className="text-left px-3 py-2">Sims</th>
-                            <th className="text-left px-3 py-2">Cases</th>
-                            <th className="text-left px-3 py-2">Last activity</th>
-                            <th className="text-right px-3 py-2">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {studentList.map((student) => {
-                            const isExpanded = expandedStudentId === student.id
-                            const lastActivity = lastActivityMap.get(student.id)
-                            return (
-                              <Fragment key={student.id}>
-                                <tr className="bg-white border border-border rounded-lg">
-                                  <td className="px-3 py-3 font-semibold text-foreground">
-                                    {student.name || "Unnamed"}
-                                  </td>
-                                  <td className="px-3 py-3 text-muted-foreground">{student.email ?? "—"}</td>
-                                  <td className="px-3 py-3 text-muted-foreground">
-                                    {student.classroomId
-                                      ? classroomNameMap.get(student.classroomId) ?? "Unassigned"
-                                      : "Unassigned"}
-                                  </td>
-                                  <td className="px-3 py-3">
-                                    {simulationCountMap.get(student.id) ?? student.progress.simulationsCompleted}
-                                  </td>
-                                  <td className="px-3 py-3">
-                                    {assessmentCountMap.get(student.id) ?? student.progress.casesCompleted}
-                                  </td>
-                                  <td className="px-3 py-3 text-muted-foreground">
-                                    {lastActivity
-                                      ? new Date(lastActivity).toLocaleDateString()
-                                      : student.progress.lastActivity
-                                      ? new Date(student.progress.lastActivity).toLocaleDateString()
-                                      : "—"}
-                                  </td>
-                                  <td className="px-3 py-3 text-right space-x-2">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="gap-2"
-                                      onClick={() =>
-                                        setExpandedStudentId((prev) => (prev === student.id ? null : student.id))
-                                      }
-                                    >
-                                      {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                                      {isExpanded ? "Hide" : "Analytics"}
-                                    </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => handleRemoveStudent(student.id, student.classroomId ?? null)}
-                                      disabled={removingStudentId === student.id}
-                                    >
-                                      {removingStudentId === student.id ? "Removing..." : "Remove"}
-                                    </Button>
-                                  </td>
-                                </tr>
-                                {isExpanded && (
-                                  <tr>
-                                    <td colSpan={7} className="px-3 pb-4">
-                                      <StudentDetail
-                                        student={student.progress}
-                                        activities={activities.filter((a) => a.studentId === student.id)}
-                                        assessments={caseSubmissions.filter((s) => s.studentId === student.id)}
-                                        onDownload={handleDownload}
-                                      />
-                                    </td>
-                                  </tr>
-                                )}
-                              </Fragment>
-                            )
-                          })}
-                        </tbody>
-                      </table>
+                    <div className="overflow-hidden rounded-xl border border-border bg-white">
+                      <div className="grid grid-cols-12 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-700">
+                        <div className="col-span-3">Student</div>
+                        <div className="col-span-3">Email</div>
+                        <div className="col-span-2">Class</div>
+                        <div className="col-span-1">Sims</div>
+                        <div className="col-span-1">Cases</div>
+                        <div className="col-span-1">Last activity</div>
+                        <div className="col-span-1 text-right">Actions</div>
+                      </div>
+                      {studentList.map((student) => {
+                        const isExpanded = expandedStudentId === student.id
+                        const lastActivity = lastActivityMap.get(student.id)
+                        return (
+                          <Fragment key={student.id}>
+                            <div className="grid grid-cols-12 items-center border-t border-border px-4 py-3 text-sm">
+                              <div className="col-span-3 font-semibold text-slate-900 truncate">
+                                {student.name || "Unnamed"}
+                              </div>
+                              <div className="col-span-3 text-slate-600 truncate">{student.email ?? "—"}</div>
+                              <div className="col-span-2 text-slate-600 truncate">
+                                {student.classroomId
+                                  ? classroomNameMap.get(student.classroomId) ?? "Unassigned"
+                                  : "Unassigned"}
+                              </div>
+                              <div className="col-span-1 text-slate-900">
+                                {simulationCountMap.get(student.id) ?? student.progress.simulationsCompleted}
+                              </div>
+                              <div className="col-span-1 text-slate-900">
+                                {assessmentCountMap.get(student.id) ?? student.progress.casesCompleted}
+                              </div>
+                              <div className="col-span-1 text-slate-600 text-xs">
+                                {lastActivity
+                                  ? new Date(lastActivity).toLocaleDateString()
+                                  : student.progress.lastActivity
+                                  ? new Date(student.progress.lastActivity).toLocaleDateString()
+                                  : "—"}
+                              </div>
+                              <div className="col-span-1 flex items-center justify-end gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="gap-2"
+                                  onClick={() =>
+                                    setExpandedStudentId((prev) => (prev === student.id ? null : student.id))
+                                  }
+                                >
+                                  {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                  {isExpanded ? "Hide" : "Analytics"}
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="icon"
+                                  onClick={() => handleRemoveStudent(student.id, student.classroomId ?? null)}
+                                  disabled={removingStudentId === student.id}
+                                  aria-label="Remove student"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                            {isExpanded && (
+                              <div className="border-t border-border bg-slate-50/40 px-4 py-4">
+                                <StudentDetail
+                                  student={student.progress}
+                                  activities={activities.filter((a) => a.studentId === student.id)}
+                                  assessments={caseSubmissions.filter((s) => s.studentId === student.id)}
+                                  onDownload={handleDownload}
+                                />
+                              </div>
+                            )}
+                          </Fragment>
+                        )
+                      })}
                     </div>
                   ) : (
                     <p className="text-muted-foreground">No students enrolled yet.</p>
