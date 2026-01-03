@@ -18,14 +18,6 @@ export default function LandingPage() {
             <div className="mb-8 flex justify-center">
               <Image src="/images/logo_black.svg" alt="MedLab Logo" width={150} height={50} />
             </div>
-            <div className="flex justify-center">
-              <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
-                Official Beta
-              </span>
-              <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary ml-2">
-                TSMU Version
-              </span>
-            </div>
           </div>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
             Master ECG
@@ -41,17 +33,10 @@ export default function LandingPage() {
             <Button
               size="lg"
               variant="tritary"
-              onClick={() => router.push("/student/register")}
+              onClick={() => router.push("/login")}
             >
-              Student Sign Up
+              Log in
               <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-            <Button
-              size="lg"
-              onClick={() => router.push("/teacher/register")}
-              variant="default"
-            >
-              Teacher Sign Up
             </Button>
           </div>
         </div>
@@ -124,29 +109,10 @@ export default function LandingPage() {
             </CardContent>
           </Card>
         </div>
-
-        {/* CTA Section */}
-        <div className="text-center mt-24">
-          <Card className="max-w-2xl mx-auto bg-white border-blue-200 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-3xl">Ready to start learning?</CardTitle>
-              <CardDescription className="text-lg">
-                Join thousands of medical students mastering ECG interpretation
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button
-                size="lg"
-                onClick={() => router.push("/student/register")}
-                variant="tritary"
-                className="w-full md:w-auto text-lg px-8 py-6"
-              >
-                Start Learning Now
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+        <div className="container mx-auto px-4 py-16"> <p className="text-center text-sm text-muted-foreground">
+        © 2026 ForECGLearner & MedLab Interactive. All rights reserved.
+        </p></div>
+       
       </div>
     </div>
   )
