@@ -344,7 +344,7 @@ function buildRuleBasedFeedback(assessment: StructuredAssessment): CaseFeedback 
 
   // Diagnosis
   if (isMeaningfulEntry(assessment.diagnosis)) {
-    strengths.push(`Provided a working diagnosis: ${assessment.diagnosis.trim()}.`)
+    strengths.push(`Provided a working diagnosis: ${assessment.diagnosis?.trim()}.`)
   } else {
     improvements.push("State a synthesis/diagnosis tying rate, rhythm, intervals, and ST-T changes together.")
   }
