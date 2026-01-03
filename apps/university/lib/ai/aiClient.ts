@@ -71,18 +71,36 @@ Format your response as JSON:
   "explanation": "Educational explanation about the concept"
 }
 
-Be encouraging and educational. If the answer is partially correct, acknowledge what's right and guide them to the complete answer.`
+Be encouraging and educational. If the answer is partially correct, acknowledge what's right and guide them to the complete answer.
+If the student's answer is clearly too short or nonsensical, mark it incorrect and ask for a meaningful ECG interpretation.`
 
   try {
+    if (isLowQualityAnswer(studentAnswer)) {
+      return {
+        isCorrect: false,
+        feedback: "Your answer is too short to evaluate. Please provide a meaningful ECG interpretation.",
+        explanation: "Try using standard ECG terminology (e.g., rhythm, axis, ST-T changes) so I can assess it accurately.",
+      }
+    }
     const response = await generateAIResponse(prompt)
     // Parse JSON from response (might have markdown formatting)
     const jsonMatch = response.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0])
+      const isCorrect = Boolean(parsed.isCorrect)
+      const feedback = parsed.feedback || "Thank you for your answer."
+      const explanation = parsed.explanation || ""
+      if (isCorrect && isLowQualityAnswer(studentAnswer)) {
+        return {
+          isCorrect: false,
+          feedback: "Your answer is too short to evaluate. Please provide a meaningful ECG interpretation.",
+          explanation: "Use specific ECG terms (rate, rhythm, axis, ST-T changes) to support your answer.",
+        }
+      }
       return {
-        isCorrect: parsed.isCorrect || false,
-        feedback: parsed.feedback || "Thank you for your answer.",
-        explanation: parsed.explanation || "",
+        isCorrect,
+        feedback,
+        explanation,
       }
     }
     // Fallback if JSON parsing fails
@@ -129,6 +147,9 @@ export async function generateCaseFeedback(
   ecgFindings: string
 ): Promise<CaseFeedback> {
   const structuredAssessment = parseStructuredAssessment(studentAssessment)
+  if (structuredAssessment && isLowQualityAssessment(structuredAssessment)) {
+    return buildRuleBasedFeedback(structuredAssessment)
+  }
 
   const prompt = `You are an expert cardiologist reviewing a medical student's ECG interpretation.
 
@@ -139,6 +160,8 @@ Student's structured assessment (use this as the source of truth):
 ${studentAssessment}
 
 Provide feedback that DIRECTLY references the student's specific entries (rate, rhythm, intervals, axis, hypertrophy/atrial findings, waveform abnormalities, final diagnosis). Highlight correct measurements/interpretations and point out any mismatches with typical ECG norms or likely diagnoses. Do not invent findings that are not in the student's assessment.
+If any section is blank, too short, or nonsensical, call it out explicitly in corrections and improvements.
+When there are missing or weak sections, include at least 2 corrections and 2 improvements with actionable guidance.
 
 Return ONLY valid JSON with this shape:
 {
@@ -246,7 +269,7 @@ function buildRuleBasedFeedback(assessment: StructuredAssessment): CaseFeedback 
   }
 
   // Rhythm
-  if (assessment.rhythm?.trim()) {
+  if (isMeaningfulEntry(assessment.rhythm)) {
     strengths.push(`Documented rhythm: ${assessment.rhythm.trim()}.`)
   } else {
     improvements.push("State the rhythm explicitly (e.g., NSR, AF with RVR).")
@@ -285,7 +308,7 @@ function buildRuleBasedFeedback(assessment: StructuredAssessment): CaseFeedback 
   }
 
   // Axis
-  if (assessment.axis) {
+  if (isMeaningfulEntry(assessment.axis)) {
     if (assessment.axis === "normal") strengths.push("Axis reported as normal.")
     if (assessment.axis === "left") corrections.push("Left axis deviation noted—correlate with possible LAFB or LVH.")
     if (assessment.axis === "right") corrections.push("Right axis deviation noted—consider RV strain, PE, or RAD pattern.")
@@ -316,7 +339,7 @@ function buildRuleBasedFeedback(assessment: StructuredAssessment): CaseFeedback 
   }
 
   // Diagnosis
-  if (assessment.diagnosis?.trim()) {
+  if (isMeaningfulEntry(assessment.diagnosis)) {
     strengths.push(`Provided a working diagnosis: ${assessment.diagnosis.trim()}.`)
   } else {
     improvements.push("State a synthesis/diagnosis tying rate, rhythm, intervals, and ST-T changes together.")
@@ -383,4 +406,79 @@ function getGenericFallback(): CaseFeedback {
     resources: [],
     summary: "Unable to generate detailed feedback right now. Try again in a moment.",
   }
+}
+
+const medicalKeywords = [
+  "nsr",
+  "sinus",
+  "af",
+  "afib",
+  "a-fib",
+  "vf",
+  "vt",
+  "svt",
+  "brady",
+  "tachy",
+  "stemi",
+  "nstemi",
+  "st elevation",
+  "st depression",
+  "lad",
+  "rad",
+  "bbb",
+  "rbbb",
+  "lbbb",
+  "block",
+  "axis",
+  "rhythm",
+]
+
+function hasMedicalKeyword(answer: string) {
+  const normalized = answer.toLowerCase()
+  return medicalKeywords.some((keyword) => normalized.includes(keyword))
+}
+
+function isLowQualityAnswer(answer: string) {
+  const normalized = answer.trim().toLowerCase()
+  if (!normalized) return true
+  const cleaned = normalized.replace(/[^a-z0-9]/g, "")
+  if (!cleaned) return true
+  if (/^(.)\\1+$/.test(cleaned)) return true
+  if (cleaned.length < 3) {
+    return !hasMedicalKeyword(normalized)
+  }
+  if (cleaned.length < 5 && !hasMedicalKeyword(normalized)) {
+    return true
+  }
+  return false
+}
+
+function isMeaningfulEntry(value?: string | null) {
+  if (!value) return false
+  const normalized = value.trim()
+  if (!normalized) return false
+  if (normalized.length < 3) return false
+  if (/^(.)\\1+$/.test(normalized.replace(/\\s+/g, ""))) return false
+  return true
+}
+
+function isLowQualityAssessment(assessment: StructuredAssessment) {
+  const textFields = [
+    assessment.rate,
+    assessment.rhythm,
+    assessment.prInterval,
+    assessment.qrsInterval,
+    assessment.qtInterval,
+    assessment.axis,
+    assessment.diagnosis,
+  ]
+  const meaningfulCount = textFields.filter((value) => isMeaningfulEntry(value)).length
+  const hasWaveformFlags = assessment.waveformAbnormalities
+    ? Object.values(assessment.waveformAbnormalities).some(Boolean)
+    : false
+  const hasChamberFlags = assessment.chamberEnlargement
+    ? Object.values(assessment.chamberEnlargement).some(Boolean)
+    : false
+
+  return meaningfulCount < 2 && !hasWaveformFlags && !hasChamberFlags
 }
