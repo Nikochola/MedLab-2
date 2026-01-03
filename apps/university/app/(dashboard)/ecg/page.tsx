@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
-import { logStudentActivity } from "@/lib/studentTracking"
+import { logStudentActivity, upsertStudentProgress } from "@/lib/studentTracking"
 import { ECGDisplay } from "@/components/ecg/ECGDisplay"
 import { DoctorPanel } from "@/components/simulation/DoctorPanel"
 import { PatientCasePanel } from "@/components/case-based/PatientCasePanel"
@@ -56,8 +56,17 @@ export default function ECGPage() {
     let isCorrect = false
     let message = ""
     let explanation: string | undefined
+    const ruleBased = validateAnswer(currentStep, answer, ecgParams)
+    const isNumeric = Boolean(answer.trim().match(/^\d+(\.\d+)?/))
 
     try {
+      if (currentStep === "heart-rate" && isNumeric) {
+        return {
+          isCorrect: ruleBased.isCorrect,
+          message: ruleBased.message,
+        }
+      }
+
       // Try AI-enhanced validation first
       const response = await fetch("/api/ai/validate", {
         method: "POST",
@@ -71,9 +80,14 @@ export default function ECGPage() {
       
       if (response.ok) {
         const aiResult = await response.json()
-        isCorrect = aiResult.isCorrect
-        message = aiResult.feedback
-        explanation = aiResult.explanation
+        if (!aiResult.isCorrect && ruleBased.isCorrect) {
+          isCorrect = ruleBased.isCorrect
+          message = ruleBased.message
+        } else {
+          isCorrect = aiResult.isCorrect
+          message = aiResult.feedback
+          explanation = aiResult.explanation
+        }
       }
     } catch (error) {
       console.error("AI validation failed, using rule-based:", error)
@@ -81,9 +95,8 @@ export default function ECGPage() {
     
     // Fallback to rule-based validation
     if (!message) {
-      const result = validateAnswer(currentStep, answer, ecgParams)
-      isCorrect = result.isCorrect
-      message = result.message
+      isCorrect = ruleBased.isCorrect
+      message = ruleBased.message
     }
 
     // Track student activity
@@ -117,6 +130,16 @@ export default function ECGPage() {
     if (currentIndex < INTERPRETATION_STEPS.length - 1) {
       setCurrentStep(INTERPRETATION_STEPS[currentIndex + 1])
     } else {
+      if (user && user.role === "student") {
+        upsertStudentProgress({
+          studentId: user.id,
+          studentName: user.name ?? "Student",
+          classroomId: user.classroomId ?? undefined,
+          deltaSimulations: 1,
+        }).catch((err) => {
+          console.error("Failed to update simulation progress", err)
+        })
+      }
       // All steps completed - restart
       setEcgParams(generateRandomECGParams())
       setCurrentStep(INTERPRETATION_STEPS[0])
@@ -154,20 +177,23 @@ export default function ECGPage() {
                       <h2 className="text-2xl font-bold">ECG SIMULATION</h2>
                       <div className="flex items-center gap-2">
                         <Button
-                          variant="default"
-                          size="icon"
+                          variant="outline"
+                          size="sm"
+                          className="gap-2"
                           onClick={() => nudgeZoom(0.25)}
                         >
                           <ZoomIn className="h-4 w-4" />
+                          Zoom in
                         </Button>
                         <Button
-                          variant="default"
-                          size="icon"
+                          variant="outline"
+                          size="sm"
+                          className="gap-2"
                           onClick={() => nudgeZoom(-0.25)}
                           disabled={!zoomEnabled}
-                          className={!zoomEnabled ? "opacity-50" : undefined}
                         >
                           <ZoomOut className="h-4 w-4" />
+                          Zoom out
                         </Button>
                       </div>
                     </div>
@@ -198,17 +224,19 @@ export default function ECGPage() {
                     <div className="flex items-center justify-between gap-3 mb-2 sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
                       <h2 className="text-2xl font-bold">MedLab ECG</h2>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon" onClick={() => nudgeZoom(0.25)}>
+                        <Button variant="outline" size="sm" className="gap-2" onClick={() => nudgeZoom(0.25)}>
                           <ZoomIn className="h-4 w-4" />
+                          Zoom in
                         </Button>
                         <Button
                           variant="outline"
-                          size="icon"
+                          size="sm"
+                          className="gap-2"
                           onClick={() => nudgeZoom(-0.25)}
                           disabled={!zoomEnabled}
-                          className={!zoomEnabled ? "opacity-50" : undefined}
                         >
                           <ZoomOut className="h-4 w-4" />
+                          Zoom out
                         </Button>
                       </div>
                     </div>

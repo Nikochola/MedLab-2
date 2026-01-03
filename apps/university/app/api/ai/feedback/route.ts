@@ -4,14 +4,9 @@ import { generateCaseFeedback } from "@/lib/ai/aiClient"
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { studentAssessment, patientCase, ecgFindings } = body
-
-    if (!studentAssessment || !patientCase || !ecgFindings) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      )
-    }
+    const studentAssessment = body?.studentAssessment ?? ""
+    const patientCase = body?.patientCase ?? ""
+    const ecgFindings = body?.ecgFindings ?? ""
 
     const feedback = await generateCaseFeedback(
       studentAssessment,
@@ -28,4 +23,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-

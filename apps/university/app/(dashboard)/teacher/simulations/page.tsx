@@ -55,8 +55,17 @@ export default function TeacherSimulationsPage() {
     let isCorrect = false
     let message = ""
     let explanation: string | undefined
+    const ruleBased = validateAnswer(currentStep, answer, ecgParams)
+    const isNumeric = Boolean(answer.trim().match(/^\d+(\.\d+)?/))
 
     try {
+      if (currentStep === "heart-rate" && isNumeric) {
+        return {
+          isCorrect: ruleBased.isCorrect,
+          message: ruleBased.message,
+        }
+      }
+
       // Try AI-enhanced validation first
       const response = await fetch("/api/ai/validate", {
         method: "POST",
@@ -70,9 +79,14 @@ export default function TeacherSimulationsPage() {
       
       if (response.ok) {
         const aiResult = await response.json()
-        isCorrect = aiResult.isCorrect
-        message = aiResult.feedback
-        explanation = aiResult.explanation
+        if (!aiResult.isCorrect && ruleBased.isCorrect) {
+          isCorrect = ruleBased.isCorrect
+          message = ruleBased.message
+        } else {
+          isCorrect = aiResult.isCorrect
+          message = aiResult.feedback
+          explanation = aiResult.explanation
+        }
       }
     } catch (error) {
       console.error("AI validation failed, using rule-based:", error)
@@ -80,9 +94,8 @@ export default function TeacherSimulationsPage() {
     
     // Fallback to rule-based validation
     if (!message) {
-      const result = validateAnswer(currentStep, answer, ecgParams)
-      isCorrect = result.isCorrect
-      message = result.message
+      isCorrect = ruleBased.isCorrect
+      message = ruleBased.message
     }
 
     return {
@@ -133,17 +146,19 @@ export default function TeacherSimulationsPage() {
                     <div className="flex items-center justify-between gap-3 mb-2 sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
                       <h2 className="text-2xl font-bold">ECG Lab (Instructor)</h2>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon" onClick={() => nudgeZoom(0.25)}>
+                        <Button variant="outline" size="sm" className="gap-2" onClick={() => nudgeZoom(0.25)}>
                           <ZoomIn className="h-4 w-4" />
+                          Zoom in
                         </Button>
                         <Button
                           variant="outline"
-                          size="icon"
+                          size="sm"
+                          className="gap-2"
                           onClick={() => nudgeZoom(-0.25)}
                           disabled={!zoomEnabled}
-                          className={!zoomEnabled ? "opacity-50" : undefined}
                         >
                           <ZoomOut className="h-4 w-4" />
+                          Zoom out
                         </Button>
                       </div>
                     </div>
@@ -174,24 +189,19 @@ export default function TeacherSimulationsPage() {
                     <div className="flex items-center justify-between gap-3 mb-2 sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
                       <h2 className="text-2xl font-bold">ECG Lab (Instructor)</h2>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon" onClick={() => nudgeZoom(0.25)}>
+                        <Button variant="outline" size="sm" className="gap-2" onClick={() => nudgeZoom(0.25)}>
                           <ZoomIn className="h-4 w-4" />
+                          Zoom in
                         </Button>
                         <Button
                           variant="outline"
-                          size="icon"
+                          size="sm"
+                          className="gap-2"
                           onClick={() => nudgeZoom(-0.25)}
                           disabled={!zoomEnabled}
-                          className={!zoomEnabled ? "opacity-50" : undefined}
                         >
                           <ZoomOut className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => setZoom((z) => (z > 1 ? 1 : 1.75))}
-                        >
-                          {zoom > 1 ? <ZoomOut className="h-4 w-4" /> : <ZoomIn className="h-4 w-4" />}
+                          Zoom out
                         </Button>
                       </div>
                     </div>

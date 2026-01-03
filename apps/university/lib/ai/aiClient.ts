@@ -52,6 +52,9 @@ export async function validateAnswerWithAI(
   feedback: string
   explanation: string
 }> {
+  const numericAnswer = extractFirstNumber(studentAnswer)
+  const allowShortNumeric = numericAnswer !== null && questionExpectsNumeric(question)
+
   const prompt = `You are an expert medical educator specializing in ECG interpretation. 
 
 Context: ${ecgContext}
@@ -75,7 +78,7 @@ Be encouraging and educational. If the answer is partially correct, acknowledge 
 If the student's answer is clearly too short or nonsensical, mark it incorrect and ask for a meaningful ECG interpretation.`
 
   try {
-    if (isLowQualityAnswer(studentAnswer)) {
+    if (!allowShortNumeric && isLowQualityAnswer(studentAnswer)) {
       return {
         isCorrect: false,
         feedback: "Your answer is too short to evaluate. Please provide a meaningful ECG interpretation.",
@@ -90,7 +93,7 @@ If the student's answer is clearly too short or nonsensical, mark it incorrect a
       const isCorrect = Boolean(parsed.isCorrect)
       const feedback = parsed.feedback || "Thank you for your answer."
       const explanation = parsed.explanation || ""
-      if (isCorrect && isLowQualityAnswer(studentAnswer)) {
+      if (isCorrect && !allowShortNumeric && isLowQualityAnswer(studentAnswer)) {
         return {
           isCorrect: false,
           feedback: "Your answer is too short to evaluate. Please provide a meaningful ECG interpretation.",
@@ -467,6 +470,17 @@ function extractKeywords(value?: string | null) {
 }
 
 function answerMatchesContext(answer: string, correctAnswer?: string, ecgContext?: string) {
+  const numericAnswer = extractFirstNumber(answer)
+  if (numericAnswer !== null) {
+    const numericTargets = [
+      ...extractNumbers(correctAnswer),
+      ...extractNumbers(ecgContext),
+    ]
+    if (numericTargets.some((target) => Math.abs(target - numericAnswer) <= 10)) {
+      return true
+    }
+  }
+
   const normalized = answer.toLowerCase()
   if (hasMedicalKeyword(normalized)) return true
 
@@ -486,6 +500,35 @@ function isMeaningfulEntry(value?: string | null) {
   if (normalized.length < 3) return false
   if (/^(.)\\1+$/.test(normalized.replace(/\\s+/g, ""))) return false
   return true
+}
+
+function extractFirstNumber(value: string) {
+  const match = value.match(/\\d+(?:\\.\\d+)?/)
+  if (!match) return null
+  const numberValue = Number(match[0])
+  return Number.isNaN(numberValue) ? null : numberValue
+}
+
+function extractNumbers(value?: string | null) {
+  if (!value) return []
+  const matches = value.match(/\\d+(?:\\.\\d+)?/g) ?? []
+  return matches
+    .map((match) => Number(match))
+    .filter((num) => !Number.isNaN(num))
+}
+
+function questionExpectsNumeric(question: string) {
+  const normalized = question.toLowerCase()
+  return [
+    "heart rate",
+    "rate",
+    "bpm",
+    "pr interval",
+    "qrs",
+    "qt interval",
+    "interval",
+    "ms",
+  ].some((token) => normalized.includes(token))
 }
 
 function isLowQualityAssessment(assessment: StructuredAssessment) {

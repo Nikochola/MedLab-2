@@ -51,6 +51,18 @@ function parseAiFeedback(value: any): ParsedAiFeedback | null {
   return value as ParsedAiFeedback
 }
 
+function parseMaybeJson(value: any) {
+  if (!value) return null
+  if (typeof value === "string") {
+    try {
+      return JSON.parse(value)
+    } catch {
+      return null
+    }
+  }
+  return value
+}
+
 export default function TeacherDashboardPage() {
   const { user } = useAuth()
   const [classrooms, setClassrooms] = useState<Classroom[]>([])
@@ -66,6 +78,44 @@ export default function TeacherDashboardPage() {
     () => new Map(classrooms.map((c) => [c.id, c.name])),
     [classrooms]
   )
+  const assessmentCountMap = useMemo(() => {
+    const map = new Map<string, number>()
+    caseSubmissions.forEach((submission) => {
+      map.set(submission.studentId, (map.get(submission.studentId) ?? 0) + 1)
+    })
+    return map
+  }, [caseSubmissions])
+  const simulationCountMap = useMemo(() => {
+    const map = new Map<string, number>()
+    activities.forEach((activity) => {
+      if (
+        activity.activityType === "simulation" &&
+        activity.data?.step === "final-impression" &&
+        activity.data?.correct
+      ) {
+        map.set(activity.studentId, (map.get(activity.studentId) ?? 0) + 1)
+      }
+    })
+    return map
+  }, [activities])
+  const lastActivityMap = useMemo(() => {
+    const map = new Map<string, string>()
+    activities.forEach((activity) => {
+      const timestamp = activity.timestamp
+      const existing = map.get(activity.studentId)
+      if (!existing || new Date(timestamp).getTime() > new Date(existing).getTime()) {
+        map.set(activity.studentId, timestamp)
+      }
+    })
+    caseSubmissions.forEach((submission) => {
+      const timestamp = submission.submittedAt
+      const existing = map.get(submission.studentId)
+      if (!existing || new Date(timestamp).getTime() > new Date(existing).getTime()) {
+        map.set(submission.studentId, timestamp)
+      }
+    })
+    return map
+  }, [activities, caseSubmissions])
 
   const handleDownload = (submission: any) => {
     const doc = new jsPDF()
@@ -79,19 +129,38 @@ export default function TeacherDashboardPage() {
     doc.text("Powered by Medlab Interactive", 14, 44)
 
     const assessment = submission.assessment || {}
+    const patientCase = parseMaybeJson(submission.patientCase) || {}
+    const ecgFindings = parseMaybeJson(submission.ecgFindings) || {}
+
+    const correctAxis = ecgFindings?.abnormalities?.leftAxis
+      ? "Left axis deviation"
+      : ecgFindings?.abnormalities?.rightAxis
+      ? "Right axis deviation"
+      : "Normal axis"
+
+    const correctWaveforms = [
+      ecgFindings?.abnormalities?.qWaves ? "Q waves" : null,
+      ecgFindings?.abnormalities?.stElevation ? "ST elevation" : null,
+      ecgFindings?.abnormalities?.stDepression ? "ST depression" : null,
+      ecgFindings?.abnormalities?.tWaveInversion ? "T wave inversion" : null,
+    ]
+      .filter(Boolean)
+      .join(", ") || "None"
+
     const rows = [
-      ["Rate (bpm)", assessment.rate || "—"],
-      ["Rhythm", assessment.rhythm || "—"],
-      ["PR (ms)", assessment.prInterval || "—"],
-      ["QRS (ms)", assessment.qrsInterval || "—"],
-      ["QT (ms)", assessment.qtInterval || "—"],
-      ["Axis", assessment.axis || "—"],
+      ["Rate (bpm)", assessment.rate || "—", ecgFindings?.heartRate ? String(ecgFindings.heartRate) : "—"],
+      ["Rhythm", assessment.rhythm || "—", ecgFindings?.rhythm ? String(ecgFindings.rhythm) : "—"],
+      ["PR (ms)", assessment.prInterval || "—", "—"],
+      ["QRS (ms)", assessment.qrsInterval || "—", "—"],
+      ["QT (ms)", assessment.qtInterval || "—", "—"],
+      ["Axis", assessment.axis || "—", correctAxis],
       [
         "Chamber Enlargement",
         Object.entries(assessment.chamberEnlargement || {})
           .filter(([, v]) => v)
           .map(([k]) => k.toUpperCase())
           .join(", ") || "None",
+        "—",
       ],
       [
         "Waveform Abnormalities",
@@ -99,14 +168,15 @@ export default function TeacherDashboardPage() {
           .filter(([, v]) => v)
           .map(([k]) => k)
           .join(", ") || "None",
+        correctWaveforms,
       ],
-      ["Diagnosis", assessment.diagnosis || "—"],
+      ["Diagnosis", assessment.diagnosis || "—", patientCase?.correctDiagnosis || "—"],
     ]
 
     // @ts-ignore
     doc.autoTable({
       startY: 46,
-      head: [["Field", "Value"]],
+      head: [["Field", "Student Answer", "Correct Answer"]],
       body: rows,
       styles: { fontSize: 10 },
     })
@@ -310,14 +380,16 @@ export default function TeacherDashboardPage() {
                                 </p>
                                 <p className="text-xs text-muted-foreground">
                                   Last activity:{" "}
-                                  {student.progress.lastActivity
+                                  {lastActivityMap.get(student.id)
+                                    ? new Date(lastActivityMap.get(student.id) as string).toLocaleDateString()
+                                    : student.progress.lastActivity
                                     ? new Date(student.progress.lastActivity).toLocaleDateString()
                                     : "—"}
                                 </p>
                               </div>
                               <div className="text-right">
                                 <p className="text-sm">
-                                  Sims: {student.progress.simulationsCompleted} · Cases: {student.progress.casesCompleted}
+                                  Sims: {simulationCountMap.get(student.id) ?? student.progress.simulationsCompleted} · Cases: {assessmentCountMap.get(student.id) ?? student.progress.casesCompleted}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
                                   Time: {Math.round(student.progress.totalTimeSpent / 60)} min
@@ -373,17 +445,49 @@ function StudentDetail({
   assessments: any[]
   onDownload: (submission: any) => void
 }) {
+  const [detailsOpen, setDetailsOpen] = useState(true)
+  const simulationCount = activities.filter(
+    (activity) =>
+      activity.activityType === "simulation" &&
+      activity.data?.step === "final-impression" &&
+      activity.data?.correct
+  ).length
+  const caseCount = assessments.length
+  const lastActivityTimestamp = activities.reduce<string | null>((latest, activity) => {
+    if (!latest) return activity.timestamp
+    return new Date(activity.timestamp).getTime() > new Date(latest).getTime() ? activity.timestamp : latest
+  }, null)
+  const lastAssessmentTimestamp = assessments.reduce<string | null>((latest, assessment) => {
+    if (!latest) return assessment.submittedAt
+    return new Date(assessment.submittedAt).getTime() > new Date(latest).getTime() ? assessment.submittedAt : latest
+  }, null)
+  const latestTimestamp =
+    lastActivityTimestamp && lastAssessmentTimestamp
+      ? new Date(lastActivityTimestamp).getTime() > new Date(lastAssessmentTimestamp).getTime()
+        ? lastActivityTimestamp
+        : lastAssessmentTimestamp
+      : lastActivityTimestamp || lastAssessmentTimestamp || student.lastActivity
+
   return (
     <div className="rounded-lg border border-border bg-white p-4">
-      <h3 className="text-lg font-semibold mb-2">Detail: {student.studentName || "Student"}</h3>
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <h3 className="text-lg font-semibold">Detail: {student.studentName || "Student"}</h3>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setDetailsOpen((prev) => !prev)}
+        >
+          {detailsOpen ? "Hide analytics" : "Show analytics"}
+        </Button>
+      </div>
       <div className="grid gap-3 md:grid-cols-4 text-sm">
         <div className="rounded border border-border bg-slate-50 p-3">
           <div className="text-xs text-muted-foreground">Simulations</div>
-          <div className="text-xl font-semibold">{student.simulationsCompleted}</div>
+          <div className="text-xl font-semibold">{simulationCount}</div>
         </div>
         <div className="rounded border border-border bg-slate-50 p-3">
           <div className="text-xs text-muted-foreground">Cases</div>
-          <div className="text-xl font-semibold">{student.casesCompleted}</div>
+          <div className="text-xl font-semibold">{caseCount}</div>
         </div>
         <div className="rounded border border-border bg-slate-50 p-3">
           <div className="text-xs text-muted-foreground">Time spent (min)</div>
@@ -392,62 +496,64 @@ function StudentDetail({
         <div className="rounded border border-border bg-slate-50 p-3">
           <div className="text-xs text-muted-foreground">Last activity</div>
           <div className="text-xl font-semibold">
-            {student.lastActivity ? new Date(student.lastActivity).toLocaleDateString() : "—"}
+            {latestTimestamp ? new Date(latestTimestamp).toLocaleDateString() : "—"}
           </div>
         </div>
       </div>
 
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
-        <div>
-          <h4 className="text-sm font-semibold mb-2">Recent Activities</h4>
-          <div className="space-y-2 text-sm">
-            {activities.slice(0, 5).map((act) => (
-              <div key={act.id} className="rounded border border-border p-2">
-                <div className="font-medium">{act.activityType}</div>
-                <div className="text-xs text-muted-foreground">
-                  {new Date(act.timestamp).toLocaleString()}
-                </div>
-              </div>
-            ))}
-            {activities.length === 0 && <p className="text-xs text-muted-foreground">No activity yet.</p>}
-          </div>
-        </div>
-        <div>
-          <h4 className="text-sm font-semibold mb-2">Case Assessments</h4>
-          <div className="space-y-2 text-sm">
-            {assessments.slice(0, 5).map((ass) => {
-              const aiFeedback = parseAiFeedback(ass.aiFeedback)
-              const improvements = (aiFeedback?.improvements || []).slice(0, 3)
-              return (
-                <div key={ass.id} className="rounded border border-border p-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="font-medium">Submitted {new Date(ass.submittedAt).toLocaleString()}</div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2"
-                      onClick={() => onDownload(ass)}
-                    >
-                      <Download className="h-4 w-4" />
-                      PDF
-                    </Button>
+      {detailsOpen && (
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div>
+            <h4 className="text-sm font-semibold mb-2">Recent Activities</h4>
+            <div className="space-y-2 text-sm">
+              {activities.slice(0, 5).map((act) => (
+                <div key={act.id} className="rounded border border-border p-2">
+                  <div className="font-medium">{act.activityType}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(act.timestamp).toLocaleString()}
                   </div>
-                  <div className="text-xs text-muted-foreground">Diagnosis: {ass.assessment?.diagnosis ?? "—"}</div>
-                  {aiFeedback?.summary && (
-                    <div className="text-xs text-muted-foreground">AI summary: {aiFeedback.summary}</div>
-                  )}
-                  {improvements.length > 0 && (
-                    <div className="text-xs text-muted-foreground">
-                      Needs revision: {improvements.join(" · ")}
-                    </div>
-                  )}
                 </div>
-              )
-            })}
-            {assessments.length === 0 && <p className="text-xs text-muted-foreground">No assessments yet.</p>}
+              ))}
+              {activities.length === 0 && <p className="text-xs text-muted-foreground">No activity yet.</p>}
+            </div>
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold mb-2">Case Assessments</h4>
+            <div className="space-y-2 text-sm">
+              {assessments.slice(0, 5).map((ass) => {
+                const aiFeedback = parseAiFeedback(ass.aiFeedback)
+                const improvements = (aiFeedback?.improvements || []).slice(0, 3)
+                return (
+                  <div key={ass.id} className="rounded border border-border p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="font-medium">Submitted {new Date(ass.submittedAt).toLocaleString()}</div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2"
+                        onClick={() => onDownload(ass)}
+                      >
+                        <Download className="h-4 w-4" />
+                        PDF
+                      </Button>
+                    </div>
+                    <div className="text-xs text-muted-foreground">Diagnosis: {ass.assessment?.diagnosis ?? "—"}</div>
+                    {aiFeedback?.summary && (
+                      <div className="text-xs text-muted-foreground">AI summary: {aiFeedback.summary}</div>
+                    )}
+                    {improvements.length > 0 && (
+                      <div className="text-xs text-muted-foreground">
+                        Needs revision: {improvements.join(" · ")}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+              {assessments.length === 0 && <p className="text-xs text-muted-foreground">No assessments yet.</p>}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

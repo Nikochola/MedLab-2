@@ -16,6 +16,8 @@ export interface PatientCase {
   }
   clinicalContext: string
   ecgParams: ECGWaveformParams
+  diagnosisOptions: string[]
+  correctDiagnosis: string
 }
 
 const caseTemplates = [
@@ -46,6 +48,13 @@ const caseTemplates = [
             stDepression: false,
           },
         },
+        diagnosisOptions: [
+          "Acute anterior STEMI",
+          "Inferior STEMI",
+          "Normal sinus rhythm",
+          "Atrial fibrillation with RVR",
+        ],
+        correctDiagnosis: "Acute anterior STEMI",
       },
       {
         age: 45,
@@ -67,6 +76,13 @@ const caseTemplates = [
           rhythm: "afib" as const,
           abnormalities: {},
         },
+        diagnosisOptions: [
+          "Atrial fibrillation with RVR",
+          "Supraventricular tachycardia",
+          "Ventricular tachycardia",
+          "Normal sinus rhythm",
+        ],
+        correctDiagnosis: "Atrial fibrillation with RVR",
       },
       {
         age: 72,
@@ -92,6 +108,13 @@ const caseTemplates = [
             leftAxis: true,
           },
         },
+        diagnosisOptions: [
+          "Sinus bradycardia with prior MI and ischemic changes",
+          "Atrial flutter with slow ventricular response",
+          "Normal ECG",
+          "Hyperkalemia pattern",
+        ],
+        correctDiagnosis: "Sinus bradycardia with prior MI and ischemic changes",
       },
       {
         age: 35,
@@ -113,6 +136,13 @@ const caseTemplates = [
           rhythm: "normal" as const,
           abnormalities: {},
         },
+        diagnosisOptions: [
+          "Normal sinus rhythm",
+          "Acute STEMI",
+          "Atrial fibrillation",
+          "Left bundle branch block",
+        ],
+        correctDiagnosis: "Normal sinus rhythm",
       },
       {
         age: 58,
@@ -137,6 +167,13 @@ const caseTemplates = [
             tWaveInversion: true,
           },
         },
+        diagnosisOptions: [
+          "Ischemia with ST depression (possible stable angina)",
+          "Acute STEMI",
+          "Pericarditis",
+          "Atrial flutter",
+        ],
+        correctDiagnosis: "Ischemia with ST depression (possible stable angina)",
       },
     ],
   },
@@ -151,4 +188,3 @@ export function generateRandomCase(): PatientCase {
     ...randomScenario,
   }
 }
-

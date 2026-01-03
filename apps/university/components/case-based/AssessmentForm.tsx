@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -20,6 +20,7 @@ import type { CaseFeedback } from "@/lib/ai/aiClient"
 import { Sparkles, Loader2 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { saveCaseAssessment } from "@/lib/storage"
+import { upsertStudentProgress } from "@/lib/studentTracking"
 
 interface AssessmentFormData {
   rate: string
@@ -49,6 +50,16 @@ interface AssessmentFormProps {
 }
 
 export function AssessmentForm({ patientCase, ecgFindings }: AssessmentFormProps) {
+  const parsedCase = useMemo(() => {
+    if (!patientCase) return null
+    try {
+      return JSON.parse(patientCase) as { diagnosisOptions?: string[] }
+    } catch {
+      return null
+    }
+  }, [patientCase])
+  const diagnosisOptions = parsedCase?.diagnosisOptions ?? []
+
   const [formData, setFormData] = useState<AssessmentFormData>({
     rate: "",
     rhythm: "",
@@ -117,6 +128,12 @@ export function AssessmentForm({ patientCase, ecgFindings }: AssessmentFormProps
 
     try {
       await saveCaseAssessment(submission)
+      await upsertStudentProgress({
+        studentId: user.id,
+        studentName: user.name ?? "Student",
+        classroomId: user.classroomId ?? undefined,
+        deltaCases: 1,
+      })
       alert("Assessment submitted to your teacher.")
     } catch (err) {
       console.error("Error saving assessment", err)
@@ -477,14 +494,36 @@ export function AssessmentForm({ patientCase, ecgFindings }: AssessmentFormProps
           <CardContent>
             <div className="space-y-2">
               <Label htmlFor="diagnosis">ECG Interpretation / Diagnosis</Label>
-              <Input
-                id="diagnosis"
-                type="text"
-                placeholder="Enter your final ECG interpretation..."
-                value={formData.diagnosis}
-                onChange={(e) => setFormData({ ...formData, diagnosis: e.target.value })}
-                className="bg-background"
-              />
+              {diagnosisOptions.length ? (
+                <RadioGroup
+                  value={formData.diagnosis}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, diagnosis: value })
+                  }
+                  className="space-y-2"
+                >
+                  {diagnosisOptions.map((option) => {
+                    const optionId = `diag-${option.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`
+                    return (
+                      <div key={option} className="flex items-center space-x-2">
+                        <RadioGroupItem value={option} id={optionId} />
+                        <Label htmlFor={optionId} className="cursor-pointer">
+                          {option}
+                        </Label>
+                      </div>
+                    )
+                  })}
+                </RadioGroup>
+              ) : (
+                <Input
+                  id="diagnosis"
+                  type="text"
+                  placeholder="Enter your final ECG interpretation..."
+                  value={formData.diagnosis}
+                  onChange={(e) => setFormData({ ...formData, diagnosis: e.target.value })}
+                  className="bg-background"
+                />
+              )}
             </div>
           </CardContent>
         </Card>
