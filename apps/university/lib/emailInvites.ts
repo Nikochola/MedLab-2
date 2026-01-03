@@ -76,7 +76,7 @@ export async function sendInviteEmail(
 
   const link = buildInviteLink(token, orgSlug)
   const roleLabel = role === "org_admin" ? "org admin" : role
-  const logoUrl = `${buildAssetBaseUrl(orgSlug)}/images/logo_black.svg`
+  const logoUrl = `${buildAssetBaseUrl(orgSlug)}/images/logo.png`
   const subject =
     role === "teacher"
       ? `You're invited to teach at ${orgName}`
