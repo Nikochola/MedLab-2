@@ -30,7 +30,7 @@ export function middleware(req: NextRequest) {
       })
 
       if (url.pathname === "/") {
-        url.pathname = "/ecg"
+        url.pathname = "/login"
         return NextResponse.rewrite(url, res)
       }
       if (url.pathname === "/admin") {
