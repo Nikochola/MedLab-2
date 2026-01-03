@@ -274,7 +274,7 @@ function buildRuleBasedFeedback(assessment: StructuredAssessment): CaseFeedback 
 
   // Rhythm
   if (isMeaningfulEntry(assessment.rhythm)) {
-    strengths.push(`Documented rhythm: ${assessment.rhythm.trim()}.`)
+    strengths.push(`Documented rhythm: ${assessment.rhythm?.trim()}.`)
   } else {
     improvements.push("State the rhythm explicitly (e.g., NSR, AF with RVR).")
   }
