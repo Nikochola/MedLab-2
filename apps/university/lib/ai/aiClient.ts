@@ -167,6 +167,7 @@ Student's structured assessment (use this as the source of truth):
 ${studentAssessment}
 
 Provide feedback that DIRECTLY references the student's specific entries (rate, rhythm, intervals, axis, hypertrophy/atrial findings, waveform abnormalities, final diagnosis). Highlight correct measurements/interpretations and point out any mismatches with typical ECG norms or likely diagnoses. Do not invent findings that are not in the student's assessment.
+Your feedback MUST be derived from what the student wrote. Call out weak or incorrect diagnosis statements and explain what they should have said based on the ECG context.
 If any section is blank, too short, or nonsensical, call it out explicitly in corrections and improvements.
 When there are missing or weak sections, include at least 2 corrections and 2 improvements with actionable guidance.
 
@@ -212,22 +213,18 @@ Rules:
           : "Review the ECG details and compare with guideline-based interpretations.",
       }
 
-      const strengthened = structuredAssessment
-        ? strengthenFeedback(aiFeedback, structuredAssessment)
-        : aiFeedback
-
       const hasContent =
-        strengthened.strengths.length ||
-        strengthened.corrections.length ||
-        strengthened.improvements.length ||
-        strengthened.resources.length ||
-        (strengthened.summary && strengthened.summary.trim().length > 0)
+        aiFeedback.strengths.length ||
+        aiFeedback.corrections.length ||
+        aiFeedback.improvements.length ||
+        aiFeedback.resources.length ||
+        (aiFeedback.summary && aiFeedback.summary.trim().length > 0)
 
       if (!hasContent && structuredAssessment) {
         return buildRuleBasedFeedback(structuredAssessment)
       }
 
-      return strengthened
+      return aiFeedback
     }
 
     if (structuredAssessment) {
@@ -510,31 +507,4 @@ function isLowQualityAssessment(assessment: StructuredAssessment) {
     : false
 
   return meaningfulCount < 2 && !hasWaveformFlags && !hasChamberFlags
-}
-
-function dedupe(items: string[]) {
-  const seen = new Set<string>()
-  const output: string[] = []
-  for (const item of items) {
-    const key = item.trim().toLowerCase()
-    if (!key || seen.has(key)) continue
-    seen.add(key)
-    output.push(item)
-  }
-  return output
-}
-
-function strengthenFeedback(aiFeedback: CaseFeedback, assessment: StructuredAssessment) {
-  const baseline = buildRuleBasedFeedback(assessment)
-  const strengths = dedupe([...(aiFeedback.strengths || []), ...baseline.strengths])
-  const corrections = dedupe([...(aiFeedback.corrections || []), ...baseline.corrections])
-  const improvements = dedupe([...(aiFeedback.improvements || []), ...baseline.improvements])
-
-  return {
-    strengths,
-    corrections: corrections.slice(0, Math.max(2, corrections.length)),
-    improvements: improvements.slice(0, Math.max(2, improvements.length)),
-    resources: aiFeedback.resources?.length ? aiFeedback.resources : baseline.resources,
-    summary: aiFeedback.summary || baseline.summary,
-  }
 }
