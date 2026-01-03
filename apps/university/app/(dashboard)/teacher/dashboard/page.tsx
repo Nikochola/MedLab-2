@@ -116,6 +116,14 @@ export default function TeacherDashboardPage() {
     })
     return map
   }, [activities, caseSubmissions])
+  const avgCompletionRate = useMemo(() => {
+    const simulationAttempts = activities.filter(
+      (activity) => activity.activityType === "simulation" && typeof activity.data?.correct === "boolean"
+    )
+    if (!simulationAttempts.length) return 0
+    const correct = simulationAttempts.filter((activity) => activity.data?.correct).length
+    return correct / simulationAttempts.length
+  }, [activities])
 
   const handleDownload = (submission: any) => {
     const doc = new jsPDF()
@@ -248,15 +256,6 @@ export default function TeacherDashboardPage() {
   const activeStudents = studentProgress.filter(
     (p) => p.lastActivity && Date.now() - new Date(p.lastActivity).getTime() < 7 * 24 * 60 * 60 * 1000
   ).length
-
-  const avgCompletionRate = useMemo(() => {
-    const simulationAttempts = activities.filter(
-      (activity) => activity.activityType === "simulation" && typeof activity.data?.correct === "boolean"
-    )
-    if (!simulationAttempts.length) return 0
-    const correct = simulationAttempts.filter((activity) => activity.data?.correct).length
-    return correct / simulationAttempts.length
-  }, [activities])
 
   const progressMap = new Map(studentProgress.map((p) => [p.studentId, p]))
   const studentList: StudentWithProgress[] = students.map((student) => ({
