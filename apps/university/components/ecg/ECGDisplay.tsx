@@ -127,10 +127,11 @@ export function ECGDisplay({ params, zoom = 1, onZoomChange }: ECGDisplayProps) 
   return (
     <div
       ref={containerRef}
-      className="relative w-full flex justify-center mt-4 overflow-auto"
+      className="relative w-full mt-4 overflow-x-auto overflow-y-hidden"
     >
       <canvas
         ref={canvasRef}
+        className="block"
         style={{
           width: canvasSize.width ? `${canvasSize.width * zoom}px` : undefined,
           height: canvasSize.height ? `${canvasSize.height * zoom}px` : undefined,
