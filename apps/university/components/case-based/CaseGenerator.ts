@@ -40,7 +40,7 @@ const caseTemplates = [
         clinicalContext: "Emergency department evaluation for suspected acute coronary syndrome",
         ecgParams: {
           heartRate: 95,
-          rhythm: "normal" as const,
+          rhythm: "sinus-regular" as const,
           abnormalities: {
             stElevation: true,
             qWaves: false,
@@ -73,7 +73,7 @@ const caseTemplates = [
         clinicalContext: "Outpatient clinic visit for evaluation of new-onset arrhythmia",
         ecgParams: {
           heartRate: 140,
-          rhythm: "afib" as const,
+          rhythm: "non-sinus-irregular" as const,
           abnormalities: {},
         },
         diagnosisOptions: [
@@ -101,7 +101,7 @@ const caseTemplates = [
         clinicalContext: "Cardiology clinic follow-up for evaluation of heart failure symptoms",
         ecgParams: {
           heartRate: 58,
-          rhythm: "bradycardia" as const,
+          rhythm: "sinus-regular" as const,
           abnormalities: {
             qWaves: true,
             stDepression: true,
@@ -133,7 +133,7 @@ const caseTemplates = [
         clinicalContext: "Routine preventive care visit",
         ecgParams: {
           heartRate: 72,
-          rhythm: "normal" as const,
+          rhythm: "sinus-regular" as const,
           abnormalities: {},
         },
         diagnosisOptions: [
@@ -161,7 +161,7 @@ const caseTemplates = [
         clinicalContext: "Cardiology consultation for evaluation of possible angina",
         ecgParams: {
           heartRate: 88,
-          rhythm: "normal" as const,
+          rhythm: "sinus-regular" as const,
           abnormalities: {
             stDepression: true,
             tWaveInversion: true,

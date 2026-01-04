@@ -82,11 +82,11 @@ function getQuestionForStep(step: InterpretationStep): string {
   const questions: Record<InterpretationStep, string> = {
     "heart-rate": "What is the heart rate of this ECG?",
     "rhythm": "What is the rhythm of this ECG?",
-    "p-wave": "Describe the P-waves and PR interval",
-    "qrs": "Describe the QRS morphology",
+    "p-wave": "Describe the P-waves",
+    "pr-interval": "What is the PR interval in milliseconds?",
+    "qrs-duration": "What is the QRS duration in milliseconds?",
     "axis": "What is the electrical axis?",
     "st-t": "Are there any ST-T segment abnormalities?",
-    "final-impression": "What is your final ECG interpretation?",
   }
   return questions[step]
 }
@@ -96,7 +96,7 @@ function getExpectedAnswer(step: InterpretationStep, params: ECGWaveformParams):
     case "heart-rate":
       return `${params.heartRate || 75} bpm`
     case "rhythm":
-      return params.rhythm === "normal" ? "Normal sinus rhythm" : params.rhythm || "Normal"
+      return params.rhythm ? params.rhythm.split("-").join(" ") : "sinus regular"
     case "axis":
       if (params.abnormalities?.leftAxis) return "Left axis deviation"
       if (params.abnormalities?.rightAxis) return "Right axis deviation"
@@ -105,4 +105,3 @@ function getExpectedAnswer(step: InterpretationStep, params: ECGWaveformParams):
       return ""
   }
 }
-

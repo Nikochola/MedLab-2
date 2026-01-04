@@ -2,7 +2,9 @@
 
 export interface ECGWaveformParams {
   heartRate?: number // bpm
-  rhythm?: "normal" | "afib" | "bradycardia" | "tachycardia"
+  rhythm?: "sinus-regular" | "sinus-irregular" | "non-sinus-regular" | "non-sinus-irregular"
+  prIntervalMs?: number
+  qrsDurationMs?: number
   duration?: number // seconds
   sampleRate?: number // samples per second
   abnormalities?: {
@@ -24,18 +26,43 @@ export interface WaveformPoint {
 
 // Single synthetic heartbeat: P–QRS–T using Gaussian pulses.
 // t is phase in [0, 1).
-function ecgBeat(t: number): number {
+type BeatShape = {
+  pCenter: number
+  pAmp: number
+  qrsStart: number
+  qrsDuration: number
+  tCenter: number
+  tAmp: number
+  stOffset: number
+}
+
+function ecgBeat(t: number, shape: BeatShape): number {
   let v = 0
+  const qrsDuration = Math.max(0.02, Math.min(shape.qrsDuration, 0.18))
+  const qCenter = shape.qrsStart + qrsDuration * 0.1
+  const rCenter = shape.qrsStart + qrsDuration * 0.45
+  const sCenter = shape.qrsStart + qrsDuration * 0.8
+
   // P wave
-  v += 0.18 * Math.exp(-Math.pow((t - 0.12) / 0.035, 2))
+  if (shape.pAmp > 0) {
+    v += shape.pAmp * Math.exp(-Math.pow((t - shape.pCenter) / 0.035, 2))
+  }
   // Q wave
-  v += -0.3 * Math.exp(-Math.pow((t - 0.2) / 0.01, 2))
+  v += -0.3 * Math.exp(-Math.pow((t - qCenter) / 0.01, 2))
   // R wave
-  v += 1.25 * Math.exp(-Math.pow((t - 0.22) / 0.012, 2))
+  v += 1.25 * Math.exp(-Math.pow((t - rCenter) / 0.012, 2))
   // S wave
-  v += -0.4 * Math.exp(-Math.pow((t - 0.24) / 0.014, 2))
+  v += -0.4 * Math.exp(-Math.pow((t - sCenter) / 0.014, 2))
+
+  // ST segment offset (simple approximation)
+  const stStart = shape.qrsStart + qrsDuration * 0.45
+  const stEnd = Math.max(stStart + 0.06, shape.tCenter - 0.03)
+  if (shape.stOffset !== 0 && t >= stStart && t <= stEnd) {
+    v += shape.stOffset
+  }
+
   // T wave
-  v += 0.4 * Math.exp(-Math.pow((t - 0.38) / 0.055, 2))
+  v += shape.tAmp * Math.exp(-Math.pow((t - shape.tCenter) / 0.055, 2))
   return v
 }
 
@@ -44,25 +71,70 @@ function ecgBeat(t: number): number {
 function generateBaseSignal(
   heartRate: number,
   duration: number,
-  sampleRate: number
+  sampleRate: number,
+  options: {
+    rhythm?: ECGWaveformParams["rhythm"]
+    prIntervalMs?: number
+    qrsDurationMs?: number
+    stElevation?: boolean
+    stDepression?: boolean
+    tWaveInversion?: boolean
+  }
 ): Float32Array {
   const sampleCount = Math.floor(duration * sampleRate)
   const base = new Float32Array(sampleCount)
 
   const beatsPerSecond = heartRate / 60
-  const rr = 1 / beatsPerSecond // seconds between R peaks
+  const baseRR = 1 / beatsPerSecond // seconds between R peaks
+  const irregular = options.rhythm?.endsWith("irregular") ?? false
+  const sinus = options.rhythm?.startsWith("sinus") ?? true
+  const pAmp = sinus ? 0.18 : 0
+  const stOffset = options.stElevation ? 0.18 : options.stDepression ? -0.18 : 0
+  const tAmp = options.tWaveInversion ? -0.35 : 0.4
+
+  const nextRR = (index: number) => {
+    if (!irregular) return baseRR
+    const jitterSeed = (index * 9301 + 49297) % 233280
+    const jitter = 1 + ((jitterSeed / 233280) - 0.5) * 0.2 // ±20%
+    return baseRR * jitter
+  }
+
+  let beatIndex = 0
+  let beatStart = 0
+  let rr = nextRR(beatIndex)
 
   for (let i = 0; i < sampleCount; i++) {
     const t = i / sampleRate // seconds
-    const phase = (t % rr) / rr // 0–1 within beat
+    while (t - beatStart >= rr) {
+      beatStart += rr
+      beatIndex += 1
+      rr = nextRR(beatIndex)
+    }
 
-    let v = ecgBeat(phase)
+    const phase = (t - beatStart) / rr // 0–1 within beat
+    const rrMs = rr * 1000
+    const prMs = options.prIntervalMs ?? 160
+    const qrsMs = options.qrsDurationMs ?? 90
+    const prFrac = Math.min(0.25, prMs / rrMs)
+    const qrsFrac = Math.min(0.2, (qrsMs / 1000) / rr)
+    const qrsStart = 0.3
+    const tCenter = Math.min(0.88, qrsStart + qrsFrac + 0.18)
+    const pCenter = Math.max(0.08, qrsStart - prFrac * 0.5)
+
+    let v = ecgBeat(phase, {
+      pCenter,
+      pAmp,
+      qrsStart,
+      qrsDuration: qrsFrac,
+      tCenter,
+      tAmp,
+      stOffset,
+    })
 
     // Mild baseline wander (respiration-like)
     v += 0.03 * Math.sin(2 * Math.PI * 0.3 * t)
 
     // Beat-to-beat jitter, deterministic (no desync)
-    const beatIndex = Math.floor(t / rr)
     const jitterSeed = (beatIndex * 9301 + 49297) % 233280
     const jitter = 1 + ((jitterSeed / 233280) - 0.5) * 0.08 // ±8%
     v *= jitter
@@ -164,11 +236,27 @@ function getLeadsForParams(params: ECGWaveformParams): {
   const heartRate = params.heartRate ?? 75
   const duration = params.duration ?? 10
   const sampleRate = params.sampleRate ?? 500
-
-  const key = JSON.stringify({ heartRate, duration, sampleRate })
+  const key = JSON.stringify({
+    heartRate,
+    duration,
+    sampleRate,
+    rhythm: params.rhythm ?? "sinus-regular",
+    prIntervalMs: params.prIntervalMs ?? 160,
+    qrsDurationMs: params.qrsDurationMs ?? 90,
+    stElevation: params.abnormalities?.stElevation ?? false,
+    stDepression: params.abnormalities?.stDepression ?? false,
+    tWaveInversion: params.abnormalities?.tWaveInversion ?? false,
+  })
 
   if (!cachedLeads || key !== cachedKey) {
-    const base = generateBaseSignal(heartRate, duration, sampleRate)
+    const base = generateBaseSignal(heartRate, duration, sampleRate, {
+      rhythm: params.rhythm ?? "sinus-regular",
+      prIntervalMs: params.prIntervalMs,
+      qrsDurationMs: params.qrsDurationMs,
+      stElevation: params.abnormalities?.stElevation,
+      stDepression: params.abnormalities?.stDepression,
+      tWaveInversion: params.abnormalities?.tWaveInversion,
+    })
     cachedLeads = projectTo12Leads(base)
     cachedKey = key
     cachedSampleRate = sampleRate
@@ -228,19 +316,16 @@ export function generateECGWaveform(
 
 export function generateRandomECGParams(): ECGWaveformParams {
   const variants: ECGWaveformParams[] = [
-    { heartRate: 75, rhythm: "normal", abnormalities: {} }, // Normal ECG
-    { heartRate: 55, rhythm: "bradycardia", abnormalities: { qWaves: false } }, // AV block I (simulated brady)
-    { heartRate: 45, rhythm: "bradycardia", abnormalities: { stDepression: true } }, // AV block II (simulated brady + slight ST dep)
-    { heartRate: 35, rhythm: "bradycardia", abnormalities: { qWaves: true } }, // AV block III (simulated brady + q waves)
-    { heartRate: 160, rhythm: "tachycardia", abnormalities: {} }, // SVT
-    { heartRate: 140, rhythm: "tachycardia", abnormalities: { rightAxis: true } }, // VT (fast with RAD)
-    { heartRate: 95, rhythm: "normal", abnormalities: { stElevation: true } }, // STEMI
-    { heartRate: 90, rhythm: "normal", abnormalities: { qWaves: true, tWaveInversion: true } }, // MI (prior)
-    { heartRate: 82, rhythm: "normal", abnormalities: { leftAxis: true, stDepression: true } }, // LVH pattern surrogate
-    { heartRate: 88, rhythm: "normal", abnormalities: { rightAxis: true, stDepression: true } }, // RVH/RAE surrogate
-    { heartRate: 170, rhythm: "tachycardia", abnormalities: { stDepression: true } }, // VF surrogate (fast irregular)
-    { heartRate: 120, rhythm: "afib", abnormalities: { stDepression: true } }, // Afib
-    { heartRate: 130, rhythm: "tachycardia", abnormalities: { stElevation: true, qWaves: true } }, // WPW surrogate
+    { heartRate: 72, rhythm: "sinus-regular", prIntervalMs: 160, qrsDurationMs: 90, abnormalities: {} },
+    { heartRate: 58, rhythm: "sinus-regular", prIntervalMs: 180, qrsDurationMs: 90, abnormalities: { qWaves: false } },
+    { heartRate: 80, rhythm: "sinus-irregular", prIntervalMs: 170, qrsDurationMs: 90, abnormalities: {} },
+    { heartRate: 95, rhythm: "sinus-regular", prIntervalMs: 160, qrsDurationMs: 90, abnormalities: { stElevation: true } },
+    { heartRate: 88, rhythm: "sinus-regular", prIntervalMs: 160, qrsDurationMs: 90, abnormalities: { stDepression: true } },
+    { heartRate: 76, rhythm: "sinus-irregular", prIntervalMs: 170, qrsDurationMs: 90, abnormalities: { tWaveInversion: true } },
+    { heartRate: 120, rhythm: "non-sinus-regular", prIntervalMs: 0, qrsDurationMs: 110, abnormalities: { rightAxis: true } },
+    { heartRate: 140, rhythm: "non-sinus-regular", prIntervalMs: 0, qrsDurationMs: 120, abnormalities: { stDepression: true } },
+    { heartRate: 130, rhythm: "non-sinus-irregular", prIntervalMs: 0, qrsDurationMs: 100, abnormalities: { stDepression: true } },
+    { heartRate: 110, rhythm: "non-sinus-irregular", prIntervalMs: 0, qrsDurationMs: 100, abnormalities: { stElevation: true, qWaves: true } },
   ]
 
   const choice = variants[Math.floor(Math.random() * variants.length)]

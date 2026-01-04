@@ -33,11 +33,13 @@ export function ECGDisplay({ params, zoom = 1, onZoomChange }: ECGDisplayProps) 
     /* ------------------------------
        CANVAS SIZING
     ------------------------------ */
-    const totalWidth = Math.min(1200, window.innerWidth - 60)
+    const availableWidth =
+      containerRef.current?.clientWidth ?? window.innerWidth - 48
+    const totalWidth = Math.min(980, Math.max(320, availableWidth - 16))
     const colWidth = Math.floor(totalWidth / 4)
-    const rowHeight = 140
-    const rhythmHeight = 160
-    const marginTop = 15
+    const rowHeight = 120
+    const rhythmHeight = 130
+    const marginTop = 10
 
     const totalHeight = rowHeight * 3 + rhythmHeight + marginTop * 2 + 20
 

@@ -8,21 +8,20 @@ export const INTERPRETATION_STEPS = [
   "heart-rate",
   "rhythm",
   "p-wave",
-  "qrs",
+  "pr-interval",
+  "qrs-duration",
   "axis",
-  "st-t",
-  "final-impression"
+  "st-t"
 ] as const;
 
 export type InterpretationStep = typeof INTERPRETATION_STEPS[number];
 
 export const STEP_QUESTIONS: Record<InterpretationStep, string> = {
   "heart-rate": "What is the heart rate? (Count the number of QRS complexes and multiply appropriately)",
-  "rhythm": "What is the rhythm? (e.g., normal sinus rhythm, atrial fibrillation)",
-  "p-wave": "Describe the P-wave and PR interval",
-  "qrs": "Describe the QRS morphology and duration",
+  "rhythm": "What is the rhythm? (Sinus regular, sinus irregular, non-sinus regular, non-sinus irregular)",
+  "p-wave": "Describe the P-wave (present/absent, upright/inverted)",
+  "pr-interval": "What is the PR interval in milliseconds? (If not measurable, say N/A)",
+  "qrs-duration": "What is the QRS duration in milliseconds?",
   "axis": "What is the axis? (Normal, Left, or Right)",
-  "st-t": "Are there any ST-T abnormalities?",
-  "final-impression": "What is your final ECG interpretation?"
+  "st-t": "Are there any ST-T abnormalities?"
 };
-

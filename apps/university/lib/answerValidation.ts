@@ -40,78 +40,119 @@ export function validateAnswer(
     }
 
     case "rhythm": {
-      const rhythm = ecgParams.rhythm || "normal"
+      const rhythm = ecgParams.rhythm || "sinus-regular"
       const keywords: Record<string, string[]> = {
-        normal: ["normal", "sinus", "regular", "nsr"],
-        afib: ["atrial fibrillation", "afib", "a-fib", "irregular", "irregularly irregular"],
-        bradycardia: ["bradycardia", "brady", "slow"],
-        tachycardia: ["tachycardia", "tachy", "fast", "rapid"],
+        "sinus-regular": ["sinus", "regular", "nsr", "normal"],
+        "sinus-irregular": ["sinus", "irregular"],
+        "non-sinus-regular": ["non-sinus", "junctional", "atrial", "regular"],
+        "non-sinus-irregular": [
+          "non-sinus",
+          "irregular",
+          "atrial fibrillation",
+          "afib",
+          "a-fib",
+          "irregularly irregular",
+        ],
       }
 
-      const correctKeywords = keywords[rhythm] || keywords.normal
-      const isCorrect = correctKeywords.some((keyword) =>
-        normalizedAnswer.includes(keyword)
-      )
+      const correctKeywords = keywords[rhythm] || keywords["sinus-regular"]
+      const isCorrect = correctKeywords.some((keyword) => normalizedAnswer.includes(keyword))
 
       return {
         isCorrect,
         message: isCorrect
-          ? `Correct! The rhythm is ${rhythm === "normal" ? "normal sinus rhythm" : rhythm}.`
-          : `Not quite. Look for ${rhythm === "afib" ? "irregularly irregular rhythm without distinct P waves" : rhythm === "normal" ? "regular rhythm with consistent P waves" : rhythm} patterns.`,
+          ? `Correct! The rhythm is ${rhythm.replace("-", " ")}.`
+          : "Not quite. Focus on sinus vs non-sinus and regular vs irregular patterns.",
       }
     }
 
     case "p-wave": {
-      const rhythm = ecgParams.rhythm || "normal"
-      if (rhythm === "afib") {
-        const isCorrect =
-          normalizedAnswer.includes("absent") ||
-          normalizedAnswer.includes("no p") ||
-          normalizedAnswer.includes("no p wave") ||
-          normalizedAnswer.includes("missing")
+      const rhythm = ecgParams.rhythm || "sinus-regular"
+      const isSinus = rhythm.startsWith("sinus")
+      const expectsPresent = isSinus
+      const mentionsAbsent =
+        normalizedAnswer.includes("absent") ||
+        normalizedAnswer.includes("no p") ||
+        normalizedAnswer.includes("no p wave") ||
+        normalizedAnswer.includes("missing")
+      const mentionsPresent =
+        normalizedAnswer.includes("present") ||
+        normalizedAnswer.includes("upright") ||
+        normalizedAnswer.includes("p wave") ||
+        normalizedAnswer.includes("p-wave")
 
-        return {
-          isCorrect,
-          message: isCorrect
-            ? "Correct! In atrial fibrillation, P waves are absent."
-            : "In this rhythm, P waves are absent. Look again.",
-        }
-      } else {
-        const isCorrect =
-          normalizedAnswer.includes("present") ||
-          normalizedAnswer.includes("normal") ||
-          normalizedAnswer.includes("upright") ||
-          normalizedAnswer.includes("p wave")
+      const isCorrect = expectsPresent ? mentionsPresent : mentionsAbsent
 
-        return {
-          isCorrect,
-          message: isCorrect
-            ? "Correct! P waves are present and should be upright in most leads."
-            : "P waves should be present in normal sinus rhythm. Look for small positive deflections before the QRS.",
-        }
+      return {
+        isCorrect,
+        message: isCorrect
+          ? expectsPresent
+            ? "Correct! P waves are present and should precede each QRS."
+            : "Correct! P waves are absent in a non-sinus rhythm."
+          : expectsPresent
+          ? "P waves should be present in sinus rhythms. Look for small deflections before the QRS."
+          : "In non-sinus rhythms, P waves are often absent or inconsistent. Look again.",
       }
     }
 
-    case "qrs": {
-      const hasQWaves = ecgParams.abnormalities?.qWaves
-      const keywords = ["qrs", "complex", "duration", "morphology", "shape"]
+    case "pr-interval": {
+      const prMs = ecgParams.prIntervalMs ?? 160
+      const rhythm = ecgParams.rhythm ?? "sinus-regular"
+      const answerNum = parseInt(normalizedAnswer.replace(/[^\d]/g, ""))
+      const tolerance = 20
+      const notMeasurable =
+        prMs === 0 || rhythm.startsWith("non-sinus")
+      const mentionsNotMeasurable =
+        normalizedAnswer.includes("not measurable") ||
+        normalizedAnswer.includes("not applicable") ||
+        normalizedAnswer.includes("n/a") ||
+        normalizedAnswer.includes("na") ||
+        normalizedAnswer.includes("absent")
 
-      if (hasQWaves && normalizedAnswer.includes("q wave")) {
+      if (notMeasurable) {
+        const isCorrect = mentionsNotMeasurable
         return {
-          isCorrect: true,
-          message: "Correct! Q waves are present, indicating possible prior infarction.",
+          isCorrect,
+          message: isCorrect
+            ? "Correct! The PR interval is not measurable in this rhythm."
+            : "In non-sinus rhythms, the PR interval is often not measurable.",
         }
       }
 
-      const hasKeywords = keywords.some((keyword) =>
-        normalizedAnswer.includes(keyword)
-      )
+      if (!Number.isFinite(answerNum)) {
+        return {
+          isCorrect: false,
+          message: "Please enter the PR interval in milliseconds.",
+        }
+      }
 
+      const isCorrect = Math.abs(answerNum - prMs) <= tolerance
       return {
-        isCorrect: hasKeywords,
-        message: hasKeywords
-          ? "Good! The QRS complex is typically narrow (<120ms) in normal conduction."
-          : "Describe the QRS complex - its duration, morphology, and any abnormalities.",
+        isCorrect,
+        message: isCorrect
+          ? `Correct! The PR interval is about ${prMs} ms.`
+          : `Not quite. Re-check the PR interval; it should be close to ${prMs} ms.`,
+      }
+    }
+
+    case "qrs-duration": {
+      const qrsMs = ecgParams.qrsDurationMs ?? 90
+      const answerNum = parseInt(normalizedAnswer.replace(/[^\d]/g, ""))
+      const tolerance = 20
+
+      if (!Number.isFinite(answerNum)) {
+        return {
+          isCorrect: false,
+          message: "Please enter the QRS duration in milliseconds.",
+        }
+      }
+
+      const isCorrect = Math.abs(answerNum - qrsMs) <= tolerance
+      return {
+        isCorrect,
+        message: isCorrect
+          ? `Correct! The QRS duration is about ${qrsMs} ms.`
+          : `Not quite. Re-check the QRS duration; it should be close to ${qrsMs} ms.`,
       }
     }
 
@@ -209,23 +250,6 @@ export function validateAnswer(
       }
     }
 
-    case "final-impression": {
-      // For final impression, be more lenient - just check if they have a reasonable interpretation
-      const hasKeywords =
-        normalizedAnswer.includes("sinus") ||
-        normalizedAnswer.includes("rhythm") ||
-        normalizedAnswer.includes("normal") ||
-        normalizedAnswer.includes("ecg") ||
-        normalizedAnswer.length > 10
-
-      return {
-        isCorrect: hasKeywords,
-        message: hasKeywords
-          ? "Great interpretation! You've completed the ECG analysis."
-          : "Provide a comprehensive final impression summarizing your findings.",
-      }
-    }
-
     default:
       return {
         isCorrect: false,
@@ -242,19 +266,24 @@ export function getHintsForStep(step: InterpretationStep): string[] {
       "For irregular rhythms, count all QRS complexes in 10 seconds and multiply by 6.",
     ],
     rhythm: [
-      "Look for the presence and regularity of P waves.",
-      "Check if the rhythm is regular or irregular.",
-      "In atrial fibrillation, there are no P waves and the rhythm is irregularly irregular.",
+      "Decide if the rhythm is sinus or non-sinus first.",
+      "Then determine if it is regular or irregular.",
+      "Irregularly irregular rhythms are typically non-sinus.",
     ],
     "p-wave": [
-      "P waves should precede each QRS complex in normal sinus rhythm.",
-      "In lead II, P waves are typically upright.",
-      "Check if P waves are present, absent, or inverted.",
+      "P waves should precede each QRS in sinus rhythms.",
+      "Look for consistent P waves in lead II.",
+      "Non-sinus rhythms often have absent or inconsistent P waves.",
     ],
-    qrs: [
-      "Normal QRS duration is less than 120ms (3 small boxes).",
-      "Look for the presence of Q waves, which may indicate prior infarction.",
-      "Describe the overall shape and amplitude of the QRS complex.",
+    "pr-interval": [
+      "Measure from the start of the P wave to the start of the QRS.",
+      "Normal PR interval is about 120–200 ms (3–5 small boxes).",
+      "Convert small boxes to ms (1 small box = 40 ms at 25 mm/s). If non-sinus, PR may be not measurable.",
+    ],
+    "qrs-duration": [
+      "Measure from the start to the end of the QRS complex.",
+      "Normal QRS duration is <120 ms (less than 3 small boxes).",
+      "Use small boxes to estimate milliseconds.",
     ],
     axis: [
       "Look at lead I and lead aVF to determine the axis.",
@@ -266,13 +295,7 @@ export function getHintsForStep(step: InterpretationStep): string[] {
       "Compare the ST segment to the baseline (TP segment).",
       "T wave inversion can be normal in some leads (V1-V3) but abnormal in others.",
     ],
-    "final-impression": [
-      "Summarize all your findings: rhythm, rate, axis, and any abnormalities.",
-      "Include any clinical significance of the findings.",
-      "Be concise but comprehensive in your interpretation.",
-    ],
   }
 
   return hints[step] || []
 }
-

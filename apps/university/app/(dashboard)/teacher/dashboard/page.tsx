@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button"
 import { Activity, ChevronDown, ChevronUp, Download, Trash2, TrendingUp, Users } from "lucide-react"
 import jsPDF from "jspdf"
 import "jspdf-autotable"
+import { INTERPRETATION_STEPS } from "@/lib/constants"
 
 type StudentWithProgress = User & { progress: StudentProgress }
 
@@ -63,6 +64,22 @@ function parseMaybeJson(value: any) {
   return value
 }
 
+function formatRhythmLabel(rhythm?: string | null) {
+  if (!rhythm) return "Not provided"
+  switch (rhythm) {
+    case "sinus-regular":
+      return "Sinus regular"
+    case "sinus-irregular":
+      return "Sinus irregular"
+    case "non-sinus-regular":
+      return "Non-sinus regular"
+    case "non-sinus-irregular":
+      return "Non-sinus irregular"
+    default:
+      return rhythm.replace("-", " ")
+  }
+}
+
 export default function TeacherDashboardPage() {
   const { user } = useAuth()
   const [classrooms, setClassrooms] = useState<Classroom[]>([])
@@ -85,19 +102,20 @@ export default function TeacherDashboardPage() {
     })
     return map
   }, [caseSubmissions])
+  const finalSimulationStep = INTERPRETATION_STEPS[INTERPRETATION_STEPS.length - 1]
   const simulationCountMap = useMemo(() => {
     const map = new Map<string, number>()
     activities.forEach((activity) => {
       if (
         activity.activityType === "simulation" &&
-        activity.data?.step === "final-impression" &&
+        activity.data?.step === finalSimulationStep &&
         activity.data?.correct
       ) {
         map.set(activity.studentId, (map.get(activity.studentId) ?? 0) + 1)
       }
     })
     return map
-  }, [activities])
+  }, [activities, finalSimulationStep])
   const lastActivityMap = useMemo(() => {
     const map = new Map<string, string>()
     activities.forEach((activity) => {
@@ -163,12 +181,7 @@ export default function TeacherDashboardPage() {
       .filter(Boolean)
       .join(", ") || "None"
 
-    const correctRhythm =
-      ecgFindings?.rhythm === "normal"
-        ? "Normal sinus rhythm"
-        : ecgFindings?.rhythm
-        ? String(ecgFindings.rhythm)
-        : "Not provided"
+    const correctRhythm = formatRhythmLabel(ecgFindings?.rhythm ? String(ecgFindings.rhythm) : null)
 
     const rows = [
       ["Rate (bpm)", assessment.rate || "—", ecgFindings?.heartRate ? String(ecgFindings.heartRate) : "Not provided"],
@@ -471,7 +484,7 @@ function StudentDetail({
   const simulationCount = activities.filter(
     (activity) =>
       activity.activityType === "simulation" &&
-      activity.data?.step === "final-impression" &&
+      activity.data?.step === finalSimulationStep &&
       activity.data?.correct
   ).length
   const caseCount = assessments.length

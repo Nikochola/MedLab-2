@@ -23,8 +23,10 @@ export default function TeacherSimulationsPage() {
   const [currentStep, setCurrentStep] = useState<InterpretationStep>(INTERPRETATION_STEPS[0])
   const [currentCase, setCurrentCase] = useState<PatientCase | null>(null)
   const [zoom, setZoom] = useState(1)
+  const [answeredCount, setAnsweredCount] = useState(0)
+  const [showCompletion, setShowCompletion] = useState(false)
   const { user } = useAuth()
-  const maxZoom = 3
+  const maxZoom = 4
   const minZoom = 1
   const zoomEnabled = zoom > 1
 
@@ -38,6 +40,8 @@ export default function TeacherSimulationsPage() {
       setEcgParams(generateRandomECGParams())
       setCurrentStep(INTERPRETATION_STEPS[0])
       setZoom(1)
+      setAnsweredCount(0)
+      setShowCompletion(false)
     }
   }, [mode])
 
@@ -48,6 +52,8 @@ export default function TeacherSimulationsPage() {
       setCurrentCase(newCase)
       setEcgParams(newCase.ecgParams)
       setZoom(1)
+      setAnsweredCount(0)
+      setShowCompletion(false)
     }
   }, [mode])
 
@@ -55,39 +61,48 @@ export default function TeacherSimulationsPage() {
     let isCorrect = false
     let message = ""
     let explanation: string | undefined
+    const normalizedAnswer = answer.trim().toLowerCase()
     const ruleBased = validateAnswer(currentStep, answer, ecgParams)
-    const isNumeric = Boolean(answer.trim().match(/^\d+(\.\d+)?/))
+    const isNumeric = Boolean(normalizedAnswer.match(/^\d+(\.\d+)?/))
+    const skipAI =
+      (["heart-rate", "pr-interval", "qrs-duration"].includes(currentStep) && isNumeric) ||
+      (currentStep === "pr-interval" &&
+        (normalizedAnswer.includes("n/a") ||
+          normalizedAnswer.includes("na") ||
+          normalizedAnswer.includes("not measurable") ||
+          normalizedAnswer.includes("not applicable") ||
+          normalizedAnswer.includes("absent"))) ||
+      normalizedAnswer.length < 4
 
     try {
-      if (currentStep === "heart-rate" && isNumeric) {
-        return {
-          isCorrect: ruleBased.isCorrect,
-          message: ruleBased.message,
+      if (skipAI) {
+        isCorrect = ruleBased.isCorrect
+        message = ruleBased.message
+      } else {
+        // Try AI-enhanced validation first
+        const response = await fetch("/api/ai/validate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            studentAnswer: answer,
+            question: STEP_QUESTIONS[currentStep],
+            ecgContext: JSON.stringify(ecgParams),
+          }),
+        })
+        
+        if (response.ok) {
+          const aiResult = await response.json()
+          if (!aiResult.isCorrect && ruleBased.isCorrect) {
+            isCorrect = ruleBased.isCorrect
+            message = ruleBased.message
+          } else {
+            isCorrect = aiResult.isCorrect
+            message = aiResult.feedback
+            explanation = aiResult.explanation
+          }
         }
       }
 
-      // Try AI-enhanced validation first
-      const response = await fetch("/api/ai/validate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          studentAnswer: answer,
-          question: STEP_QUESTIONS[currentStep],
-          ecgContext: JSON.stringify(ecgParams),
-        }),
-      })
-      
-      if (response.ok) {
-        const aiResult = await response.json()
-        if (!aiResult.isCorrect && ruleBased.isCorrect) {
-          isCorrect = ruleBased.isCorrect
-          message = ruleBased.message
-        } else {
-          isCorrect = aiResult.isCorrect
-          message = aiResult.feedback
-          explanation = aiResult.explanation
-        }
-      }
     } catch (error) {
       console.error("AI validation failed, using rule-based:", error)
     }
@@ -109,10 +124,18 @@ export default function TeacherSimulationsPage() {
     const currentIndex = INTERPRETATION_STEPS.indexOf(currentStep)
     if (currentIndex < INTERPRETATION_STEPS.length - 1) {
       setCurrentStep(INTERPRETATION_STEPS[currentIndex + 1])
+      setAnsweredCount((count) => Math.min(count + 1, INTERPRETATION_STEPS.length))
     } else {
       // All steps completed - restart
-      setEcgParams(generateRandomECGParams())
-      setCurrentStep(INTERPRETATION_STEPS[0])
+      setAnsweredCount(INTERPRETATION_STEPS.length)
+      setShowCompletion(true)
+      setTimeout(() => {
+        setShowCompletion(false)
+        setEcgParams(generateRandomECGParams())
+        setCurrentStep(INTERPRETATION_STEPS[0])
+        setAnsweredCount(0)
+        setZoom(1)
+      }, 2500)
     }
   }
 
@@ -145,6 +168,9 @@ export default function TeacherSimulationsPage() {
                   <div className="mb-4">
                     <div className="flex items-center justify-between gap-3 mb-2 sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
                       <h2 className="text-2xl font-bold">ECG Lab (Instructor)</h2>
+                      <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Answered {answeredCount}/{INTERPRETATION_STEPS.length}
+                      </div>
                       <div className="flex items-center gap-2">
                         <Button variant="outline" size="sm" className="gap-2" onClick={() => nudgeZoom(0.25)}>
                           <ZoomIn className="h-4 w-4" />
@@ -162,6 +188,11 @@ export default function TeacherSimulationsPage() {
                         </Button>
                       </div>
                     </div>
+                    {showCompletion && (
+                      <div className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 animate-bounce">
+                        Great work! New ECG coming up...
+                      </div>
+                    )}
                     <p className="text-muted-foreground">
                       Step {INTERPRETATION_STEPS.indexOf(currentStep) + 1} of{" "}
                       {INTERPRETATION_STEPS.length}: {currentStep.replace("-", " ").replace(/\b\w/g, l => l.toUpperCase())}
