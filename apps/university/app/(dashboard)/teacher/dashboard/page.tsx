@@ -481,6 +481,7 @@ function StudentDetail({
   onDownload: (submission: any) => void
   hintCount: number
 }) {
+  const finalSimulationStep = INTERPRETATION_STEPS[INTERPRETATION_STEPS.length - 1]
   const simulationCount = activities.filter(
     (activity) =>
       activity.activityType === "simulation" &&
