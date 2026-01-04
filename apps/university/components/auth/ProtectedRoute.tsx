@@ -10,11 +10,12 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const { isAuthenticated, user } = useAuth()
+  const { isAuthenticated, isLoading, user } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
 
   useEffect(() => {
+    if (isLoading) return
     if (!isAuthenticated) {
       // Redirect to appropriate login based on path
       if (pathname?.startsWith("/teacher")) {
@@ -34,7 +35,17 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
         router.push("/ecg")
       }
     }
-  }, [isAuthenticated, user, requiredRole, pathname, router])
+  }, [isAuthenticated, isLoading, user, requiredRole, pathname, router])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground">Loading session...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!isAuthenticated) {
     return (
@@ -58,4 +69,3 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
 
   return <>{children}</>
 }
-

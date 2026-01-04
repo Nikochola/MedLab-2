@@ -481,11 +481,10 @@ function StudentDetail({
   onDownload: (submission: any) => void
   hintCount: number
 }) {
-  const finalSimulationStep = INTERPRETATION_STEPS[INTERPRETATION_STEPS.length - 1]
   const simulationCount = activities.filter(
     (activity) =>
       activity.activityType === "simulation" &&
-      activity.data?.step === finalSimulationStep &&
+      activity.data?.step === INTERPRETATION_STEPS[INTERPRETATION_STEPS.length - 1] &&
       activity.data?.correct
   ).length
   const caseCount = assessments.length

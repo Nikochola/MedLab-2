@@ -15,6 +15,7 @@ import {
 
 interface AuthContextType {
   isAuthenticated: boolean
+  isLoading: boolean
   user: User | null
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
   register: (email: string, password: string, name: string, role: UserRole, classroomCode?: string) => Promise<{ success: boolean; error?: string }>
@@ -31,6 +32,7 @@ function isValidUUID(value: string | null | undefined): value is string {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [user, setUser] = useState<User | null>(null)
   const router = useRouter()
 
@@ -116,18 +118,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
      ============================================================ */
   useEffect(() => {
     const restore = async () => {
-      const { data } = await supabase.auth.getSession()
+      try {
+        const { data } = await supabase.auth.getSession()
 
-      if (data.session?.user) {
-        const profile = await ensureProfile(
-          data.session.user,
-          data.session.user.email ?? ""
-        )
+        if (data.session?.user) {
+          const profile = await ensureProfile(
+            data.session.user,
+            data.session.user.email ?? ""
+          )
 
-        if (!profile) return
+          if (!profile) return
 
-        setUser(profile)
-        setIsAuthenticated(true)
+          setUser(profile)
+          setIsAuthenticated(true)
+        }
+      } finally {
+        setIsLoading(false)
       }
     }
 
@@ -141,11 +147,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               if (!profile) return
               setUser(profile)
               setIsAuthenticated(true)
+              setIsLoading(false)
             }
           )
         } else {
           setUser(null)
           setIsAuthenticated(false)
+          setIsLoading(false)
         }
       }
     )
@@ -330,7 +338,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
      PROVIDER VALUE
      ============================================================ */
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, register, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, user, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   )
