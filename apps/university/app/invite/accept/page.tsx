@@ -100,7 +100,7 @@ async function acceptInvite(formData: FormData) {
   const password = (formData.get("password") as string | null) ?? ""
 
   const invite = await getInviteByToken(token)
-  if (!invite || invite.email.toLowerCase() !== email.toLowerCase()) {
+  if (!invite || !email) {
     redirect(`/invite/accept?token=${encodeURIComponent(token)}&error=invalid`)
   }
 
@@ -111,8 +111,10 @@ async function acceptInvite(formData: FormData) {
     .eq("id", invite.orgId)
     .maybeSingle()
 
+  const normalizedEmail = email.toLowerCase()
+
   const { data: signUpData, error: signUpError } = await admin.auth.admin.createUser({
-    email,
+    email: normalizedEmail,
     password,
     email_confirm: true,
     user_metadata: { name },
@@ -133,7 +135,7 @@ async function acceptInvite(formData: FormData) {
       console.error("invite lookup existing user error:", existingError)
     }
     const existingUser = existingLookup?.users?.find(
-      (candidate) => candidate.email?.toLowerCase() === email.toLowerCase()
+      (candidate) => candidate.email?.toLowerCase() === normalizedEmail
     )
     if (!existingUser) {
       redirect(`/invite/accept?token=${encodeURIComponent(token)}&error=signup`)
@@ -164,13 +166,16 @@ async function acceptInvite(formData: FormData) {
 
   await admin.from("users").upsert({
     id: userId,
-    email,
+    email: normalizedEmail,
     name,
     role: effectiveUserRole,
     classroom_id: classroomId,
   })
   await admin.from("org_members").upsert({ org_id: invite.orgId, user_id: userId, role: invite.role })
-  await admin.from("invites").update({ accepted_at: new Date().toISOString() }).eq("id", invite.id)
+  await admin
+    .from("invites")
+    .update({ accepted_at: new Date().toISOString(), email: normalizedEmail })
+    .eq("id", invite.id)
 
   if (invite.role === "teacher" || invite.role === "org_admin") {
     await ensureTeacherClassroom(admin, userId)
@@ -222,7 +227,6 @@ export default async function InviteAcceptPage({ searchParams }: InviteAcceptPro
               defaultValue={invite.email}
               className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm shadow-sm"
               required
-              readOnly
             />
           </label>
           <label className="space-y-1 text-sm font-medium text-slate-700">

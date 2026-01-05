@@ -20,6 +20,7 @@ import "jspdf-autotable"
 import { INTERPRETATION_STEPS } from "@/lib/constants"
 
 type StudentWithProgress = User & { progress: StudentProgress }
+const FINAL_SIMULATION_STEP = INTERPRETATION_STEPS[INTERPRETATION_STEPS.length - 1]
 
 type ParsedAiFeedback = {
   summary?: string
@@ -102,20 +103,19 @@ export default function TeacherDashboardPage() {
     })
     return map
   }, [caseSubmissions])
-  const finalSimulationStep = INTERPRETATION_STEPS[INTERPRETATION_STEPS.length - 1]
   const simulationCountMap = useMemo(() => {
     const map = new Map<string, number>()
     activities.forEach((activity) => {
       if (
         activity.activityType === "simulation" &&
-        activity.data?.step === finalSimulationStep &&
+        activity.data?.step === FINAL_SIMULATION_STEP &&
         activity.data?.correct
       ) {
         map.set(activity.studentId, (map.get(activity.studentId) ?? 0) + 1)
       }
     })
     return map
-  }, [activities, finalSimulationStep])
+  }, [activities])
   const lastActivityMap = useMemo(() => {
     const map = new Map<string, string>()
     activities.forEach((activity) => {
@@ -484,7 +484,7 @@ function StudentDetail({
   const simulationCount = activities.filter(
     (activity) =>
       activity.activityType === "simulation" &&
-      activity.data?.step === INTERPRETATION_STEPS[INTERPRETATION_STEPS.length - 1] &&
+      activity.data?.step === FINAL_SIMULATION_STEP &&
       activity.data?.correct
   ).length
   const caseCount = assessments.length
