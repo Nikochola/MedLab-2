@@ -104,6 +104,14 @@ async function acceptInvite(formData: FormData) {
     redirect(`/invite/accept?token=${encodeURIComponent(token)}&error=invalid`)
   }
 
+  const effectiveUserRole = invite.role === "org_admin" ? "teacher" : invite.role
+  const userMetadata = {
+    name,
+    full_name: name,
+    role: effectiveUserRole,
+    org_role: invite.role,
+  }
+
   const admin = createSupabaseAdminClient()
   const { data: org } = await admin
     .from("organizations")
@@ -117,7 +125,7 @@ async function acceptInvite(formData: FormData) {
     email: normalizedEmail,
     password,
     email_confirm: true,
-    user_metadata: { name },
+    user_metadata: userMetadata,
   })
 
   let userId = signUpData.user?.id ?? null
@@ -127,28 +135,54 @@ async function acceptInvite(formData: FormData) {
       console.error("invite signup error:", signUpError)
     }
 
-    const { data: existingLookup, error: existingError } = await admin.auth.admin.listUsers({
-      page: 1,
-      perPage: 200,
-    })
-    if (existingError) {
-      console.error("invite lookup existing user error:", existingError)
-    }
-    const existingUser = existingLookup?.users?.find(
-      (candidate) => candidate.email?.toLowerCase() === normalizedEmail
-    )
-    if (!existingUser) {
-      redirect(`/invite/accept?token=${encodeURIComponent(token)}&error=signup`)
+    const { data: existingProfile, error: profileError } = await admin
+      .from("users")
+      .select("id, email")
+      .eq("email", normalizedEmail)
+      .maybeSingle()
+    if (profileError) {
+      console.error("invite lookup profile error:", profileError)
     }
 
-    userId = existingUser.id
-    const { error: updateError } = await admin.auth.admin.updateUserById(userId, {
-      password,
-      email_confirm: true,
-      user_metadata: { name },
-    })
-    if (updateError) {
-      console.error("invite update user error:", updateError)
+    if (existingProfile?.id) {
+      userId = existingProfile.id
+    } else {
+      let existingUser: { id: string } | undefined
+      let page = 1
+      while (!existingUser && page <= 5) {
+        const { data: existingLookup, error: existingError } = await admin.auth.admin.listUsers({
+          page,
+          perPage: 200,
+        })
+        if (existingError) {
+          console.error("invite lookup existing user error:", existingError)
+          break
+        }
+        existingUser = existingLookup?.users?.find(
+          (candidate) => candidate.email?.toLowerCase() === normalizedEmail
+        )
+        if (existingLookup?.users?.length) {
+          page += 1
+        } else {
+          break
+        }
+      }
+      if (!existingUser) {
+        redirect(`/invite/accept?token=${encodeURIComponent(token)}&error=signup`)
+      }
+      userId = existingUser.id
+    }
+
+    if (userId) {
+      const { error: updateError } = await admin.auth.admin.updateUserById(userId, {
+        password,
+        email_confirm: true,
+        user_metadata: userMetadata,
+        email: normalizedEmail,
+      })
+      if (updateError) {
+        console.error("invite update user error:", updateError)
+      }
     }
   }
 
@@ -161,8 +195,6 @@ async function acceptInvite(formData: FormData) {
     const classroom = await ensureTeacherClassroom(admin, invite.teacherId)
     classroomId = classroom.id
   }
-
-  const effectiveUserRole = invite.role === "org_admin" ? "teacher" : invite.role
 
   await admin.from("users").upsert({
     id: userId,
