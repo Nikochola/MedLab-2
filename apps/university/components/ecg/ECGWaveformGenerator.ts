@@ -163,19 +163,40 @@ type LeadName =
 
 type LeadMap = Record<LeadName, Float32Array>
 
-function projectTo12Leads(base: Float32Array): LeadMap {
+type AxisDirection = "normal" | "left" | "right"
+
+function resolveAxisDirection(abnormalities?: ECGWaveformParams["abnormalities"]): AxisDirection {
+  if (abnormalities?.leftAxis) return "left"
+  if (abnormalities?.rightAxis) return "right"
+  return "normal"
+}
+
+function getAxisCoefficients(axis: AxisDirection) {
+  switch (axis) {
+    case "left":
+      return { ra: -0.5, la: 0.6, ll: -0.1 }
+    case "right":
+      return { ra: -0.2, la: -0.6, ll: 0.6 }
+    default:
+      return { ra: -0.4, la: 0.1, ll: 0.4 }
+  }
+}
+
+function projectTo12Leads(base: Float32Array, axis: AxisDirection): LeadMap {
   const n = base.length
 
   const RA = new Float32Array(n)
   const LA = new Float32Array(n)
   const LL = new Float32Array(n)
 
+  const coeffs = getAxisCoefficients(axis)
+
   for (let i = 0; i < n; i++) {
     const d = base[i]
     // Simulated heart-vector projections at RA/LA/LL
-    RA[i] = -0.4 * d
-    LA[i] = 0.1 * d
-    LL[i] = 0.4 * d
+    RA[i] = coeffs.ra * d
+    LA[i] = coeffs.la * d
+    LL[i] = coeffs.ll * d
   }
 
   const I = new Float32Array(n)
@@ -246,6 +267,8 @@ function getLeadsForParams(params: ECGWaveformParams): {
     stElevation: params.abnormalities?.stElevation ?? false,
     stDepression: params.abnormalities?.stDepression ?? false,
     tWaveInversion: params.abnormalities?.tWaveInversion ?? false,
+    leftAxis: params.abnormalities?.leftAxis ?? false,
+    rightAxis: params.abnormalities?.rightAxis ?? false,
   })
 
   if (!cachedLeads || key !== cachedKey) {
@@ -257,7 +280,8 @@ function getLeadsForParams(params: ECGWaveformParams): {
       stDepression: params.abnormalities?.stDepression,
       tWaveInversion: params.abnormalities?.tWaveInversion,
     })
-    cachedLeads = projectTo12Leads(base)
+    const axis = resolveAxisDirection(params.abnormalities)
+    cachedLeads = projectTo12Leads(base, axis)
     cachedKey = key
     cachedSampleRate = sampleRate
     cachedDuration = duration
