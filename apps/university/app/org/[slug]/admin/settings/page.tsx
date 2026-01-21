@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
 import { getOrgContext, getEntitlementsForOrg } from "@/lib/orgs"
 import { createSupabaseServerClient } from "@/lib/supabaseServer"
+import { OrgAdminHeader } from "@/components/org-admin/OrgAdminHeader"
 
 interface OrgSettingsPageProps {
   params: { slug: string }
@@ -56,13 +57,14 @@ export default async function OrgSettingsPage({ params, searchParams }: OrgSetti
   const saved = searchParams?.saved === "1"
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 p-6">
+    <div className="admin-canvas">
       <div className="mx-auto flex max-w-3xl flex-col gap-6">
-        <div>
-          <p className="text-sm uppercase tracking-wide text-muted-foreground">Org Admin</p>
-          <h1 className="text-3xl font-bold">Organization settings</h1>
-          <p className="text-muted-foreground mt-2">Control profile, signup policy, and contact details for {org.name}.</p>
-        </div>
+        <OrgAdminHeader
+          orgSlug={org.slug}
+          title="Organization settings"
+          description={`Control profile, signup policy, and contact details for ${org.name}.`}
+          active="settings"
+        />
 
         {saved && (
           <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 shadow-sm">
@@ -70,7 +72,7 @@ export default async function OrgSettingsPage({ params, searchParams }: OrgSetti
           </div>
         )}
 
-        <form action={updateOrgSettings} className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm">
+        <form action={updateOrgSettings} className="space-y-4 rounded-2xl border border-border bg-white/80 p-6 shadow-sm">
           <input type="hidden" name="slug" value={params.slug} />
           <div className="grid gap-4 md:grid-cols-2">
             <label className="space-y-1 text-sm font-medium text-slate-700">

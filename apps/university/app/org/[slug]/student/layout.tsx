@@ -1,8 +1,10 @@
 import { Sidebar } from "@/components/ui/sidebar"
+import { PortalTheme } from "@/components/ui/portal-theme"
 
 export default function OrgStudentLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="h-screen flex bg-background text-foreground overflow-hidden">
+    <div className="h-screen flex portal-canvas text-foreground overflow-hidden">
+      <PortalTheme />
       <div className="hidden md:block shrink-0">
         <Sidebar />
       </div>

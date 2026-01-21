@@ -316,11 +316,16 @@ export default function TeacherDashboardPage() {
 
   return (
     <ProtectedRoute requiredRole="teacher">
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen">
         <div className="container mx-auto px-6 py-8 space-y-6">
-          <div>
-            <h1 className="text-2xl font-bold">Teacher Dashboard</h1>
-            <p className="text-sm text-muted-foreground">Review student progress and case assessments.</p>
+          <div className="relative overflow-hidden rounded-2xl border border-border bg-white/70 p-5 shadow-sm backdrop-blur">
+            <div className="pointer-events-none absolute -top-16 right-10 h-32 w-32 rounded-full bg-blue-200/40 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-20 left-10 h-40 w-40 rounded-full bg-indigo-200/30 blur-3xl" />
+            <div className="relative space-y-1">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Teacher Portal</p>
+              <h1 className="text-2xl font-semibold">Teacher Dashboard</h1>
+              <p className="text-sm text-muted-foreground">Review student progress and case assessments.</p>
+            </div>
           </div>
 
           {loading ? (
@@ -377,8 +382,8 @@ export default function TeacherDashboardPage() {
                 </CardHeader>
                 <CardContent>
                   {studentList.length > 0 ? (
-                    <div className="overflow-hidden rounded-xl border border-border bg-white">
-                      <div className="grid grid-cols-12 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-700">
+                    <div className="overflow-hidden rounded-2xl border border-border bg-white/80">
+                      <div className="grid grid-cols-12 bg-slate-50/80 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600">
                         <div className="col-span-3">Student</div>
                         <div className="col-span-2">Email</div>
                         <div className="col-span-2">Class</div>
@@ -393,7 +398,7 @@ export default function TeacherDashboardPage() {
                         const lastActivity = lastActivityMap.get(student.id)
                         return (
                           <Fragment key={student.id}>
-                            <div className="grid grid-cols-12 items-center border-t border-border px-4 py-3 text-sm">
+                            <div className="grid grid-cols-12 items-center border-t border-border/70 px-4 py-3 text-sm transition-colors hover:bg-slate-50/80">
                               <div className="col-span-3 font-semibold text-slate-900 truncate">
                                 {student.name || "Unnamed"}
                               </div>

@@ -93,9 +93,9 @@ export function DoctorPanel({
   }
 
   return (
-    <div className="h-full flex flex-col bg-card border-r border-border">
+    <div className="portal-surface h-full flex flex-col overflow-hidden">
       {/* Doctor Character Area */}
-      <div className="p-6 border-b border-border">
+      <div className="p-6 border-b border-border/60">
         <div className="flex items-center gap-4">
           <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary/30">
             <User className="h-10 w-10 text-primary" />
@@ -191,7 +191,7 @@ export function DoctorPanel({
       </div>
 
       {/* Input Area */}
-      <div className="p-6 border-t border-border space-y-4">
+      <div className="p-6 border-t border-border/60 space-y-4">
         <div className="space-y-2">
           <label className="text-sm font-medium">Your Answer</label>
           <Input

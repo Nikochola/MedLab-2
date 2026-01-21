@@ -10,35 +10,35 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-figtree)", "system-ui", "sans-serif"],
-        mono: ["var(--font-figtree)", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+        sans: ["var(--font-nunito)", "system-ui", "sans-serif"],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       colors: {
-        background: "#ffffff",
-        foreground: "#0f172a",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
         card: {
-          DEFAULT: "#f8fafc",
-          foreground: "#0f172a",
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
         },
         primary: {
-          DEFAULT: "#155dfc",
-          foreground: "#ffffff",
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
-          DEFAULT: "#155dfc",
-          foreground: "#0f172a",
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
         },
         muted: {
-          DEFAULT: "#f1f5f9",
-          foreground: "#64748b",
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: "#155dfc",
-          foreground: "#ffffff",
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
         },
-        border: "#e2e8f0",
-        input: "#e2e8f0",
-        ring: "#38bdf8",
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
       },
       borderRadius: {
         lg: "0.5rem",

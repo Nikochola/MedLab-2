@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Figtree } from "next/font/google";
+import { Nunito } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 
-const figtree = Figtree({
+const nunito = Nunito({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-  variable: "--font-figtree",
+  variable: "--font-nunito",
   display: "swap",
 });
 
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${figtree.variable} font-sans`}>
+      <body className={`${nunito.variable} font-sans`}>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

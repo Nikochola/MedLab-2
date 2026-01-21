@@ -172,8 +172,8 @@ export function BulkInviteUploader({ orgSlug, orgId, action }: BulkInviteUploade
       </form>
 
       {parsedRows.length > 0 && (
-        <div className="overflow-hidden rounded-xl border border-border bg-white">
-          <div className="grid grid-cols-12 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-700">
+        <div className="overflow-hidden rounded-2xl border border-border bg-white/80">
+          <div className="grid grid-cols-12 bg-slate-50/80 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600">
             <div className="col-span-1">#</div>
             <div className="col-span-4">Email</div>
             <div className="col-span-3">Name</div>
@@ -183,7 +183,7 @@ export function BulkInviteUploader({ orgSlug, orgId, action }: BulkInviteUploade
           {parsedRows.map((row) => (
             <div
               key={`${row.email}-${row.index}`}
-              className="grid grid-cols-12 items-center border-t border-border px-4 py-2 text-xs"
+              className="grid grid-cols-12 items-center border-t border-border/70 px-4 py-2 text-xs transition-colors hover:bg-slate-50/80"
             >
               <div className="col-span-1 text-slate-500">{row.index}</div>
               <div className="col-span-4 truncate text-slate-800">{row.email || "—"}</div>

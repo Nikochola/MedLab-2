@@ -21,14 +21,14 @@ export async function validateAnswerWithAIEnhanced(
       const ecgContext = buildECGContext(ecgParams)
       const question = getQuestionForStep(step)
       const correctAnswer = getExpectedAnswer(step, ecgParams)
-      
+
       const aiResult = await validateAnswerWithAI(
         answer,
         question,
         ecgContext,
         correctAnswer
       )
-      
+
       return {
         isCorrect: aiResult.isCorrect,
         message: aiResult.feedback,
@@ -39,7 +39,7 @@ export async function validateAnswerWithAIEnhanced(
       // Fall through to rule-based validation
     }
   }
-  
+
   // Fallback to rule-based validation
   const ruleBasedResult = validateAnswer(step, answer, ecgParams)
   return {
@@ -50,15 +50,15 @@ export async function validateAnswerWithAIEnhanced(
 
 function buildECGContext(params: ECGWaveformParams): string {
   const context: string[] = []
-  
+
   if (params.heartRate) {
     context.push(`Heart rate: approximately ${params.heartRate} bpm`)
   }
-  
+
   if (params.rhythm) {
     context.push(`Rhythm: ${params.rhythm}`)
   }
-  
+
   if (params.abnormalities) {
     const abn: string[] = []
     if (params.abnormalities.stElevation) abn.push("ST elevation")
@@ -67,14 +67,14 @@ function buildECGContext(params: ECGWaveformParams): string {
     if (params.abnormalities.tWaveInversion) abn.push("T wave inversion")
     if (params.abnormalities.leftAxis) abn.push("Left axis deviation")
     if (params.abnormalities.rightAxis) abn.push("Right axis deviation")
-    
+
     if (abn.length > 0) {
       context.push(`Abnormalities: ${abn.join(", ")}`)
     } else {
       context.push("No significant abnormalities detected")
     }
   }
-  
+
   return `This is a 12-lead ECG. ${context.join(". ")}.`
 }
 

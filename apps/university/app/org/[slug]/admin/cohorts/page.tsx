@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
 import { createSupabaseServerClient } from "@/lib/supabaseServer"
 import { getOrgContext, getCohortsForOrg } from "@/lib/orgs"
+import { OrgAdminHeader } from "@/components/org-admin/OrgAdminHeader"
 
 interface CohortsPageProps {
   params: { slug: string }
@@ -83,15 +84,20 @@ export default async function CohortsPage({ params }: CohortsPageProps) {
 
   if (!entitlements?.data?.cohorts_enabled) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 p-6">
-        <div className="mx-auto max-w-3xl rounded-xl border border-border bg-white p-6 text-center shadow-sm">
-          <h1 className="text-2xl font-semibold">Cohorts disabled</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Cohort features are turned off for this organization. Ask a platform admin to enable Cohorts in entitlements.
-          </p>
-          <a href={`/org/${org.slug}/admin`} className="mt-4 inline-flex items-center text-sm text-blue-600 hover:underline">
-            ← Back to admin
-          </a>
+      <div className="admin-canvas">
+        <div className="mx-auto flex max-w-5xl flex-col gap-6">
+          <OrgAdminHeader
+            orgSlug={org.slug}
+            title="Cohorts"
+            description="Create cohorts and assign teachers or students."
+            active="cohorts"
+          />
+          <div className="rounded-2xl border border-border bg-white/80 p-6 text-center shadow-sm">
+            <h2 className="text-2xl font-semibold">Cohorts disabled</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Cohort features are turned off for this organization. Ask a platform admin to enable Cohorts in entitlements.
+            </p>
+          </div>
         </div>
       </div>
     )
@@ -122,18 +128,14 @@ export default async function CohortsPage({ params }: CohortsPageProps) {
   const cohortMembers = cohortMembersRows ?? []
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 p-6">
+    <div className="admin-canvas">
       <div className="mx-auto flex max-w-6xl flex-col gap-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm uppercase tracking-wide text-muted-foreground">Org Admin</p>
-            <h1 className="text-3xl font-bold">Cohorts</h1>
-            <p className="text-muted-foreground mt-2">Create cohorts and assign teachers or students.</p>
-          </div>
-          <a href={`/org/${org.slug}/admin`} className="text-sm text-blue-600 hover:underline">
-            ← Back to admin
-          </a>
-        </div>
+        <OrgAdminHeader
+          orgSlug={org.slug}
+          title="Cohorts"
+          description="Create cohorts and assign teachers or students."
+          active="cohorts"
+        />
 
         <div className="grid gap-4 md:grid-cols-2">
           <form
@@ -151,7 +153,7 @@ export default async function CohortsPage({ params }: CohortsPageProps) {
               revalidatePath(`/org/${params.slug}/admin/cohorts`)
               redirect(`/org/${params.slug}/admin/cohorts`)
             }}
-            className="space-y-3 rounded-xl border border-border bg-white p-4 shadow-sm"
+            className="space-y-3 rounded-2xl border border-border bg-white/80 p-5 shadow-sm"
           >
             <h2 className="text-lg font-semibold">Create cohort</h2>
             <input
@@ -173,7 +175,7 @@ export default async function CohortsPage({ params }: CohortsPageProps) {
             </button>
           </form>
 
-          <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
+          <div className="rounded-2xl border border-border bg-white/80 p-5 shadow-sm">
             <h2 className="text-lg font-semibold">Bulk add students (CSV)</h2>
             <p className="text-sm text-muted-foreground">Add multiple students to a selected cohort by email.</p>
             <form
@@ -224,7 +226,7 @@ export default async function CohortsPage({ params }: CohortsPageProps) {
             const studentMembers = membersForCohort.filter((cm) => memberMap.get(cm.user_id as string)?.role === "student")
 
             return (
-              <div key={cohort.id} className="rounded-xl border border-border bg-white p-4 shadow-sm space-y-3">
+              <div key={cohort.id} className="rounded-2xl border border-border bg-white/80 p-5 shadow-sm space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-semibold">{cohort.name}</h3>
@@ -265,11 +267,14 @@ export default async function CohortsPage({ params }: CohortsPageProps) {
                         Add teacher
                       </button>
                     </form>
-                    <div className="divide-y divide-border rounded-lg border border-border">
+                    <div className="divide-y divide-border/70 rounded-lg border border-border">
                       {teacherMembers.map((cm) => {
                         const info = memberMap.get(cm.user_id as string)
                         return (
-                          <div key={cm.user_id as string} className="flex items-center justify-between px-3 py-2 text-sm">
+                          <div
+                            key={cm.user_id as string}
+                            className="flex items-center justify-between px-3 py-2 text-sm transition-colors hover:bg-slate-50/80"
+                          >
                             <div>
                               <div className="font-medium">{info?.name ?? "Unknown"}</div>
                               <div className="text-xs text-muted-foreground">{info?.email ?? cm.user_id}</div>
@@ -287,7 +292,9 @@ export default async function CohortsPage({ params }: CohortsPageProps) {
                           </div>
                         )
                       })}
-                      {!teacherMembers.length && <div className="px-3 py-2 text-sm text-muted-foreground">No teachers assigned</div>}
+                      {!teacherMembers.length && (
+                        <div className="px-3 py-2 text-sm text-muted-foreground">No teachers assigned</div>
+                      )}
                     </div>
                   </div>
 
@@ -322,11 +329,14 @@ export default async function CohortsPage({ params }: CohortsPageProps) {
                         Add student
                       </button>
                     </form>
-                    <div className="divide-y divide-border rounded-lg border border-border">
+                    <div className="divide-y divide-border/70 rounded-lg border border-border">
                       {studentMembers.map((cm) => {
                         const info = memberMap.get(cm.user_id as string)
                         return (
-                          <div key={cm.user_id as string} className="flex items-center justify-between px-3 py-2 text-sm">
+                          <div
+                            key={cm.user_id as string}
+                            className="flex items-center justify-between px-3 py-2 text-sm transition-colors hover:bg-slate-50/80"
+                          >
                             <div>
                               <div className="font-medium">{info?.name ?? "Unknown"}</div>
                               <div className="text-xs text-muted-foreground">{info?.email ?? cm.user_id}</div>
@@ -344,7 +354,9 @@ export default async function CohortsPage({ params }: CohortsPageProps) {
                           </div>
                         )
                       })}
-                      {!studentMembers.length && <div className="px-3 py-2 text-sm text-muted-foreground">No students assigned</div>}
+                      {!studentMembers.length && (
+                        <div className="px-3 py-2 text-sm text-muted-foreground">No students assigned</div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -352,7 +364,7 @@ export default async function CohortsPage({ params }: CohortsPageProps) {
             )
           })}
           {!cohorts.length && (
-            <div className="rounded-xl border border-border bg-white p-6 text-center text-sm text-muted-foreground">
+            <div className="rounded-2xl border border-border bg-white/80 p-6 text-center text-sm text-muted-foreground">
               No cohorts yet. Create one to start assigning teachers and students.
             </div>
           )}

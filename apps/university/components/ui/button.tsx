@@ -5,20 +5,23 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-2xl text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-2xl text-base font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "bg-white text-black border-2 border-slate-300 hover:bg-slate-50 hover:border-slate-400",
-        bug: "bg-white text-amber-500 border-2 border-amber-500 hover:bg-slate-100",
-        tritary: "bg-blue-500 text-white border-2 border-blue-500 hover:bg-blue-600",
+        default:
+          "bg-white/90 text-slate-900 border border-border/80 shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-slate-300",
+        bug:
+          "bg-white/90 text-amber-600 border border-amber-300 shadow-sm hover:shadow-md hover:-translate-y-0.5 hover:border-amber-400",
+        tritary:
+          "bg-gradient-to-r from-sky-500 to-blue-600 text-white border border-transparent shadow-sm hover:shadow-md hover:-translate-y-0.5",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+          "bg-red-500 text-white shadow-sm hover:bg-red-600 hover:shadow-md hover:-translate-y-0.5",
         outline:
-          "border border-input bg-background hover:bg-slate-100",
+          "border border-border bg-white/70 hover:bg-white hover:shadow-sm hover:-translate-y-0.5",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+          "bg-slate-900 text-white shadow-sm hover:bg-slate-800 hover:shadow-md hover:-translate-y-0.5",
+        ghost: "hover:bg-slate-100/80 hover:text-slate-900",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
@@ -57,4 +60,3 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button"
 
 export { Button, buttonVariants }
-

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -17,10 +17,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import type { CaseFeedback } from "@/lib/ai/aiClient"
-import { Sparkles, Loader2 } from "lucide-react"
+import { ChevronLeft, ChevronRight, Loader2, Sparkles } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { saveCaseAssessment } from "@/lib/storage"
 import { upsertStudentProgress } from "@/lib/studentTracking"
+import { cn } from "@/lib/utils"
 
 interface AssessmentFormData {
   rate: string
@@ -47,9 +48,16 @@ interface AssessmentFormData {
 interface AssessmentFormProps {
   patientCase?: string
   ecgFindings?: string
+  collapsed?: boolean
+  onToggleCollapse?: () => void
 }
 
-export function AssessmentForm({ patientCase, ecgFindings }: AssessmentFormProps) {
+export function AssessmentForm({
+  patientCase,
+  ecgFindings,
+  collapsed = false,
+  onToggleCollapse,
+}: AssessmentFormProps) {
   const parsedCase = useMemo(() => {
     if (!patientCase) return null
     try {
@@ -87,6 +95,39 @@ export function AssessmentForm({ patientCase, ecgFindings }: AssessmentFormProps
   const [isLoadingFeedback, setIsLoadingFeedback] = useState(false)
   const [showFeedback, setShowFeedback] = useState(false)
   const { user } = useAuth()
+  const steps = [
+    {
+      key: "rate-rhythm",
+      title: "Rate & Rhythm",
+      description: "Capture baseline rate and rhythm.",
+    },
+    {
+      key: "intervals",
+      title: "Intervals",
+      description: "Measure PR, QRS, and QT intervals.",
+    },
+    {
+      key: "axis",
+      title: "Axis",
+      description: "Determine frontal plane axis.",
+    },
+    {
+      key: "chamber",
+      title: "Chamber Enlargement",
+      description: "Identify chamber hypertrophy or enlargement.",
+    },
+    {
+      key: "waveform",
+      title: "Waveform Abnormalities",
+      description: "Note ST/T changes and pathologic Q waves.",
+    },
+    {
+      key: "diagnosis",
+      title: "Final Diagnosis",
+      description: "Summarize your ECG interpretation.",
+    },
+  ]
+  const [currentStep, setCurrentStep] = useState(0)
 
   const normalizeFeedbackPayload = (payload: any): CaseFeedback => {
     if (!payload) {
@@ -205,102 +246,178 @@ export function AssessmentForm({ patientCase, ecgFindings }: AssessmentFormProps
   }
 
   const feedbackSummary = aiFeedback?.summary ?? ""
+  const stepperRef = useRef<HTMLDivElement | null>(null)
+  const [stepperScale, setStepperScale] = useState(1)
+
+  useEffect(() => {
+    const element = stepperRef.current
+    if (!element) return
+
+    const updateScale = () => {
+      const width = element.clientWidth || 802
+      const scale = Math.min(1, width / 802)
+      setStepperScale(Number(scale.toFixed(3)))
+    }
+
+    updateScale()
+
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", updateScale)
+      return () => window.removeEventListener("resize", updateScale)
+    }
+
+    const observer = new ResizeObserver(updateScale)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+
+  if (collapsed) {
+    return (
+      <div className="h-full p-4">
+        <div className="flex h-full flex-col items-center justify-start gap-4">
+          <button
+            type="button"
+            className="rounded-2xl border border-border/70 bg-white/80 p-2 text-muted-foreground transition hover:text-foreground"
+            onClick={() => onToggleCollapse?.()}
+            aria-label="Expand assessment panel"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <span
+            className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+            style={{ writingMode: "vertical-rl" }}
+          >
+            Assessment
+          </span>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="h-full bg-card p-6">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold mb-2">ECG Assessment Form</h2>
-          <p className="text-sm text-muted-foreground">
-            Complete all sections based on the ECG findings
-          </p>
+    <div className="h-full p-4">
+      <div className="space-y-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-extrabold mb-2">ECG Assessment</h2>
+            <p className="text-sm font-medium text-muted-foreground">
+              Complete each step based on the ECG findings.
+            </p>
+          </div>
+          {onToggleCollapse && (
+            <button
+              type="button"
+              className="rounded-2xl border border-border/70 bg-white/80 p-2 text-muted-foreground transition hover:text-foreground"
+              onClick={onToggleCollapse}
+              aria-label="Collapse assessment panel"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          )}
         </div>
 
-        {/* Rate & Rhythm */}
-        <Card className="bg-background/50 border-border">
-          <CardHeader>
-            <CardTitle className="text-lg">Rate & Rhythm</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="rate">Heart Rate (bpm)</Label>
-              <Input
-                id="rate"
-                type="number"
-                placeholder="e.g., 75"
-                value={formData.rate}
-                onChange={(e) => setFormData({ ...formData, rate: e.target.value })}
-                className="bg-background"
-              />
+        <div className="portal-surface w-full p-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div ref={stepperRef} className="w-full">
+              <div
+                style={{ "--stepper-scale": stepperScale } as React.CSSProperties}
+                className="overflow-hidden rounded-[calc(100px*var(--stepper-scale))] bg-[#F5F5F5] transition-colors"
+              >
+                <div className="flex h-[calc(109px*var(--stepper-scale))] items-center justify-center bg-white px-[calc(36px*var(--stepper-scale))]">
+                  <div
+                    key={currentStep}
+                    style={{ animation: "step-swap 220ms ease" }}
+                    className="min-w-0"
+                  >
+                    <div
+                      title={steps[currentStep].title}
+                      className="truncate text-[calc(48px*var(--stepper-scale))] font-semibold leading-[calc(65px*var(--stepper-scale))] text-black"
+                    >
+                      {steps[currentStep].title}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="rhythm">Rhythm</Label>
-              <Input
-                id="rhythm"
-                type="text"
-                placeholder="e.g., Normal Sinus Rhythm"
-                value={formData.rhythm}
-                onChange={(e) => setFormData({ ...formData, rhythm: e.target.value })}
-                className="bg-background"
-              />
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Intervals */}
-        <Card className="bg-background/50 border-border">
-          <CardHeader>
-            <CardTitle className="text-lg">Intervals</CardTitle>
-            <CardDescription>Measure in milliseconds (ms)</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="pr">PR Interval (ms)</Label>
-              <Input
-                id="pr"
-                type="number"
-                placeholder="e.g., 160"
-                value={formData.prInterval}
-                onChange={(e) => setFormData({ ...formData, prInterval: e.target.value })}
-                className="bg-background"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="qrs">QRS Duration (ms)</Label>
-              <Input
-                id="qrs"
-                type="number"
-                placeholder="e.g., 90"
-                value={formData.qrsInterval}
-                onChange={(e) => setFormData({ ...formData, qrsInterval: e.target.value })}
-                className="bg-background"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="qt">QT Interval (ms)</Label>
-              <Input
-                id="qt"
-                type="number"
-                placeholder="e.g., 400"
-                value={formData.qtInterval}
-                onChange={(e) => setFormData({ ...formData, qtInterval: e.target.value })}
-                className="bg-background"
-              />
-            </div>
-          </CardContent>
-        </Card>
+            <div className="rounded-2xl border border-border/70 bg-white/80 p-4 space-y-4 min-h-[300px] max-h-[300px] md:min-h-[360px] md:max-h-[360px] overflow-y-auto">
+              <div>
+                <div className="text-base font-bold">{steps[currentStep].title}</div>
+                <div className="text-sm font-medium text-muted-foreground">{steps[currentStep].description}</div>
+              </div>
 
-        {/* Axis */}
-        <Card className="bg-background/50 border-border">
-          <CardHeader>
-            <CardTitle className="text-lg">Axis</CardTitle>
-          </CardHeader>
-          <CardContent>
+          {currentStep === 0 && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="rate">Heart Rate (bpm)</Label>
+                <Input
+                  id="rate"
+                  type="number"
+                  placeholder="e.g., 75"
+                  value={formData.rate}
+                  onChange={(e) => setFormData({ ...formData, rate: e.target.value })}
+                  className="bg-background"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="rhythm">Rhythm</Label>
+                <Input
+                  id="rhythm"
+                  type="text"
+                  placeholder="e.g., Normal Sinus Rhythm"
+                  value={formData.rhythm}
+                  onChange={(e) => setFormData({ ...formData, rhythm: e.target.value })}
+                  className="bg-background"
+                />
+              </div>
+            </div>
+          )}
+
+          {currentStep === 1 && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="pr">PR Interval (ms)</Label>
+                <Input
+                  id="pr"
+                  type="number"
+                  placeholder="e.g., 160"
+                  value={formData.prInterval}
+                  onChange={(e) => setFormData({ ...formData, prInterval: e.target.value })}
+                  className="bg-background"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="qrs">QRS Duration (ms)</Label>
+                <Input
+                  id="qrs"
+                  type="number"
+                  placeholder="e.g., 90"
+                  value={formData.qrsInterval}
+                  onChange={(e) => setFormData({ ...formData, qrsInterval: e.target.value })}
+                  className="bg-background"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="qt">QT Interval (ms)</Label>
+                <Input
+                  id="qt"
+                  type="number"
+                  placeholder="e.g., 400"
+                  value={formData.qtInterval}
+                  onChange={(e) => setFormData({ ...formData, qtInterval: e.target.value })}
+                  className="bg-background"
+                />
+              </div>
+            </div>
+          )}
+
+          {currentStep === 2 && (
             <RadioGroup
               value={formData.axis}
               onValueChange={(value) =>
                 setFormData({ ...formData, axis: value as "normal" | "left" | "right" | "" })
               }
+              className="space-y-3"
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="normal" id="axis-normal" />
@@ -321,177 +438,163 @@ export function AssessmentForm({ patientCase, ecgFindings }: AssessmentFormProps
                 </Label>
               </div>
             </RadioGroup>
-          </CardContent>
-        </Card>
+          )}
 
-        {/* Chamber Enlargement */}
-        <Card className="bg-background/50 border-border">
-          <CardHeader>
-            <CardTitle className="text-lg">Chamber Enlargement</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="lvh"
-                checked={formData.chamberEnlargement.lvh}
-                onCheckedChange={(checked) =>
-                  setFormData({
-                    ...formData,
-                    chamberEnlargement: {
-                      ...formData.chamberEnlargement,
-                      lvh: checked as boolean,
-                    },
-                  })
-                }
-              />
-              <Label htmlFor="lvh" className="cursor-pointer">
-                Left Ventricular Hypertrophy (LVH)
-              </Label>
+          {currentStep === 3 && (
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="lvh"
+                  checked={formData.chamberEnlargement.lvh}
+                  onCheckedChange={(checked) =>
+                    setFormData({
+                      ...formData,
+                      chamberEnlargement: {
+                        ...formData.chamberEnlargement,
+                        lvh: checked as boolean,
+                      },
+                    })
+                  }
+                />
+                <Label htmlFor="lvh" className="cursor-pointer">
+                  Left Ventricular Hypertrophy (LVH)
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="rvh"
+                  checked={formData.chamberEnlargement.rvh}
+                  onCheckedChange={(checked) =>
+                    setFormData({
+                      ...formData,
+                      chamberEnlargement: {
+                        ...formData.chamberEnlargement,
+                        rvh: checked as boolean,
+                      },
+                    })
+                  }
+                />
+                <Label htmlFor="rvh" className="cursor-pointer">
+                  Right Ventricular Hypertrophy (RVH)
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="raa"
+                  checked={formData.chamberEnlargement.raa}
+                  onCheckedChange={(checked) =>
+                    setFormData({
+                      ...formData,
+                      chamberEnlargement: {
+                        ...formData.chamberEnlargement,
+                        raa: checked as boolean,
+                      },
+                    })
+                  }
+                />
+                <Label htmlFor="raa" className="cursor-pointer">
+                  Right Atrial Abnormality (RAA)
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="laa"
+                  checked={formData.chamberEnlargement.laa}
+                  onCheckedChange={(checked) =>
+                    setFormData({
+                      ...formData,
+                      chamberEnlargement: {
+                        ...formData.chamberEnlargement,
+                        laa: checked as boolean,
+                      },
+                    })
+                  }
+                />
+                <Label htmlFor="laa" className="cursor-pointer">
+                  Left Atrial Abnormality (LAA)
+                </Label>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="rvh"
-                checked={formData.chamberEnlargement.rvh}
-                onCheckedChange={(checked) =>
-                  setFormData({
-                    ...formData,
-                    chamberEnlargement: {
-                      ...formData.chamberEnlargement,
-                      rvh: checked as boolean,
-                    },
-                  })
-                }
-              />
-              <Label htmlFor="rvh" className="cursor-pointer">
-                Right Ventricular Hypertrophy (RVH)
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="raa"
-                checked={formData.chamberEnlargement.raa}
-                onCheckedChange={(checked) =>
-                  setFormData({
-                    ...formData,
-                    chamberEnlargement: {
-                      ...formData.chamberEnlargement,
-                      raa: checked as boolean,
-                    },
-                  })
-                }
-              />
-              <Label htmlFor="raa" className="cursor-pointer">
-                Right Atrial Abnormality (RAA)
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="laa"
-                checked={formData.chamberEnlargement.laa}
-                onCheckedChange={(checked) =>
-                  setFormData({
-                    ...formData,
-                    chamberEnlargement: {
-                      ...formData.chamberEnlargement,
-                      laa: checked as boolean,
-                    },
-                  })
-                }
-              />
-              <Label htmlFor="laa" className="cursor-pointer">
-                Left Atrial Abnormality (LAA)
-              </Label>
-            </div>
-          </CardContent>
-        </Card>
+          )}
 
-        {/* Waveform Abnormalities */}
-        <Card className="bg-background/50 border-border">
-          <CardHeader>
-            <CardTitle className="text-lg">Waveform Abnormalities</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="qwaves"
-                checked={formData.waveformAbnormalities.qWaves}
-                onCheckedChange={(checked) =>
-                  setFormData({
-                    ...formData,
-                    waveformAbnormalities: {
-                      ...formData.waveformAbnormalities,
-                      qWaves: checked as boolean,
-                    },
-                  })
-                }
-              />
-              <Label htmlFor="qwaves" className="cursor-pointer">
-                Q Waves (Pathologic)
-              </Label>
+          {currentStep === 4 && (
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="qwaves"
+                  checked={formData.waveformAbnormalities.qWaves}
+                  onCheckedChange={(checked) =>
+                    setFormData({
+                      ...formData,
+                      waveformAbnormalities: {
+                        ...formData.waveformAbnormalities,
+                        qWaves: checked as boolean,
+                      },
+                    })
+                  }
+                />
+                <Label htmlFor="qwaves" className="cursor-pointer">
+                  Q Waves (Pathologic)
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="stelevation"
+                  checked={formData.waveformAbnormalities.stElevation}
+                  onCheckedChange={(checked) =>
+                    setFormData({
+                      ...formData,
+                      waveformAbnormalities: {
+                        ...formData.waveformAbnormalities,
+                        stElevation: checked as boolean,
+                      },
+                    })
+                  }
+                />
+                <Label htmlFor="stelevation" className="cursor-pointer">
+                  ST Elevation
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="stdepression"
+                  checked={formData.waveformAbnormalities.stDepression}
+                  onCheckedChange={(checked) =>
+                    setFormData({
+                      ...formData,
+                      waveformAbnormalities: {
+                        ...formData.waveformAbnormalities,
+                        stDepression: checked as boolean,
+                      },
+                    })
+                  }
+                />
+                <Label htmlFor="stdepression" className="cursor-pointer">
+                  ST Depression
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="tinversion"
+                  checked={formData.waveformAbnormalities.tWaveInversion}
+                  onCheckedChange={(checked) =>
+                    setFormData({
+                      ...formData,
+                      waveformAbnormalities: {
+                        ...formData.waveformAbnormalities,
+                        tWaveInversion: checked as boolean,
+                      },
+                    })
+                  }
+                />
+                <Label htmlFor="tinversion" className="cursor-pointer">
+                  T Wave Inversion
+                </Label>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="stelevation"
-                checked={formData.waveformAbnormalities.stElevation}
-                onCheckedChange={(checked) =>
-                  setFormData({
-                    ...formData,
-                    waveformAbnormalities: {
-                      ...formData.waveformAbnormalities,
-                      stElevation: checked as boolean,
-                    },
-                  })
-                }
-              />
-              <Label htmlFor="stelevation" className="cursor-pointer">
-                ST Elevation
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="stdepression"
-                checked={formData.waveformAbnormalities.stDepression}
-                onCheckedChange={(checked) =>
-                  setFormData({
-                    ...formData,
-                    waveformAbnormalities: {
-                      ...formData.waveformAbnormalities,
-                      stDepression: checked as boolean,
-                    },
-                  })
-                }
-              />
-              <Label htmlFor="stdepression" className="cursor-pointer">
-                ST Depression
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="tinversion"
-                checked={formData.waveformAbnormalities.tWaveInversion}
-                onCheckedChange={(checked) =>
-                  setFormData({
-                    ...formData,
-                    waveformAbnormalities: {
-                      ...formData.waveformAbnormalities,
-                      tWaveInversion: checked as boolean,
-                    },
-                  })
-                }
-              />
-              <Label htmlFor="tinversion" className="cursor-pointer">
-                T Wave Inversion
-              </Label>
-            </div>
-          </CardContent>
-        </Card>
+          )}
 
-        {/* Diagnosis */}
-        <Card className="bg-background/50 border-border">
-          <CardHeader>
-            <CardTitle className="text-lg">Final Diagnosis</CardTitle>
-          </CardHeader>
-          <CardContent>
+          {currentStep === 5 && (
             <div className="space-y-2">
               <Label htmlFor="diagnosis">ECG Interpretation / Diagnosis</Label>
               {diagnosisOptions.length ? (
@@ -525,41 +628,68 @@ export function AssessmentForm({ patientCase, ecgFindings }: AssessmentFormProps
                 />
               )}
             </div>
-          </CardContent>
-        </Card>
-
-        <Separator />
-
-        <div className="text-xs text-muted-foreground text-center pb-4">
-          Form adapted from instructor-provided ECG assessment criteria.
+          )}
         </div>
 
-        <div className="space-y-3">
-          <Button type="submit" className="w-full" size="lg">
-            Submit Assessment
-          </Button>
-          
-          <Button 
-            type="button" 
-            variant="outline" 
-            className="w-full" 
-            onClick={handleGetAIFeedback}
-            disabled={isLoadingFeedback || !formData.diagnosis.trim()}
-          >
-            {isLoadingFeedback ? (
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setCurrentStep((prev) => Math.max(0, prev - 1))}
+                disabled={currentStep === 0}
+                className="h-12"
+              >
+                Back
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setCurrentStep((prev) => Math.min(steps.length - 1, prev + 1))}
+                disabled={currentStep === steps.length - 1}
+                className="h-12"
+              >
+                Next
+              </Button>
+            </div>
+
+            {currentStep === steps.length - 1 && (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating AI Feedback...
-              </>
-            ) : (
-              <>
-                <Sparkles className="mr-2 h-4 w-4" />
-                Get AI Feedback
+                <Separator />
+
+                <div className="text-xs font-medium text-muted-foreground text-center pb-4">
+                  Form adapted from instructor-provided ECG assessment criteria.
+                </div>
+
+                <div className="space-y-3">
+                  <Button type="submit" className="w-full" size="lg">
+                    Submit Assessment
+                  </Button>
+                  
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="w-full" 
+                    onClick={handleGetAIFeedback}
+                    disabled={isLoadingFeedback || !formData.diagnosis.trim()}
+                  >
+                    {isLoadingFeedback ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Generating AI Feedback...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Get AI Feedback
+                      </>
+                    )}
+                  </Button>
+                </div>
               </>
             )}
-          </Button>
+          </form>
         </div>
-      </form>
+      </div>
 
       <Dialog open={showFeedback} onOpenChange={setShowFeedback}>
         <DialogContent className="sm:max-w-2xl">

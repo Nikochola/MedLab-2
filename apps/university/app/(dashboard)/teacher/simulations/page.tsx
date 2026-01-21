@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { ECGDisplay } from "@/components/ecg/ECGDisplay"
 import { DoctorPanel } from "@/components/simulation/DoctorPanel"
@@ -12,23 +13,36 @@ import { InterpretationStep, INTERPRETATION_STEPS } from "@/lib/constants"
 import { validateAnswer, getHintsForStep } from "@/lib/answerValidation"
 import { STEP_QUESTIONS } from "@/lib/constants"
 import { Button } from "@/components/ui/button"
-import { Activity, BookOpen, ZoomIn, ZoomOut } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 
 type Mode = "simulation" | "case-based"
 
 export default function TeacherSimulationsPage() {
-  const [mode, setMode] = useState<Mode>("simulation")
+  const searchParams = useSearchParams()
+  const modeParam = searchParams.get("mode")
+  const [mode, setMode] = useState<Mode>(modeParam === "case-based" ? "case-based" : "simulation")
   const [ecgParams, setEcgParams] = useState<ECGWaveformParams>(generateRandomECGParams())
   const [currentStep, setCurrentStep] = useState<InterpretationStep>(INTERPRETATION_STEPS[0])
   const [currentCase, setCurrentCase] = useState<PatientCase | null>(null)
   const [zoom, setZoom] = useState(1)
   const [answeredCount, setAnsweredCount] = useState(0)
   const [showCompletion, setShowCompletion] = useState(false)
+  const [isDoctorCollapsed, setIsDoctorCollapsed] = useState(false)
+  const [isCaseCollapsed, setIsCaseCollapsed] = useState(false)
+  const [isAssessmentCollapsed, setIsAssessmentCollapsed] = useState(false)
   const { user } = useAuth()
   const maxZoom = 4
   const minZoom = 1
   const zoomEnabled = zoom > 1
+
+  useEffect(() => {
+    const nextMode = modeParam === "case-based" ? "case-based" : "simulation"
+    if (nextMode !== mode) {
+      setMode(nextMode)
+    }
+  }, [modeParam, mode])
 
   const nudgeZoom = (delta: number) => {
     setZoom((z) => Math.min(maxZoom, Math.max(minZoom, parseFloat((z + delta).toFixed(2)))))
@@ -146,27 +160,63 @@ export default function TeacherSimulationsPage() {
 
   return (
     <ProtectedRoute requiredRole="teacher">
-      <div className="h-screen flex flex-col bg-background overflow-hidden">
+      <div className="h-screen flex flex-col bg-transparent overflow-hidden">
         {/* Main Content */}
         <div className="flex-1 overflow-hidden">
           {mode === "simulation" ? (
-            <div className="h-full flex flex-col lg:flex-row">
+            <div className="h-full flex flex-col gap-4 lg:flex-row lg:gap-6">
               {/* Doctor Panel - Left Sidebar */}
-              <div className="w-full lg:w-96 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-border">
-                <DoctorPanel
-                  currentStep={currentStep}
-                  onAnswerSubmit={handleAnswerSubmit}
-                  onStepComplete={handleStepComplete}
-                  hints={hints}
-                  ecgParams={ecgParams}
-                />
+              <div
+                className={cn(
+                  "w-full flex-shrink-0 overflow-y-auto transition-all duration-300 ease-in-out p-4",
+                  isDoctorCollapsed ? "lg:w-20" : "lg:w-[min(28vw,360px)]"
+                )}
+              >
+                {isDoctorCollapsed ? (
+                  <div className="h-full p-4">
+                    <div className="flex h-full flex-col items-center justify-start gap-4">
+                      <button
+                        type="button"
+                        className="rounded-2xl border border-border/70 bg-white/80 p-2 text-muted-foreground transition hover:text-foreground"
+                        onClick={() => setIsDoctorCollapsed(false)}
+                        aria-label="Expand tutor panel"
+                      >
+                        <ChevronRight className="h-5 w-5" />
+                      </button>
+                      <span
+                        className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
+                        style={{ writingMode: "vertical-rl" }}
+                      >
+                        Tutor
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative h-full">
+                    <button
+                      type="button"
+                      className="absolute right-4 top-4 z-10 rounded-2xl border border-border/70 bg-white/80 p-2 text-muted-foreground transition hover:text-foreground"
+                      onClick={() => setIsDoctorCollapsed(true)}
+                      aria-label="Collapse tutor panel"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
+                    <DoctorPanel
+                      currentStep={currentStep}
+                      onAnswerSubmit={handleAnswerSubmit}
+                      onStepComplete={handleStepComplete}
+                      hints={hints}
+                      ecgParams={ecgParams}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* ECG Display - Main Area */}
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto transition-all duration-300 ease-in-out lg:px-2">
                 <div className="p-6">
                   <div className="mb-4">
-                    <div className="flex items-center justify-between gap-3 mb-2 sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+                    <div className="flex items-center justify-between gap-3 mb-2 sticky top-0 z-10 bg-transparent">
                       <h2 className="text-2xl font-bold">ECG Lab (Instructor)</h2>
                       <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                         Answered {answeredCount}/{INTERPRETATION_STEPS.length}
@@ -207,17 +257,28 @@ export default function TeacherSimulationsPage() {
               </div>
             </div>
           ) : (
-            <div className="h-full grid grid-cols-1 lg:grid-cols-12 gap-0">
+            <div className="h-full flex flex-col gap-4 lg:flex-row lg:gap-6">
               {/* Patient Case - Left Column */}
-              <div className="col-span-1 lg:col-span-3 border-r border-border overflow-y-auto">
-                {currentCase && <PatientCasePanel case={currentCase} />}
+              <div
+                className={cn(
+                  "w-full overflow-y-auto transition-all duration-300 ease-in-out",
+                  isCaseCollapsed ? "lg:w-20 lg:p-2" : "lg:w-[min(28vw,360px)] lg:p-4"
+                )}
+              >
+                {currentCase && (
+                  <PatientCasePanel
+                    case={currentCase}
+                    collapsed={isCaseCollapsed}
+                    onToggleCollapse={() => setIsCaseCollapsed((prev) => !prev)}
+                  />
+                )}
               </div>
 
               {/* ECG Display - Middle Column */}
-              <div className="col-span-1 lg:col-span-6 border-r border-border overflow-y-auto">
+              <div className="flex-1 overflow-y-auto transition-all duration-300 ease-in-out lg:px-2">
                 <div className="p-6">
                   <div className="mb-4">
-                    <div className="flex items-center justify-between gap-3 mb-2 sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+                    <div className="flex items-center justify-between gap-3 mb-2 sticky top-0 z-10 bg-transparent">
                       <h2 className="text-2xl font-bold">ECG Lab (Instructor)</h2>
                       <div className="flex items-center gap-2">
                         <Button variant="outline" size="sm" className="gap-2" onClick={() => nudgeZoom(0.25)}>
@@ -249,39 +310,33 @@ export default function TeacherSimulationsPage() {
               </div>
 
               {/* Assessment Form - Right Column */}
-              <div className="col-span-1 lg:col-span-3 overflow-y-auto">
-                <AssessmentForm 
-                  patientCase={currentCase ? JSON.stringify(currentCase, null, 2) : undefined}
-                  ecgFindings={JSON.stringify(ecgParams, null, 2)}
-                />
+              <div
+                className={cn(
+                  "w-full overflow-y-auto transition-all duration-300 ease-in-out",
+                  isAssessmentCollapsed ? "lg:w-20 lg:p-2" : "lg:w-[min(28vw,360px)] lg:p-4"
+                )}
+              >
+                {isAssessmentCollapsed ? (
+                  <AssessmentForm
+                    collapsed
+                    onToggleCollapse={() => setIsAssessmentCollapsed(false)}
+                    patientCase={currentCase ? JSON.stringify(currentCase, null, 2) : undefined}
+                    ecgFindings={JSON.stringify(ecgParams, null, 2)}
+                  />
+                ) : (
+                  <div className="lg:sticky lg:top-0">
+                    <AssessmentForm 
+                      onToggleCollapse={() => setIsAssessmentCollapsed(true)}
+                      patientCase={currentCase ? JSON.stringify(currentCase, null, 2) : undefined}
+                      ecgFindings={JSON.stringify(ecgParams, null, 2)}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}
         </div>
 
-        {/* Bottom Navigation Bar */}
-        <div className="h-16 border-t border-border bg-card/95 backdrop-blur-sm flex items-center justify-center gap-4 px-6 flex-shrink-0">
-          <Button
-            variant={mode === "simulation" ? "tritary" : "default"}
-            onClick={() => setMode("simulation")}
-            className={`flex-1 max-w-xs transition-all duration-200 ${
-              mode === "simulation"
-            }`}
-          >
-            <Activity className="h-4 w-4 mr-2" />
-            ECG Simulation Mode
-          </Button>
-          <Button
-            variant={mode === "case-based" ? "tritary" : "default"}
-            onClick={() => setMode("case-based")}
-            className={`flex-1 max-w-xs transition-all duration-200 ${
-              mode === "case-based"
-            }`}
-          >
-            <BookOpen className="h-4 w-4 mr-2" />
-            Case-Based Mode
-          </Button>
-        </div>
       </div>
     </ProtectedRoute>
   )
