@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { Suspense, useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { logStudentActivity, upsertStudentProgress } from "@/lib/studentTracking"
@@ -20,7 +20,7 @@ import { useAuth } from "@/contexts/AuthContext"
 
 type Mode = "simulation" | "case-based"
 
-export default function ECGPage() {
+function ECGPageContent() {
   const searchParams = useSearchParams()
   const modeParam = searchParams.get("mode")
   const [mode, setMode] = useState<Mode>(modeParam === "case-based" ? "case-based" : "simulation")
@@ -397,5 +397,13 @@ export default function ECGPage() {
 
       </div>
     </ProtectedRoute>
+  )
+}
+
+export default function ECGPage() {
+  return (
+    <Suspense fallback={<div className="h-screen" />}>
+      <ECGPageContent />
+    </Suspense>
   )
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { ECGDisplay } from "@/components/ecg/ECGDisplay"
@@ -19,7 +19,7 @@ import { useAuth } from "@/contexts/AuthContext"
 
 type Mode = "simulation" | "case-based"
 
-export default function TeacherSimulationsPage() {
+function TeacherSimulationsContent() {
   const searchParams = useSearchParams()
   const modeParam = searchParams.get("mode")
   const [mode, setMode] = useState<Mode>(modeParam === "case-based" ? "case-based" : "simulation")
@@ -339,5 +339,13 @@ export default function TeacherSimulationsPage() {
 
       </div>
     </ProtectedRoute>
+  )
+}
+
+export default function TeacherSimulationsPage() {
+  return (
+    <Suspense fallback={<div className="h-screen" />}>
+      <TeacherSimulationsContent />
+    </Suspense>
   )
 }
