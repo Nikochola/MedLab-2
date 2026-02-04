@@ -612,7 +612,7 @@ function hasMeaningfulParams(params: ECGWaveformParams | null): params is ECGWav
     typeof params.rhythm === "string" ||
     typeof params.prIntervalMs === "number" ||
     typeof params.qrsDurationMs === "number" ||
-    (params.abnormalities && Object.values(params.abnormalities).some(Boolean))
+    (params.abnormalities ? Object.values(params.abnormalities).some(Boolean) : false)
   )
 }
 
