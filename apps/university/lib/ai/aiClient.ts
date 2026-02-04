@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai"
+import { ECGWaveformParams, generateRandomECGParams } from "@/components/ecg/ECGWaveformGenerator"
 
 const API_KEY = process.env.GEMINI_API_KEY || "AIzaSyDLH1-ERuE38M6rSisIqU3voZfLNUmw2_A"
 
@@ -16,6 +17,11 @@ export type CaseFeedback = {
   improvements: string[]
   resources: CaseFeedbackResource[]
   summary: string
+}
+
+export type ECGPromptResult = {
+  params: ECGWaveformParams
+  source: "json" | "ai" | "rule-based" | "random"
 }
 
 type StructuredAssessment = {
@@ -189,7 +195,6 @@ Return ONLY valid JSON with this shape:
   ],
   "summary": "2-3 sentence overall assessment with encouragement"
 }
-
 Rules:
 - Keep bullets concise and clinically precise.
 - Prefer reputable resources (AHA, ESC, peer-reviewed texts).
@@ -243,6 +248,25 @@ Rules:
     }
     return getGenericFallback()
   }
+}
+
+export async function generateECGParamsFromPrompt(prompt: string): Promise<ECGPromptResult> {
+  const jsonParams = parseParamsFromJSON(prompt)
+  if (hasMeaningfulParams(jsonParams)) {
+    return { params: applyECGDefaults(jsonParams), source: "json" }
+  }
+
+  const aiParams = await generateParamsWithAI(prompt)
+  if (hasMeaningfulParams(aiParams)) {
+    return { params: applyECGDefaults(aiParams), source: "ai" }
+  }
+
+  const ruleParams = parseParamsRuleBased(prompt)
+  if (hasMeaningfulParams(ruleParams)) {
+    return { params: applyECGDefaults(ruleParams), source: "rule-based" }
+  }
+
+  return { params: applyECGDefaults(generateRandomECGParams()), source: "random" }
 }
 
 function parseStructuredAssessment(studentAssessment: string): StructuredAssessment | null {
@@ -551,4 +575,240 @@ function isLowQualityAssessment(assessment: StructuredAssessment) {
     : false
 
   return meaningfulCount < 2 && !hasWaveformFlags && !hasChamberFlags
+}
+
+const RHYTHM_OPTIONS: ECGWaveformParams["rhythm"][] = [
+  "sinus-regular",
+  "sinus-irregular",
+  "non-sinus-regular",
+  "non-sinus-irregular",
+]
+
+function applyECGDefaults(params: ECGWaveformParams): ECGWaveformParams {
+  const rhythm = params.rhythm ?? "sinus-regular"
+  const prIntervalMs =
+    params.prIntervalMs ?? (rhythm.startsWith("sinus") ? 160 : 0)
+
+  const abnormalities = params.abnormalities ?? {}
+  if (abnormalities.leftAxis && abnormalities.rightAxis) {
+    abnormalities.rightAxis = false
+  }
+
+  return {
+    heartRate: params.heartRate ?? 75,
+    rhythm,
+    prIntervalMs,
+    qrsDurationMs: params.qrsDurationMs ?? 90,
+    duration: 10,
+    sampleRate: 500,
+    abnormalities,
+  }
+}
+
+function hasMeaningfulParams(params: ECGWaveformParams | null): params is ECGWaveformParams {
+  if (!params) return false
+  return (
+    typeof params.heartRate === "number" ||
+    typeof params.rhythm === "string" ||
+    typeof params.prIntervalMs === "number" ||
+    typeof params.qrsDurationMs === "number" ||
+    (params.abnormalities && Object.values(params.abnormalities).some(Boolean))
+  )
+}
+
+function sanitizeParams(input: any): ECGWaveformParams {
+  const params: ECGWaveformParams = {}
+  if (!input || typeof input !== "object") return params
+
+  if (Number.isFinite(input.heartRate)) {
+    params.heartRate = clampNumber(Number(input.heartRate), 30, 200)
+  }
+
+  if (typeof input.rhythm === "string" && RHYTHM_OPTIONS.includes(input.rhythm as ECGWaveformParams["rhythm"])) {
+    params.rhythm = input.rhythm as ECGWaveformParams["rhythm"]
+  }
+
+  if (Number.isFinite(input.prIntervalMs)) {
+    params.prIntervalMs = clampNumber(Number(input.prIntervalMs), 80, 320)
+  }
+
+  if (Number.isFinite(input.qrsDurationMs)) {
+    params.qrsDurationMs = clampNumber(Number(input.qrsDurationMs), 60, 200)
+  }
+
+  if (input.abnormalities && typeof input.abnormalities === "object") {
+    params.abnormalities = {
+      stElevation: Boolean(input.abnormalities.stElevation),
+      stDepression: Boolean(input.abnormalities.stDepression),
+      qWaves: Boolean(input.abnormalities.qWaves),
+      tWaveInversion: Boolean(input.abnormalities.tWaveInversion),
+      leftAxis: Boolean(input.abnormalities.leftAxis),
+      rightAxis: Boolean(input.abnormalities.rightAxis),
+    }
+  }
+
+  return params
+}
+
+function clampNumber(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, Math.round(value)))
+}
+
+function parseParamsFromJSON(prompt: string): ECGWaveformParams | null {
+  const match = prompt.match(/\{[\s\S]*\}/)
+  if (!match) return null
+  try {
+    const parsed = JSON.parse(match[0])
+    return sanitizeParams(parsed)
+  } catch {
+    return null
+  }
+}
+
+async function generateParamsWithAI(prompt: string): Promise<ECGWaveformParams | null> {
+  const aiPrompt = `You are converting a teacher's ECG request into parameters for a synthetic ECG generator.
+
+Return ONLY valid JSON with this exact shape (omit any fields you are unsure about):
+{
+  "heartRate": 75,
+  "rhythm": "sinus-regular" | "sinus-irregular" | "non-sinus-regular" | "non-sinus-irregular",
+  "prIntervalMs": 160,
+  "qrsDurationMs": 90,
+  "abnormalities": {
+    "stElevation": true/false,
+    "stDepression": true/false,
+    "qWaves": true/false,
+    "tWaveInversion": true/false,
+    "leftAxis": true/false,
+    "rightAxis": true/false
+  }
+}
+
+Guidance:
+- STEMI or acute MI -> stElevation true
+- Ischemia/NSTEMI -> stDepression true (often tWaveInversion true)
+- Old MI -> qWaves true
+- Atrial fibrillation -> rhythm non-sinus-irregular, HR 110-140
+- SVT/atrial flutter -> rhythm non-sinus-regular, HR 140-180
+- Sinus bradycardia -> rhythm sinus-regular, HR 45-60
+- Sinus tachycardia -> rhythm sinus-regular, HR 100-130
+- Left/right axis deviation -> set leftAxis/rightAxis true
+
+Teacher prompt: ${prompt}`
+
+  try {
+    const response = await generateAIResponse(aiPrompt)
+    const jsonMatch = response.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) return null
+    const parsed = JSON.parse(jsonMatch[0])
+    return sanitizeParams(parsed)
+  } catch (error) {
+    console.error("AI ECG parameter generation failed:", error)
+    return null
+  }
+}
+
+function parseParamsRuleBased(prompt: string): ECGWaveformParams | null {
+  const text = prompt.trim().toLowerCase()
+  if (!text) return null
+
+  const params: ECGWaveformParams = {}
+  const abnormalities: NonNullable<ECGWaveformParams["abnormalities"]> = {}
+
+  const hrMatch = text.match(/(?:\bhr\b|heart rate|rate)\s*[:=]?\s*(\d{2,3})/)
+    ?? text.match(/(\d{2,3})\s*(?:bpm|beats per minute)/)
+  if (hrMatch) {
+    params.heartRate = clampNumber(Number(hrMatch[1]), 30, 200)
+  }
+
+  const prMatch = text.match(/\bpr\b\s*[:=]?\s*(\d{2,3})\s*ms/) ?? text.match(/pr interval\s*(\d{2,3})/)
+  if (prMatch) {
+    params.prIntervalMs = clampNumber(Number(prMatch[1]), 80, 320)
+  }
+
+  const qrsMatch = text.match(/\bqrs\b\s*[:=]?\s*(\d{2,3})\s*ms/) ?? text.match(/qrs duration\s*(\d{2,3})/)
+  if (qrsMatch) {
+    params.qrsDurationMs = clampNumber(Number(qrsMatch[1]), 60, 200)
+  }
+
+  if (text.includes("sinus")) {
+    params.rhythm = text.includes("irregular") ? "sinus-irregular" : "sinus-regular"
+  }
+
+  if (text.includes("atrial fibrillation") || text.includes("afib") || text.includes("a-fib")) {
+    params.rhythm = "non-sinus-irregular"
+    if (!params.heartRate) params.heartRate = 130
+  }
+
+  if (text.includes("atrial flutter") || text.includes("flutter")) {
+    params.rhythm = "non-sinus-regular"
+    if (!params.heartRate) params.heartRate = 150
+  }
+
+  if (text.includes("svt") || text.includes("supraventricular")) {
+    params.rhythm = "non-sinus-regular"
+    if (!params.heartRate) params.heartRate = 160
+  }
+
+  if (text.includes("ventricular tachy") || text.includes("vtach") || text.includes("vt ")) {
+    params.rhythm = "non-sinus-regular"
+    if (!params.heartRate) params.heartRate = 170
+    if (!params.qrsDurationMs) params.qrsDurationMs = 140
+  }
+
+  if (text.includes("brady")) {
+    if (!params.heartRate) params.heartRate = 50
+    if (!params.rhythm) params.rhythm = "sinus-regular"
+  }
+
+  if (text.includes("tachy")) {
+    if (!params.heartRate) params.heartRate = 120
+    if (!params.rhythm) params.rhythm = "sinus-regular"
+  }
+
+  if (!params.rhythm && text.includes("irregular")) {
+    params.rhythm = "non-sinus-irregular"
+  }
+
+  if (text.includes("st elevation") || text.includes("stemi") || text.includes("st-elevation")) {
+    abnormalities.stElevation = true
+  }
+
+  if (text.includes("st depression") || text.includes("nstemi") || text.includes("ischemia") || text.includes("ischaemia")) {
+    abnormalities.stDepression = true
+  }
+
+  if (text.includes("t wave inversion") || text.includes("t-wave inversion") || text.includes("inverted t")) {
+    abnormalities.tWaveInversion = true
+  }
+
+  if (text.includes("q wave") || text.includes("q-wave") || text.includes("pathologic q") || text.includes("old mi")) {
+    abnormalities.qWaves = true
+  }
+
+  if (text.includes("left axis") || text.includes("lad")) {
+    abnormalities.leftAxis = true
+  }
+
+  if (text.includes("right axis") || text.includes("rad")) {
+    abnormalities.rightAxis = true
+  }
+
+  if (text.includes("wide qrs") || text.includes("bundle branch") || text.includes("bbb")) {
+    if (!params.qrsDurationMs) params.qrsDurationMs = 140
+  }
+
+  if (text.includes("first degree") || text.includes("prolonged pr")) {
+    if (!params.prIntervalMs) params.prIntervalMs = 220
+  }
+
+  if (text.includes("short pr")) {
+    params.prIntervalMs = 100
+  }
+
+  if (Object.keys(abnormalities).length > 0) {
+    params.abnormalities = abnormalities
+  }
+
+  return params
 }
