@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { ECGDisplay } from "@/components/ecg/ECGDisplay"
 import { generateRandomECGParams, ECGWaveformParams } from "@/components/ecg/ECGWaveformGenerator"
@@ -20,6 +20,7 @@ export default function TeacherECGGeneratorPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [source, setSource] = useState<string | null>(null)
+  const previewRef = useRef<HTMLDivElement | null>(null)
 
   const handleGenerate = async () => {
     const trimmed = prompt.trim()
@@ -60,6 +61,25 @@ export default function TeacherECGGeneratorPage() {
 
   const handleExample = (value: string) => {
     setPrompt(value)
+  }
+
+  const handleDownload = () => {
+    const container = previewRef.current
+    if (!container) return
+    const canvas = container.querySelector("canvas")
+    if (!canvas) {
+      setError("ECG preview is not ready yet.")
+      return
+    }
+    try {
+      const dataUrl = canvas.toDataURL("image/png")
+      const link = document.createElement("a")
+      link.href = dataUrl
+      link.download = `ecg-${Date.now()}.png`
+      link.click()
+    } catch (err) {
+      setError("Unable to export PNG from the ECG preview.")
+    }
   }
 
   return (
@@ -122,6 +142,9 @@ export default function TeacherECGGeneratorPage() {
                   <Button type="button" onClick={handleGenerate} disabled={isLoading}>
                     {isLoading ? "Generating..." : "Generate ECG"}
                   </Button>
+                  <Button type="button" variant="outline" onClick={handleDownload}>
+                    Download PNG
+                  </Button>
                   <Button
                     type="button"
                     variant="secondary"
@@ -152,7 +175,9 @@ export default function TeacherECGGeneratorPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ECGDisplay params={ecgParams} />
+                <div ref={previewRef}>
+                  <ECGDisplay params={ecgParams} />
+                </div>
               </CardContent>
             </Card>
           </div>
