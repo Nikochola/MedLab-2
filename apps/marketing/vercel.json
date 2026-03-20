@@ -1,0 +1,5 @@
+{
+  "installCommand": "cd ../.. && pnpm install",
+  "buildCommand": "pnpm --filter marketing build",
+  "outputDirectory": "apps/marketing/.next"
+}
