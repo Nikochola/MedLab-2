@@ -34,3 +34,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# playwright cli logs
+.playwright-cli/
+
+# dump files
+dump.sql
+schema_dump.sql

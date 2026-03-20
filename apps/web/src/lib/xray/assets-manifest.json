@@ -1,0 +1,1226 @@
+[
+  {
+    "id": "cxr_001",
+    "file": "cxr_001.png",
+    "view": "AP",
+    "sex": "female",
+    "ageBand": "18-30",
+    "quality": "portable",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_001.png"
+  },
+  {
+    "id": "cxr_002",
+    "file": "cxr_002.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "18-30",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_002.png"
+  },
+  {
+    "id": "cxr_003",
+    "file": "cxr_003.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "18-30",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 196
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_003.png"
+  },
+  {
+    "id": "cxr_004",
+    "file": "cxr_004.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "46-60",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 180,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_004.png"
+  },
+  {
+    "id": "cxr_005",
+    "file": "cxr_005.png",
+    "view": "AP",
+    "sex": "female",
+    "ageBand": "31-45",
+    "quality": "portable",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 179,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_005.png"
+  },
+  {
+    "id": "cxr_006",
+    "file": "cxr_006.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "61+",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 199
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_006.png"
+  },
+  {
+    "id": "cxr_007",
+    "file": "cxr_007.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "31-45",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 179,
+      "p90": 199
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_007.png"
+  },
+  {
+    "id": "cxr_008",
+    "file": "cxr_008.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "31-45",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 179,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_008.png"
+  },
+  {
+    "id": "cxr_009",
+    "file": "cxr_009.png",
+    "view": "AP",
+    "sex": "female",
+    "ageBand": "46-60",
+    "quality": "portable",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 180,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_009.png"
+  },
+  {
+    "id": "cxr_010",
+    "file": "cxr_010.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "18-30",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 129,
+      "p50": 179,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_010.png"
+  },
+  {
+    "id": "cxr_011",
+    "file": "cxr_011.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "18-30",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_011.png"
+  },
+  {
+    "id": "cxr_012",
+    "file": "cxr_012.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "61+",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 129,
+      "p50": 179,
+      "p90": 199
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_012.png"
+  },
+  {
+    "id": "cxr_013",
+    "file": "cxr_013.png",
+    "view": "AP",
+    "sex": "female",
+    "ageBand": "18-30",
+    "quality": "portable",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_013.png"
+  },
+  {
+    "id": "cxr_014",
+    "file": "cxr_014.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "61+",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 179,
+      "p90": 196
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_014.png"
+  },
+  {
+    "id": "cxr_015",
+    "file": "cxr_015.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "18-30",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 196
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_015.png"
+  },
+  {
+    "id": "cxr_016",
+    "file": "cxr_016.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "61+",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 199
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_016.png"
+  },
+  {
+    "id": "cxr_017",
+    "file": "cxr_017.png",
+    "view": "AP",
+    "sex": "male",
+    "ageBand": "61+",
+    "quality": "portable",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 180,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_017.png"
+  },
+  {
+    "id": "cxr_018",
+    "file": "cxr_018.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "31-45",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_018.png"
+  },
+  {
+    "id": "cxr_019",
+    "file": "cxr_019.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "18-30",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_019.png"
+  },
+  {
+    "id": "cxr_020",
+    "file": "cxr_020.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "61+",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 178,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_020.png"
+  },
+  {
+    "id": "cxr_021",
+    "file": "cxr_021.png",
+    "view": "AP",
+    "sex": "female",
+    "ageBand": "18-30",
+    "quality": "portable",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 179,
+      "p90": 199
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_021.png"
+  },
+  {
+    "id": "cxr_022",
+    "file": "cxr_022.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "31-45",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 180,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_022.png"
+  },
+  {
+    "id": "cxr_023",
+    "file": "cxr_023.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "46-60",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_023.png"
+  },
+  {
+    "id": "cxr_024",
+    "file": "cxr_024.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "31-45",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 180,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_024.png"
+  },
+  {
+    "id": "cxr_025",
+    "file": "cxr_025.png",
+    "view": "AP",
+    "sex": "female",
+    "ageBand": "18-30",
+    "quality": "portable",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 129,
+      "p50": 180,
+      "p90": 199
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_025.png"
+  },
+  {
+    "id": "cxr_026",
+    "file": "cxr_026.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "61+",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 126,
+      "p50": 178,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_026.png"
+  },
+  {
+    "id": "cxr_027",
+    "file": "cxr_027.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "61+",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 199
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_027.png"
+  },
+  {
+    "id": "cxr_028",
+    "file": "cxr_028.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "18-30",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_028.png"
+  },
+  {
+    "id": "cxr_029",
+    "file": "cxr_029.png",
+    "view": "AP",
+    "sex": "female",
+    "ageBand": "46-60",
+    "quality": "portable",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 179,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_029.png"
+  },
+  {
+    "id": "cxr_030",
+    "file": "cxr_030.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "31-45",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_030.png"
+  },
+  {
+    "id": "cxr_031",
+    "file": "cxr_031.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "46-60",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 179,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_031.png"
+  },
+  {
+    "id": "cxr_032",
+    "file": "cxr_032.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "46-60",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_032.png"
+  },
+  {
+    "id": "cxr_033",
+    "file": "cxr_033.png",
+    "view": "AP",
+    "sex": "female",
+    "ageBand": "18-30",
+    "quality": "portable",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 129,
+      "p50": 180,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_033.png"
+  },
+  {
+    "id": "cxr_034",
+    "file": "cxr_034.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "31-45",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 179,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_034.png"
+  },
+  {
+    "id": "cxr_035",
+    "file": "cxr_035.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "18-30",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_035.png"
+  },
+  {
+    "id": "cxr_036",
+    "file": "cxr_036.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "61+",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 178,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_036.png"
+  },
+  {
+    "id": "cxr_037",
+    "file": "cxr_037.png",
+    "view": "AP",
+    "sex": "female",
+    "ageBand": "18-30",
+    "quality": "portable",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 180,
+      "p90": 199
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_037.png"
+  },
+  {
+    "id": "cxr_038",
+    "file": "cxr_038.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "46-60",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 129,
+      "p50": 179,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_038.png"
+  },
+  {
+    "id": "cxr_039",
+    "file": "cxr_039.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "46-60",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 179,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_039.png"
+  },
+  {
+    "id": "cxr_040",
+    "file": "cxr_040.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "61+",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 179,
+      "p90": 199
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_040.png"
+  },
+  {
+    "id": "cxr_041",
+    "file": "cxr_041.png",
+    "view": "AP",
+    "sex": "female",
+    "ageBand": "46-60",
+    "quality": "portable",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 179,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_041.png"
+  },
+  {
+    "id": "cxr_042",
+    "file": "cxr_042.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "18-30",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 179,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_042.png"
+  },
+  {
+    "id": "cxr_043",
+    "file": "cxr_043.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "46-60",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 196
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_043.png"
+  },
+  {
+    "id": "cxr_044",
+    "file": "cxr_044.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "18-30",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 179,
+      "p90": 196
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_044.png"
+  },
+  {
+    "id": "cxr_045",
+    "file": "cxr_045.png",
+    "view": "AP",
+    "sex": "male",
+    "ageBand": "31-45",
+    "quality": "portable",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 129,
+      "p50": 180,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_045.png"
+  },
+  {
+    "id": "cxr_046",
+    "file": "cxr_046.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "46-60",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_046.png"
+  },
+  {
+    "id": "cxr_047",
+    "file": "cxr_047.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "46-60",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_047.png"
+  },
+  {
+    "id": "cxr_048",
+    "file": "cxr_048.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "61+",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 129,
+      "p50": 179,
+      "p90": 196
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_048.png"
+  },
+  {
+    "id": "cxr_049",
+    "file": "cxr_049.png",
+    "view": "AP",
+    "sex": "male",
+    "ageBand": "46-60",
+    "quality": "portable",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 180,
+      "p90": 199
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_049.png"
+  },
+  {
+    "id": "cxr_050",
+    "file": "cxr_050.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "46-60",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 126,
+      "p50": 179,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_050.png"
+  },
+  {
+    "id": "cxr_051",
+    "file": "cxr_051.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "18-30",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 178,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_051.png"
+  },
+  {
+    "id": "cxr_052",
+    "file": "cxr_052.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "18-30",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 179,
+      "p90": 196
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_052.png"
+  },
+  {
+    "id": "cxr_053",
+    "file": "cxr_053.png",
+    "view": "AP",
+    "sex": "male",
+    "ageBand": "18-30",
+    "quality": "portable",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 180,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_053.png"
+  },
+  {
+    "id": "cxr_054",
+    "file": "cxr_054.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "46-60",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 179,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_054.png"
+  },
+  {
+    "id": "cxr_055",
+    "file": "cxr_055.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "31-45",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 178,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_055.png"
+  },
+  {
+    "id": "cxr_056",
+    "file": "cxr_056.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "31-45",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 180,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_056.png"
+  },
+  {
+    "id": "cxr_057",
+    "file": "cxr_057.png",
+    "view": "AP",
+    "sex": "female",
+    "ageBand": "18-30",
+    "quality": "portable",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 179,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_057.png"
+  },
+  {
+    "id": "cxr_058",
+    "file": "cxr_058.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "18-30",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 179,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_058.png"
+  },
+  {
+    "id": "cxr_059",
+    "file": "cxr_059.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "61+",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_059.png"
+  },
+  {
+    "id": "cxr_060",
+    "file": "cxr_060.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "31-45",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 180,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_060.png"
+  },
+  {
+    "id": "cxr_061",
+    "file": "cxr_061.png",
+    "view": "AP",
+    "sex": "male",
+    "ageBand": "46-60",
+    "quality": "portable",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 129,
+      "p50": 180,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_061.png"
+  },
+  {
+    "id": "cxr_062",
+    "file": "cxr_062.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "61+",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 129,
+      "p50": 180,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_062.png"
+  },
+  {
+    "id": "cxr_063",
+    "file": "cxr_063.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "46-60",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 196
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_063.png"
+  },
+  {
+    "id": "cxr_064",
+    "file": "cxr_064.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "46-60",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 199
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_064.png"
+  },
+  {
+    "id": "cxr_065",
+    "file": "cxr_065.png",
+    "view": "AP",
+    "sex": "male",
+    "ageBand": "46-60",
+    "quality": "portable",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 129,
+      "p50": 180,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_065.png"
+  },
+  {
+    "id": "cxr_066",
+    "file": "cxr_066.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "31-45",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 179,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_066.png"
+  },
+  {
+    "id": "cxr_067",
+    "file": "cxr_067.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "31-45",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 199
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_067.png"
+  },
+  {
+    "id": "cxr_068",
+    "file": "cxr_068.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "18-30",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_068.png"
+  },
+  {
+    "id": "cxr_069",
+    "file": "cxr_069.png",
+    "view": "AP",
+    "sex": "male",
+    "ageBand": "46-60",
+    "quality": "portable",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 180,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_069.png"
+  },
+  {
+    "id": "cxr_070",
+    "file": "cxr_070.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "31-45",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 127,
+      "p50": 178,
+      "p90": 199
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_070.png"
+  },
+  {
+    "id": "cxr_071",
+    "file": "cxr_071.png",
+    "view": "PA",
+    "sex": "male",
+    "ageBand": "61+",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 198
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_071.png"
+  },
+  {
+    "id": "cxr_072",
+    "file": "cxr_072.png",
+    "view": "PA",
+    "sex": "female",
+    "ageBand": "18-30",
+    "quality": "standard",
+    "sourceLicense": "CC0-Synthetic-Generated",
+    "histogramProfile": {
+      "p10": 128,
+      "p50": 179,
+      "p90": 197
+    },
+    "sourceType": "synthetic",
+    "sourceDataset": "medlab.synthetic.v1",
+    "storageKey": "xray/base/synthetic/cxr_072.png"
+  }
+]

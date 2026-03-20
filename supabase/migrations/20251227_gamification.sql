@@ -17,9 +17,11 @@ ADD COLUMN IF NOT EXISTS xp_awarded INTEGER DEFAULT 0,
 ADD COLUMN IF NOT EXISTS xp_reason TEXT;
 
 -- 3. Create indexes for performance
--- Efficiently Query activities by date for streak calculation
+-- Efficiently query activities by time window for streak calculation.
+-- Avoid expression index on date(timestamp) for timestamptz (not IMMUTABLE).
+DROP INDEX IF EXISTS idx_student_activities_date;
 CREATE INDEX IF NOT EXISTS idx_student_activities_date 
-ON student_activities(student_id, date(timestamp));
+ON student_activities(student_id, "timestamp");
 
 -- Efficiently query leaderboard/stats (simulated)
 CREATE INDEX IF NOT EXISTS idx_student_progress_xp 

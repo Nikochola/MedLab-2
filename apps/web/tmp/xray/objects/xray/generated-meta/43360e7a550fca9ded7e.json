@@ -1,0 +1,63 @@
+{
+  "response": {
+    "requestId": "43360e7a550fca9ded7e",
+    "images": [
+      {
+        "url": "/api/xray/cache/43360e7a550fca9ded7e/0?s=c41f170c62a5bdb7bcd9",
+        "width": 640,
+        "height": 800
+      }
+    ],
+    "provenance": [
+      {
+        "seed": 1391261126,
+        "baseImageId": "cxr_010",
+        "view": "PA",
+        "pathology": "pneumonia",
+        "severity": "moderate",
+        "sourceType": "synthetic",
+        "sourceDataset": "medlab.synthetic.v1",
+        "sourceLicense": "CC0-Synthetic-Generated",
+        "operations": [
+          "base:cxr_010",
+          "affine:-0.000,-0.010",
+          "rotate:-0.49",
+          "normalize:clahe",
+          "tissue:gain:1.032:offset:1.68",
+          "pathology:pneumonia:right",
+          "acquisition:pa",
+          "noise:9",
+          "calibration:histogram_clamp"
+        ],
+        "markers": [
+          {
+            "x": 62,
+            "y": 62,
+            "label": "Consolidation",
+            "severity": "moderate"
+          },
+          {
+            "x": 64,
+            "y": 63,
+            "label": "Air bronchograms",
+            "severity": "moderate"
+          }
+        ],
+        "diagnosticUse": false,
+        "warningText": "Education-only output. Not for diagnosis, treatment, or clinical decision-making."
+      }
+    ],
+    "cacheHit": false,
+    "generatedAt": "2026-03-15T20:57:28.587Z",
+    "metrics": {
+      "generationMs": 2092,
+      "rejectedSamples": 5
+    },
+    "diagnosticUse": false,
+    "warningText": "Education-only output. Not for diagnosis, treatment, or clinical decision-making."
+  },
+  "imageFiles": [
+    "xray/generated/43360e7a550fca9ded7e_0.png"
+  ],
+  "createdAt": 1773608248587
+}

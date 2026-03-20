@@ -1,0 +1,260 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --surface-canvas: 34 20% 98%;
+    --surface-card: 36 16% 96%;
+    --surface-elevated: 0 0% 100%;
+    --stroke-soft: 25 14% 84%;
+    --stroke-strong: 27 14% 72%;
+    --ink-strong: 224 18% 12%;
+    --ink-soft: 223 11% 42%;
+    --accent-lilac: 233 40% 76%;
+    --accent-sand: 36 52% 75%;
+    --accent-sky: 196 45% 78%;
+    --accent-olive: 77 24% 48%;
+
+    --surface-0: var(--surface-canvas);
+    --surface-1: var(--surface-card);
+    --surface-2: var(--surface-elevated);
+    --ink-1: var(--ink-strong);
+    --ink-2: var(--ink-soft);
+
+    --background: 0 0% 100%;
+    --foreground: var(--ink-strong);
+    --card: 0 0% 100%;
+    --card-foreground: var(--ink-strong);
+    --primary: 222 20% 16%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 221 14% 89%;
+    --secondary-foreground: var(--ink-strong);
+    --muted: 221 15% 92%;
+    --muted-foreground: var(--ink-soft);
+    --accent: 36 52% 75%;
+    --accent-foreground: 222 18% 16%;
+    --border: 221 16% 86%;
+    --input: 221 16% 86%;
+    --ring: 224 20% 20%;
+  }
+
+  .dark {
+    --surface-canvas: 223 10% 24%;
+    --surface-card: 223 10% 27%;
+    --surface-elevated: 223 10% 31%;
+    --stroke-soft: 223 9% 38%;
+    --stroke-strong: 223 11% 48%;
+    --ink-strong: 215 35% 93%;
+    --ink-soft: 218 17% 74%;
+    --accent-lilac: 233 28% 58%;
+    --accent-sand: 34 28% 58%;
+    --accent-sky: 196 28% 55%;
+    --accent-olive: 78 18% 48%;
+
+    --surface-0: var(--surface-canvas);
+    --surface-1: var(--surface-card);
+    --surface-2: var(--surface-elevated);
+    --ink-1: var(--ink-strong);
+    --ink-2: var(--ink-soft);
+
+    --background: var(--surface-canvas);
+    --foreground: var(--ink-strong);
+    --card: var(--surface-card);
+    --card-foreground: var(--ink-strong);
+    --muted: var(--surface-elevated);
+    --muted-foreground: var(--ink-soft);
+    --border: 224 12% 34%;
+    --input: 224 12% 34%;
+    --ring: 215 24% 86%;
+    --secondary: 224 11% 30%;
+    --secondary-foreground: var(--ink-1);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family:
+      var(--font-body),
+      "DIN Next Rounded LT W01",
+      "DIN Next Rounded",
+      "Avenir Next Rounded",
+      "Segoe UI",
+      sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    background-color: #ffffff;
+    background-image:
+      radial-gradient(circle at 12% 14%, rgba(145, 159, 229, 0.08), transparent 28%),
+      radial-gradient(circle at 88% 18%, rgba(175, 211, 226, 0.08), transparent 30%),
+      linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%);
+    background-attachment: fixed;
+  }
+
+  .dark body {
+    background-color: #2f333a;
+    background-image:
+      radial-gradient(circle at 12% 14%, rgba(132, 145, 215, 0.1), transparent 32%),
+      radial-gradient(circle at 88% 18%, rgba(121, 159, 182, 0.1), transparent 34%),
+      linear-gradient(180deg, #2f333a 0%, #2a2f35 100%);
+    color: #e7edf5;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .font-title {
+    font-family:
+      var(--font-display),
+      "DIN Next Rounded LT W01",
+      "DIN Next Rounded",
+      "Avenir Next Rounded",
+      "Segoe UI",
+      sans-serif;
+    letter-spacing: -0.01em;
+  }
+
+  .font-display {
+    font-family:
+      var(--font-display),
+      "DIN Next Rounded LT W01",
+      "DIN Next Rounded",
+      "Avenir Next Rounded",
+      "Segoe UI",
+      sans-serif;
+  }
+
+  .font-body {
+    font-family:
+      var(--font-body),
+      "DIN Next Rounded LT W01",
+      "DIN Next Rounded",
+      "Avenir Next Rounded",
+      "Segoe UI",
+      sans-serif;
+  }
+}
+
+@layer components {
+  .institution-shell {
+    @apply min-h-screen;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(43, 113, 242, 0.16), transparent 38%),
+      radial-gradient(circle at 100% 0%, rgba(45, 191, 163, 0.12), transparent 36%),
+      linear-gradient(180deg, #f7faff 0%, #eef4ff 100%);
+  }
+
+  .surface-card {
+    @apply rounded-2xl border border-border bg-white/90 shadow-sm backdrop-blur;
+  }
+}
+
+@layer utilities {
+  @keyframes concept-gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+
+    50% {
+      background-position: 100% 50%;
+    }
+
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .animate-concept-gradient {
+    background-size: 200% 200%;
+    animation: concept-gradient 4s ease infinite;
+  }
+
+  @keyframes card-float {
+    0% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-6px);
+    }
+
+    100% {
+      transform: translateY(0);
+    }
+  }
+
+  .animate-card-float {
+    animation: card-float 6s ease-in-out infinite;
+  }
+
+  @keyframes soft-pulse {
+    0% {
+      opacity: 0.7;
+    }
+
+    50% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0.7;
+    }
+  }
+
+  .animate-soft-pulse {
+    animation: soft-pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes halo-orbit {
+    0% {
+      transform: rotate(0deg) translateX(8px) rotate(0deg);
+      opacity: 0.55;
+    }
+
+    50% {
+      opacity: 1;
+    }
+
+    100% {
+      transform: rotate(360deg) translateX(8px) rotate(-360deg);
+      opacity: 0.55;
+    }
+  }
+
+  .animate-halo-orbit {
+    animation: halo-orbit 5s linear infinite;
+  }
+
+  @keyframes stagger-rise {
+    0% {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-stagger-rise {
+    animation: stagger-rise 420ms ease-out both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-concept-gradient,
+  .animate-card-float,
+  .animate-soft-pulse,
+  .animate-halo-orbit,
+  .animate-stagger-rise {
+    animation: none !important;
+  }
+}

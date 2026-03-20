@@ -1,0 +1,63 @@
+{
+  "response": {
+    "requestId": "f213be0b6f17a98ed5f6",
+    "images": [
+      {
+        "url": "/api/xray/cache/f213be0b6f17a98ed5f6/0?s=3d8727242f92936ac9a7",
+        "width": 640,
+        "height": 800
+      }
+    ],
+    "provenance": [
+      {
+        "seed": 701216561,
+        "baseImageId": "cxr_024",
+        "view": "PA",
+        "pathology": "pneumothorax",
+        "severity": "mild",
+        "sourceType": "synthetic",
+        "sourceDataset": "medlab.synthetic.v1",
+        "sourceLicense": "CC0-Synthetic-Generated",
+        "operations": [
+          "base:cxr_024",
+          "affine:-0.007,0.000",
+          "rotate:-1.23",
+          "normalize:clahe",
+          "tissue:gain:1.035:offset:3.31",
+          "pathology:pneumothorax:left",
+          "acquisition:pa",
+          "noise:9",
+          "calibration:histogram_clamp"
+        ],
+        "markers": [
+          {
+            "x": 28,
+            "y": 14,
+            "label": "Pleural line",
+            "severity": "mild"
+          },
+          {
+            "x": 22,
+            "y": 25,
+            "label": "Absent peripheral markings",
+            "severity": "mild"
+          }
+        ],
+        "diagnosticUse": false,
+        "warningText": "Education-only output. Not for diagnosis, treatment, or clinical decision-making."
+      }
+    ],
+    "cacheHit": false,
+    "generatedAt": "2026-03-15T20:57:30.272Z",
+    "metrics": {
+      "generationMs": 1462,
+      "rejectedSamples": 5
+    },
+    "diagnosticUse": false,
+    "warningText": "Education-only output. Not for diagnosis, treatment, or clinical decision-making."
+  },
+  "imageFiles": [
+    "xray/generated/f213be0b6f17a98ed5f6_0.png"
+  ],
+  "createdAt": 1773608250272
+}

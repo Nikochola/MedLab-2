@@ -1,0 +1,43 @@
+name: XRay NIH Manifest Check
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * *"
+
+jobs:
+  check-manifest:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.KAGGLE_USERNAME != '' && secrets.KAGGLE_KEY != '' }}
+    defaults:
+      run:
+        working-directory: apps/student
+    env:
+      KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+      KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: .
+
+      - name: Download and prepare NIH sample
+        run: |
+          pnpm xray:download-nih
+          pnpm xray:prepare-nih
+
+      - name: Show manifest summary
+        run: |
+          node -e "const fs=require('fs');const p='lib/xray/assets-manifest.nih.json';const m=JSON.parse(fs.readFileSync(p,'utf8'));const pa=m.filter(x=>x.view==='PA').length;const ap=m.filter(x=>x.view==='AP').length;console.log({count:m.length,PA:pa,AP:ap});"

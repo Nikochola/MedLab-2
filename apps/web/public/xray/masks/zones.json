@@ -1,0 +1,13 @@
+{
+  "anchors": {
+    "apicalLeft": { "x": 0.30, "y": 0.19 },
+    "apicalRight": { "x": 0.70, "y": 0.19 },
+    "midLungLeft": { "x": 0.34, "y": 0.48 },
+    "midLungRight": { "x": 0.66, "y": 0.48 },
+    "lowerLungLeft": { "x": 0.36, "y": 0.66 },
+    "lowerLungRight": { "x": 0.64, "y": 0.66 },
+    "costophrenicLeft": { "x": 0.28, "y": 0.80 },
+    "costophrenicRight": { "x": 0.72, "y": 0.80 },
+    "cardiacSilhouette": { "x": 0.50, "y": 0.60 }
+  }
+}

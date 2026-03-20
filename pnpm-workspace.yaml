@@ -1,5 +1,4 @@
 packages:
-  - "apps/*"
+  - "apps/web"
+  - "apps/marketing"
   - "packages/*"
-  - "!apps/*backup*"
-  - "!apps/student__scaffold_backup"

@@ -1,0 +1,63 @@
+{
+  "response": {
+    "requestId": "e9d4e7c1639b414bd255",
+    "images": [
+      {
+        "url": "/api/xray/cache/e9d4e7c1639b414bd255/0?s=71e60eeac7aaf613ca94",
+        "width": 640,
+        "height": 800
+      }
+    ],
+    "provenance": [
+      {
+        "seed": 1667735254,
+        "baseImageId": "cxr_063",
+        "view": "PA",
+        "pathology": "cardiomegaly",
+        "severity": "mild",
+        "sourceType": "synthetic",
+        "sourceDataset": "medlab.synthetic.v1",
+        "sourceLicense": "CC0-Synthetic-Generated",
+        "operations": [
+          "base:cxr_063",
+          "affine:0.014,-0.000",
+          "rotate:-1.01",
+          "normalize:clahe",
+          "tissue:gain:1.002:offset:1.20",
+          "pathology:cardiomegaly:central",
+          "acquisition:pa",
+          "noise:9",
+          "calibration:histogram_clamp"
+        ],
+        "markers": [
+          {
+            "x": 49,
+            "y": 62,
+            "label": "Enlarged silhouette",
+            "severity": "mild"
+          },
+          {
+            "x": 54,
+            "y": 50,
+            "label": "Cardiothoracic ratio",
+            "severity": "mild"
+          }
+        ],
+        "diagnosticUse": false,
+        "warningText": "Education-only output. Not for diagnosis, treatment, or clinical decision-making."
+      }
+    ],
+    "cacheHit": false,
+    "generatedAt": "2026-03-15T20:57:30.326Z",
+    "metrics": {
+      "generationMs": 1495,
+      "rejectedSamples": 5
+    },
+    "diagnosticUse": false,
+    "warningText": "Education-only output. Not for diagnosis, treatment, or clinical decision-making."
+  },
+  "imageFiles": [
+    "xray/generated/e9d4e7c1639b414bd255_0.png"
+  ],
+  "createdAt": 1773608250326
+}
