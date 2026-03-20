@@ -1,7 +1,11 @@
 {
   "name": "medlab",
   "private": true,
-  "packageManager": "pnpm@9.0.0",
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
   "scripts": {
     "dev": "pnpm --parallel --filter web --filter marketing dev",
     "dev:web": "pnpm --filter web dev",
