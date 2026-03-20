@@ -1,6 +1,7 @@
 {
   "name": "medlab",
   "private": true,
+  "packageManager": "pnpm@10.26.2",
   "scripts": {
     "dev": "pnpm --parallel --filter web --filter marketing dev",
     "dev:web": "pnpm --filter web dev",
