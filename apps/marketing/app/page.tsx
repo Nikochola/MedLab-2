@@ -86,8 +86,12 @@ function Hero() {
       {/* CTAs */}
       <FadeUp delay={0.24}>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4">
-          <Button>Start Learning Free</Button>
-          <Button variant="outline">For Institutions</Button>
+          <Button asChild>
+            <Link href={buildStudentAppUrl("/student/signup")}>Start Learning Free</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/institutions">For Institutions</Link>
+          </Button>
         </div>
       </FadeUp>
 

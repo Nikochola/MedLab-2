@@ -139,6 +139,9 @@ export async function middleware(request: NextRequest) {
     const isOnboardingPath = pathname.startsWith("/institution/onboarding")
     const isStudentPath = pathname.startsWith("/practice") || pathname.startsWith("/learn") || pathname.startsWith("/xray") || pathname.startsWith("/ecg") || pathname.startsWith("/ct")
 
+    // When both apps share the same host, cross-host redirects are no-ops that cause loops
+    const appsOnSameHost = getInstitutionAppOrigin() === getStudentAppOrigin()
+
     // Only fetch profile if we need to check roles
     if (isInstitutionPath || isStudentPath) {
       const [{ data: profile }, { data: memberships }] = await Promise.all([
@@ -180,12 +183,15 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(buildAppUrl(request, "institution", "/institution/courses"))
       }
 
-      if (isStudentPath && hasAnyInstitutionMembership && isStudentHost) {
-        return NextResponse.redirect(buildAppUrl(request, "institution", "/learn"))
-      }
+      // Only cross-host redirect when the apps actually live on different domains
+      if (!appsOnSameHost) {
+        if (isStudentPath && hasAnyInstitutionMembership && isStudentHost) {
+          return NextResponse.redirect(buildAppUrl(request, "institution", "/learn"))
+        }
 
-      if (isStudentPath && !hasAnyInstitutionMembership && isInstitutionHost) {
-        return NextResponse.redirect(buildAppUrl(request, "student", "/learn"))
+        if (isStudentPath && !hasAnyInstitutionMembership && isInstitutionHost) {
+          return NextResponse.redirect(buildAppUrl(request, "student", "/learn"))
+        }
       }
     }
   }
