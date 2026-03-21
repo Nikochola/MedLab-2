@@ -27,7 +27,7 @@ function Hero() {
             <div className="container mx-auto">
                 <div className="flex gap-8 py-20 lg:py-40 items-center justify-center flex-col">
                     <div>
-                        <Button variant="secondary" size="sm" className="gap-4 text-xs tracking-wide uppercase">
+                        <Button variant="outline" size="sm" className="gap-4 text-xs tracking-wide uppercase">
                             Now Available for Institutions <MoveRight className="w-4 h-4" />
                         </Button>
                     </div>
