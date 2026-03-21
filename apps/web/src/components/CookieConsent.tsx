@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 const CONSENT_COOKIE = "medlab_cookie_consent"
@@ -54,10 +53,31 @@ function writeConsentCookie(consent: CookieConsentState) {
   document.cookie = `${CONSENT_COOKIE}=${value}; Path=/; Max-Age=31536000; SameSite=Lax${secureFlag}`
 }
 
+function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className={cn(
+        "relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-[10px] transition-colors",
+        checked ? "bg-[#0066FF]" : "bg-[#E8E6DF]"
+      )}
+    >
+      <span
+        className={cn(
+          "pointer-events-none block h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
+          checked ? "translate-x-[18px]" : "translate-x-[2px]"
+        )}
+      />
+    </button>
+  )
+}
+
 export function CookieConsent() {
   const [consent, setConsent] = useState<CookieConsentState>(defaultConsent)
   const [isOpen, setIsOpen] = useState(false)
-  const [showPreferences, setShowPreferences] = useState(false)
 
   useEffect(() => {
     const stored = readConsentCookie()
@@ -73,7 +93,6 @@ export function CookieConsent() {
     if (typeof window === "undefined") return
     const handleOpen = () => {
       setIsOpen(true)
-      setShowPreferences(true)
     }
     window.addEventListener("medlab:open-cookie-settings", handleOpen)
     return () => window.removeEventListener("medlab:open-cookie-settings", handleOpen)
@@ -90,7 +109,6 @@ export function CookieConsent() {
     setConsent(updated)
     writeConsentCookie(updated)
     setIsOpen(false)
-    setShowPreferences(false)
   }
 
   if (!isOpen) {
@@ -98,131 +116,100 @@ export function CookieConsent() {
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 px-4 pb-4 sm:px-6">
-      <div className="mx-auto max-w-3xl rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/60">
-        <div className="p-6 sm:p-8">
-          <div className="flex flex-col gap-3">
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-500">
-              Cookie preferences
+    <div className="fixed inset-x-0 bottom-0 z-50 px-4 pb-6 sm:px-6">
+      <div
+        className="mx-auto max-w-[860px] rounded-[20px] border border-[#E8E6DF] bg-white"
+        style={{ boxShadow: "0 20px 60px rgba(14,15,18,0.12), 0 4px 16px rgba(14,15,18,0.06)" }}
+      >
+        <div className="flex flex-col gap-5 px-8 pb-6 pt-7">
+          {/* Header */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="7" stroke="#0066FF" strokeWidth="1.5" />
+                <circle cx="5" cy="6" r="1.2" fill="#0066FF" />
+                <circle cx="10" cy="5" r="1" fill="#0066FF" opacity="0.5" />
+                <circle cx="7" cy="10" r="1.4" fill="#0066FF" opacity="0.7" />
+                <circle cx="11" cy="9" r="0.8" fill="#0066FF" opacity="0.4" />
+              </svg>
+              <span className="text-[13px] font-semibold text-[#0E0F12]">Cookie preferences</span>
+            </div>
+            <p className="text-[13px] leading-[19px] text-[#6B6A65]">
+              We use cookies to keep MedLab secure and improve your learning experience. Essential cookies are always active.
             </p>
-            <h2 className="text-2xl font-black text-slate-900">
-              We use cookies to keep MedLab secure and improve learning.
-            </h2>
-            <p className="text-sm text-slate-600">
-              Essential cookies support sign-in, security, and core features. Optional analytics or
-              marketing cookies are used only if you opt in. You can update your choices anytime in
-              Cookie settings.
-            </p>
-            <p className="text-sm text-slate-500">
+          </div>
+
+          {/* Toggle categories */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {/* Essential */}
+            <div className="flex items-center gap-3 rounded-[12px] bg-[#F5F5F3] px-4 py-3">
+              <div className="flex flex-1 flex-col gap-0.5">
+                <span className="text-[13px] font-semibold text-[#0E0F12]">Essential</span>
+                <span className="text-[11px] text-[#9B9A94]">Auth &amp; security</span>
+              </div>
+              <Toggle checked={true} onChange={() => {}} />
+            </div>
+
+            {/* Analytics */}
+            <div className="flex items-center gap-3 rounded-[12px] border border-[#E8E6DF] bg-white px-4 py-3">
+              <div className="flex flex-1 flex-col gap-0.5">
+                <span className="text-[13px] font-semibold text-[#0E0F12]">Analytics</span>
+                <span className="text-[11px] text-[#9B9A94]">Improve content</span>
+              </div>
+              <Toggle
+                checked={consent.analytics}
+                onChange={(v) => setConsent((prev) => ({ ...prev, analytics: v }))}
+              />
+            </div>
+
+            {/* Marketing */}
+            <div className="flex items-center gap-3 rounded-[12px] border border-[#E8E6DF] bg-white px-4 py-3">
+              <div className="flex flex-1 flex-col gap-0.5">
+                <span className="text-[13px] font-semibold text-[#0E0F12]">Marketing</span>
+                <span className="text-[11px] text-[#9B9A94]">Relevant outreach</span>
+              </div>
+              <Toggle
+                checked={consent.marketing}
+                onChange={(v) => setConsent((prev) => ({ ...prev, marketing: v }))}
+              />
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span className="text-xs text-[#9B9A94]">
               Read our{" "}
-              <Link href="/privacy" className="font-semibold text-blue-600 hover:underline">
+              <Link href="/privacy" className="font-medium text-[#0066FF] hover:underline">
                 Privacy Policy
-              </Link>{" "}
-              for details.
-            </p>
-          </div>
-
-          <div className={cn("mt-6 grid gap-4", showPreferences ? "md:grid-cols-3" : "md:grid-cols-2")}>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">Essential</p>
-                  <p className="mt-1 text-xs text-slate-600">
-                    Required for authentication and security.
-                  </p>
-                </div>
-                <span className="text-xs font-semibold text-emerald-600">Always on</span>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-slate-200 bg-white p-4">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">Analytics</p>
-                  <p className="mt-1 text-xs text-slate-600">
-                    Helps us improve content and learning flows.
-                  </p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={consent.analytics}
-                  onChange={(event) =>
-                    setConsent((prev) => ({
-                      ...prev,
-                      analytics: event.target.checked,
-                    }))
-                  }
-                  className="mt-1 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-
-            {showPreferences && (
-              <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">Marketing</p>
-                    <p className="mt-1 text-xs text-slate-600">
-                      Used for relevant updates and outreach.
-                    </p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={consent.marketing}
-                    onChange={(event) =>
-                      setConsent((prev) => ({
-                        ...prev,
-                        marketing: event.target.checked,
-                      }))
-                    }
-                    className="mt-1 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap gap-3">
-              <Button
-                size="sm"
-                variant="ghost"
+              </Link>
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleSave({ analytics: false, marketing: false })}
+                className="rounded-[9px] border-[1.5px] border-[#D8D5CC] bg-[#F8F7F2] px-5 py-2.5 text-[13px] font-medium text-[#6B6A65] shadow-[0_3px_0_#D8D5CC] transition-all active:translate-y-[3px] active:shadow-none"
+              >
+                Reject all
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  handleSave({
+                    analytics: consent.analytics,
+                    marketing: consent.marketing,
+                  })
+                }
+                className="rounded-[9px] border-[1.5px] border-[#D8D5CC] bg-[#F8F7F2] px-5 py-2.5 text-[13px] font-medium text-[#0E0F12] shadow-[0_3px_0_#D8D5CC] transition-all active:translate-y-[3px] active:shadow-none"
+              >
+                Save preferences
+              </button>
+              <button
+                type="button"
                 onClick={() => handleSave({ analytics: true, marketing: true })}
+                className="rounded-[9px] border-[1.5px] border-[#0047CC] bg-[#0066FF] px-5 py-2.5 text-[13px] font-semibold text-white shadow-[0_3px_0_#0047CC] transition-all active:translate-y-[3px] active:shadow-none"
               >
                 Accept all
-              </Button>
-              <Button
-                size="sm"
-                variant="default"
-                onClick={() => handleSave({ analytics: false, marketing: false })}
-              >
-                Reject non-essential
-              </Button>
-            </div>
-            <div className="flex items-center gap-3">
-              {!showPreferences && (
-                <button
-                  type="button"
-                  onClick={() => setShowPreferences(true)}
-                  className="text-xs font-semibold text-slate-600 hover:text-slate-900"
-                >
-                  Manage preferences
-                </button>
-              )}
-              {showPreferences && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleSave({
-                      analytics: consent.analytics,
-                      marketing: consent.marketing,
-                    })
-                  }
-                  className="text-xs font-semibold text-blue-600 hover:text-blue-700"
-                >
-                  Save preferences
-                </button>
-              )}
+              </button>
             </div>
           </div>
         </div>

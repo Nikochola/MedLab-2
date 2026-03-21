@@ -171,7 +171,7 @@ export function XRayDoctorPanel({
     }
 
     function bubbleStyle(msg: Message): React.CSSProperties {
-        if (msg.role === "user") return { backgroundColor: "#0066FF" }
+        if (msg.role === "user") return { backgroundColor: "#0E0F12" }
         if (msg.type === "feedback" && msg.feedbackType === "correct") return { backgroundColor: "#F0FDF4", border: "1px solid #BBF7D0" }
         if (msg.type === "feedback" && msg.feedbackType === "incorrect") return { backgroundColor: "#FEF2F2", border: "1px solid #FECACA" }
         if (msg.type === "step") return { backgroundColor: "#EEF3FF", border: "1px solid #C7D9FF" }
@@ -235,29 +235,38 @@ export function XRayDoctorPanel({
 
             {/* Hints */}
             {isAnsweringStep && (
-                <div className="px-5 py-2 shrink-0" style={{ borderTop: "1px solid #E8E6DF" }}>
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <Lightbulb className="h-3.5 w-3.5" style={{ color: "#D97706" }} />
-                            <p className="text-[11px] font-medium" style={{ color: "#9B9A94" }}>Hints ({revealedHints.length}/3)</p>
-                        </div>
-                        <button
-                            className="text-[11px] font-semibold disabled:opacity-40"
-                            style={{ color: "#0066FF" }}
-                            onClick={revealNextHint}
-                            disabled={revealedHints.length >= 3 || revealedHints.length >= (hints[currentStep]?.length || 0)}
-                        >
-                            Need help?
-                        </button>
-                    </div>
+                <div className="flex items-center gap-1.5 px-5 pb-2 shrink-0">
+                    <span className="text-[11px] shrink-0" style={{ color: "#9B9A94" }}>Hints:</span>
+                    {[0, 1, 2].map((i) => {
+                        const available = (hints[currentStep]?.length || 0)
+                        const used = revealedHints.length
+                        return (
+                            <button
+                                key={i}
+                                onClick={revealNextHint}
+                                disabled={i >= available || i < used}
+                                className={cn(
+                                    "flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-medium transition-colors",
+                                    i < used
+                                        ? "bg-[#EEF3FF] text-[#0066FF]"
+                                        : i >= available
+                                            ? "bg-[#F5F5F3] text-[#9B9A94] opacity-40"
+                                            : "bg-[#F5F5F3] text-[#6B6A65] hover:bg-[#EEEDEA]"
+                                )}
+                            >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                                Hint {i + 1}
+                            </button>
+                        )
+                    })}
                 </div>
             )}
 
             {/* Input */}
-            <div className="px-5 py-4 shrink-0" style={{ borderTop: "1px solid #E8E6DF" }}>
-                <div className="flex items-center rounded-xl overflow-hidden" style={{ border: "1px solid #E8E6DF", backgroundColor: "#F5F5F3" }}>
+            <div className="flex items-center gap-2 px-5 py-3 shrink-0" style={{ borderTop: "1px solid #F5F5F3" }}>
+                <div className="flex flex-1 items-center rounded-xl" style={{ border: "1px solid #E8E6DF", backgroundColor: "#F5F5F3" }}>
                     <input
-                        className="flex-1 h-11 px-4 text-[13px] bg-transparent outline-none placeholder:text-[#9B9A94]"
+                        className="flex-1 h-[42px] px-3.5 text-[13px] bg-transparent outline-none placeholder:text-[#9B9A94]"
                         style={{ color: "#0E0F12" }}
                         value={inputValue}
                         onChange={(event) => setInputValue(event.target.value)}
@@ -265,18 +274,15 @@ export function XRayDoctorPanel({
                         placeholder={isAnsweringStep ? "Describe what you see..." : "Ask me anything about this X-ray..."}
                         disabled={isLoading}
                     />
-                    <button
-                        onClick={handleSubmit}
-                        disabled={isLoading || !inputValue.trim()}
-                        className="flex items-center justify-center h-11 w-11 shrink-0 transition-colors disabled:opacity-30"
-                        style={{ color: "#0066FF" }}
-                    >
-                        <Send className="h-4 w-4" />
-                    </button>
                 </div>
-                <p className="mt-2 text-[10px] font-medium text-center" style={{ color: "#9B9A94" }}>
-                    {isAnsweringStep ? "Complete findings to continue" : "Consultation mode active"}
-                </p>
+                <button
+                    onClick={handleSubmit}
+                    disabled={isLoading || !inputValue.trim()}
+                    className="flex items-center justify-center h-10 w-10 shrink-0 rounded-xl transition-colors disabled:opacity-30"
+                    style={{ backgroundColor: "#0066FF" }}
+                >
+                    <Send className="h-4 w-4 text-white" />
+                </button>
             </div>
         </div>
     )

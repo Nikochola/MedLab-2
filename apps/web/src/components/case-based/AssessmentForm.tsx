@@ -8,8 +8,6 @@ import type { CaseFeedback } from "@/lib/ai/aiClient"
 import { useAuth } from "@/contexts/AuthContext"
 import { saveCaseAssessment } from "@/lib/storage"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -18,10 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Separator } from "@/components/ui/separator"
+import { cn } from "@/lib/utils"
 
 interface AssessmentFormData {
   rate: string
@@ -50,7 +45,30 @@ interface AssessmentFormProps {
   ecgFindings?: string
 }
 
-const checkboxLabelClass = "text-sm font-semibold text-[#4a586d] dark:text-[#dbe3ef]"
+const inputClass = "w-full rounded-lg border border-[#E8E6DF] bg-white px-2.5 py-2 text-[13px] text-[#0E0F12] outline-none placeholder:text-[#9B9A94] focus:border-[#C7D9FF] transition-colors"
+
+function CheckboxItem({ id, label, checked, onChange }: { id: string; label: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label htmlFor={id} className="flex cursor-pointer items-center gap-2">
+      <button
+        type="button"
+        id={id}
+        role="checkbox"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={cn(
+          "flex h-[15px] w-[15px] shrink-0 items-center justify-center rounded border-[1.5px] transition-colors",
+          checked ? "border-[#0066FF] bg-[#EEF3FF]" : "border-[#D8D5CC] bg-white"
+        )}
+      >
+        {checked && (
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#0066FF" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+        )}
+      </button>
+      <span className={cn("text-[12px] font-medium", checked ? "text-[#0E0F12]" : "text-[#6B6A65]")}>{label}</span>
+    </label>
+  )
+}
 
 export function AssessmentForm({ patientCase, ecgFindings }: AssessmentFormProps) {
   const [formData, setFormData] = useState<AssessmentFormData>({
@@ -206,11 +224,11 @@ export function AssessmentForm({ patientCase, ecgFindings }: AssessmentFormProps
 
   const renderList = (items: string[], emptyState: string) => {
     if (!items.length) {
-      return <p className="text-sm font-semibold text-[#708093] dark:text-[#b7c1d1]">{emptyState}</p>
+      return <p className="text-sm text-[#9B9A94]">{emptyState}</p>
     }
 
     return (
-      <ul className="list-inside list-disc space-y-2 text-sm font-semibold text-[#4a586d] dark:text-[#dbe3ef]">
+      <ul className="list-inside list-disc space-y-2 text-sm text-[#6B6A65]">
         {items.map((item, index) => (
           <li key={index}>{item}</li>
         ))}
@@ -219,313 +237,176 @@ export function AssessmentForm({ patientCase, ecgFindings }: AssessmentFormProps
   }
 
   return (
-    <div className="h-full overflow-y-auto p-6">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Card variant="conceptShell">
-          <div>
-            <h2 className="font-display text-2xl font-black text-[#232a39] dark:text-[#eaf0f8]">ECG Assessment Form</h2>
-            <p className="mt-1 text-sm font-semibold text-[#6f7c8f] dark:text-[#b8c2d2]">Complete each section based on the ECG findings.</p>
-          </div>
-        </Card>
+    <div className="flex h-full flex-col">
+      {/* Header */}
+      <div className="shrink-0 px-5 pb-4 pt-5" style={{ borderBottom: "1px solid #F5F5F3" }}>
+        <h2 className="text-sm font-semibold" style={{ color: "#0E0F12" }}>ECG Assessment</h2>
+        <p className="mt-0.5 text-[11px]" style={{ color: "#9B9A94" }}>Complete all sections</p>
+      </div>
 
-        <Card variant="conceptWidget">
-          <CardHeader>
-            <CardTitle className="text-lg">Rate & Rhythm</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="space-y-2">
-              <Label variant="concept" htmlFor="rate">Heart Rate (bpm)</Label>
-              <Input
-                variant="concept"
-                id="rate"
+      {/* Scrollable form */}
+      <div className="flex-1 overflow-y-auto">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3.5 p-5">
+          {/* Rate & Rhythm */}
+          <div className="flex flex-col gap-1.5 rounded-xl border border-[#E8E6DF] bg-[#FAFAF8] p-3.5">
+            <span className="text-[13px] font-semibold text-[#0E0F12]">Rate &amp; Rhythm</span>
+            <div className="flex flex-col gap-1">
+              <span className="text-[11px] font-medium text-[#6B6A65]">Heart Rate (bpm)</span>
+              <input
                 type="number"
+                className={inputClass}
                 placeholder="e.g., 75"
                 value={formData.rate}
-                onChange={(event) => setFormData({ ...formData, rate: event.target.value })}
+                onChange={(e) => setFormData({ ...formData, rate: e.target.value })}
               />
             </div>
-            <div className="space-y-2">
-              <Label variant="concept" htmlFor="rhythm">Rhythm</Label>
-              <Input
-                variant="concept"
-                id="rhythm"
+            <div className="flex flex-col gap-1">
+              <span className="text-[11px] font-medium text-[#6B6A65]">Rhythm</span>
+              <input
                 type="text"
+                className={inputClass}
                 placeholder="e.g., Normal Sinus Rhythm"
                 value={formData.rhythm}
-                onChange={(event) => setFormData({ ...formData, rhythm: event.target.value })}
+                onChange={(e) => setFormData({ ...formData, rhythm: e.target.value })}
               />
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card variant="conceptWidget">
-          <CardHeader>
-            <CardTitle className="text-lg">Intervals</CardTitle>
-            <CardDescription>Measure in milliseconds (ms).</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="space-y-2">
-              <Label variant="concept" htmlFor="pr">PR Interval (ms)</Label>
-              <Input
-                variant="concept"
-                id="pr"
-                type="number"
-                placeholder="e.g., 160"
-                value={formData.prInterval}
-                onChange={(event) => setFormData({ ...formData, prInterval: event.target.value })}
-              />
+          {/* Intervals */}
+          <div className="flex flex-col gap-1.5 rounded-xl border border-[#E8E6DF] bg-[#FAFAF8] p-3.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[13px] font-semibold text-[#0E0F12]">Intervals</span>
+              <span className="text-[10px] text-[#9B9A94]">milliseconds</span>
             </div>
-            <div className="space-y-2">
-              <Label variant="concept" htmlFor="qrs">QRS Duration (ms)</Label>
-              <Input
-                variant="concept"
-                id="qrs"
-                type="number"
-                placeholder="e.g., 90"
-                value={formData.qrsInterval}
-                onChange={(event) => setFormData({ ...formData, qrsInterval: event.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label variant="concept" htmlFor="qt">QT Interval (ms)</Label>
-              <Input
-                variant="concept"
-                id="qt"
-                type="number"
-                placeholder="e.g., 400"
-                value={formData.qtInterval}
-                onChange={(event) => setFormData({ ...formData, qtInterval: event.target.value })}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card variant="conceptWidget">
-          <CardHeader>
-            <CardTitle className="text-lg">Axis</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <RadioGroup
-              value={formData.axis}
-              onValueChange={(value) => setFormData({ ...formData, axis: value as "normal" | "left" | "right" | "" })}
-              className="space-y-3"
-            >
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="normal" id="axis-normal" />
-                <Label htmlFor="axis-normal">Normal</Label>
+            <div className="flex gap-1.5">
+              <div className="flex flex-1 flex-col gap-1">
+                <span className="text-[10px] font-medium text-[#6B6A65]">PR</span>
+                <input
+                  type="number"
+                  className={inputClass}
+                  placeholder="160"
+                  value={formData.prInterval}
+                  onChange={(e) => setFormData({ ...formData, prInterval: e.target.value })}
+                />
               </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="left" id="axis-left" />
-                <Label htmlFor="axis-left">Left Axis Deviation (LAD)</Label>
+              <div className="flex flex-1 flex-col gap-1">
+                <span className="text-[10px] font-medium text-[#6B6A65]">QRS</span>
+                <input
+                  type="number"
+                  className={inputClass}
+                  placeholder="90"
+                  value={formData.qrsInterval}
+                  onChange={(e) => setFormData({ ...formData, qrsInterval: e.target.value })}
+                />
               </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="right" id="axis-right" />
-                <Label htmlFor="axis-right">Right Axis Deviation (RAD)</Label>
+              <div className="flex flex-1 flex-col gap-1">
+                <span className="text-[10px] font-medium text-[#6B6A65]">QT</span>
+                <input
+                  type="number"
+                  className={inputClass}
+                  placeholder="400"
+                  value={formData.qtInterval}
+                  onChange={(e) => setFormData({ ...formData, qtInterval: e.target.value })}
+                />
               </div>
-            </RadioGroup>
-          </CardContent>
-        </Card>
+            </div>
+          </div>
 
-        <Card variant="conceptWidget">
-          <CardHeader>
-            <CardTitle className="text-lg">Chamber Enlargement</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="lvh"
-                checked={formData.chamberEnlargement.lvh}
-                onCheckedChange={(checked) =>
-                  setFormData({
-                    ...formData,
-                    chamberEnlargement: {
-                      ...formData.chamberEnlargement,
-                      lvh: checked as boolean,
-                    },
-                  })
-                }
-              />
-              <label className={checkboxLabelClass} htmlFor="lvh">Left Ventricular Hypertrophy (LVH)</label>
+          {/* Axis */}
+          <div className="flex flex-col gap-1.5 rounded-xl border border-[#E8E6DF] bg-[#FAFAF8] p-3.5">
+            <span className="text-[13px] font-semibold text-[#0E0F12]">Axis</span>
+            <div className="flex flex-col gap-1.5">
+              {([["normal", "Normal"], ["left", "Left Axis Deviation (LAD)"], ["right", "Right Axis Deviation (RAD)"]] as const).map(([value, label]) => (
+                <label key={value} className="flex cursor-pointer items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, axis: value })}
+                    className={cn(
+                      "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+                      formData.axis === value ? "border-[#0066FF]" : "border-[#D8D5CC]"
+                    )}
+                  >
+                    {formData.axis === value && <div className="h-2 w-2 rounded-full bg-[#0066FF]" />}
+                  </button>
+                  <span className={cn("text-[12px] font-medium", formData.axis === value ? "text-[#0E0F12]" : "text-[#6B6A65]")}>{label}</span>
+                </label>
+              ))}
             </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="rvh"
-                checked={formData.chamberEnlargement.rvh}
-                onCheckedChange={(checked) =>
-                  setFormData({
-                    ...formData,
-                    chamberEnlargement: {
-                      ...formData.chamberEnlargement,
-                      rvh: checked as boolean,
-                    },
-                  })
-                }
-              />
-              <label className={checkboxLabelClass} htmlFor="rvh">Right Ventricular Hypertrophy (RVH)</label>
-            </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="raa"
-                checked={formData.chamberEnlargement.raa}
-                onCheckedChange={(checked) =>
-                  setFormData({
-                    ...formData,
-                    chamberEnlargement: {
-                      ...formData.chamberEnlargement,
-                      raa: checked as boolean,
-                    },
-                  })
-                }
-              />
-              <label className={checkboxLabelClass} htmlFor="raa">Right Atrial Abnormality (RAA)</label>
-            </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="laa"
-                checked={formData.chamberEnlargement.laa}
-                onCheckedChange={(checked) =>
-                  setFormData({
-                    ...formData,
-                    chamberEnlargement: {
-                      ...formData.chamberEnlargement,
-                      laa: checked as boolean,
-                    },
-                  })
-                }
-              />
-              <label className={checkboxLabelClass} htmlFor="laa">Left Atrial Abnormality (LAA)</label>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card variant="conceptWidget">
-          <CardHeader>
-            <CardTitle className="text-lg">Waveform Abnormalities</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="qwaves"
-                checked={formData.waveformAbnormalities.qWaves}
-                onCheckedChange={(checked) =>
-                  setFormData({
-                    ...formData,
-                    waveformAbnormalities: {
-                      ...formData.waveformAbnormalities,
-                      qWaves: checked as boolean,
-                    },
-                  })
-                }
-              />
-              <label className={checkboxLabelClass} htmlFor="qwaves">Q Waves (Pathologic)</label>
+          {/* Chamber Enlargement */}
+          <div className="flex flex-col gap-1.5 rounded-xl border border-[#E8E6DF] bg-[#FAFAF8] p-3.5">
+            <span className="text-[13px] font-semibold text-[#0E0F12]">Chamber Enlargement</span>
+            <div className="flex flex-col gap-1.5">
+              <CheckboxItem id="lvh" label="Left Ventricular Hypertrophy (LVH)" checked={formData.chamberEnlargement.lvh} onChange={(v) => setFormData({ ...formData, chamberEnlargement: { ...formData.chamberEnlargement, lvh: v } })} />
+              <CheckboxItem id="rvh" label="Right Ventricular Hypertrophy (RVH)" checked={formData.chamberEnlargement.rvh} onChange={(v) => setFormData({ ...formData, chamberEnlargement: { ...formData.chamberEnlargement, rvh: v } })} />
+              <CheckboxItem id="raa" label="Right Atrial Abnormality (RAA)" checked={formData.chamberEnlargement.raa} onChange={(v) => setFormData({ ...formData, chamberEnlargement: { ...formData.chamberEnlargement, raa: v } })} />
+              <CheckboxItem id="laa" label="Left Atrial Abnormality (LAA)" checked={formData.chamberEnlargement.laa} onChange={(v) => setFormData({ ...formData, chamberEnlargement: { ...formData.chamberEnlargement, laa: v } })} />
             </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="stelevation"
-                checked={formData.waveformAbnormalities.stElevation}
-                onCheckedChange={(checked) =>
-                  setFormData({
-                    ...formData,
-                    waveformAbnormalities: {
-                      ...formData.waveformAbnormalities,
-                      stElevation: checked as boolean,
-                    },
-                  })
-                }
-              />
-              <label className={checkboxLabelClass} htmlFor="stelevation">ST Elevation</label>
-            </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="stdepression"
-                checked={formData.waveformAbnormalities.stDepression}
-                onCheckedChange={(checked) =>
-                  setFormData({
-                    ...formData,
-                    waveformAbnormalities: {
-                      ...formData.waveformAbnormalities,
-                      stDepression: checked as boolean,
-                    },
-                  })
-                }
-              />
-              <label className={checkboxLabelClass} htmlFor="stdepression">ST Depression</label>
-            </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="tinversion"
-                checked={formData.waveformAbnormalities.tWaveInversion}
-                onCheckedChange={(checked) =>
-                  setFormData({
-                    ...formData,
-                    waveformAbnormalities: {
-                      ...formData.waveformAbnormalities,
-                      tWaveInversion: checked as boolean,
-                    },
-                  })
-                }
-              />
-              <label className={checkboxLabelClass} htmlFor="tinversion">T Wave Inversion</label>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card variant="conceptWidget">
-          <CardHeader>
-            <CardTitle className="text-lg">Final Diagnosis</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Label variant="concept" htmlFor="diagnosis">ECG Interpretation / Diagnosis</Label>
-              <Input
-                variant="concept"
-                id="diagnosis"
-                type="text"
-                placeholder="Enter your final ECG interpretation..."
-                value={formData.diagnosis}
-                onChange={(event) => setFormData({ ...formData, diagnosis: event.target.value })}
-              />
+          {/* Waveform Abnormalities */}
+          <div className="flex flex-col gap-1.5 rounded-xl border border-[#E8E6DF] bg-[#FAFAF8] p-3.5">
+            <span className="text-[13px] font-semibold text-[#0E0F12]">Waveform Abnormalities</span>
+            <div className="flex flex-col gap-1.5">
+              <CheckboxItem id="qwaves" label="Q Waves (Pathologic)" checked={formData.waveformAbnormalities.qWaves} onChange={(v) => setFormData({ ...formData, waveformAbnormalities: { ...formData.waveformAbnormalities, qWaves: v } })} />
+              <CheckboxItem id="stelevation" label="ST Elevation" checked={formData.waveformAbnormalities.stElevation} onChange={(v) => setFormData({ ...formData, waveformAbnormalities: { ...formData.waveformAbnormalities, stElevation: v } })} />
+              <CheckboxItem id="stdepression" label="ST Depression" checked={formData.waveformAbnormalities.stDepression} onChange={(v) => setFormData({ ...formData, waveformAbnormalities: { ...formData.waveformAbnormalities, stDepression: v } })} />
+              <CheckboxItem id="tinversion" label="T Wave Inversion" checked={formData.waveformAbnormalities.tWaveInversion} onChange={(v) => setFormData({ ...formData, waveformAbnormalities: { ...formData.waveformAbnormalities, tWaveInversion: v } })} />
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Separator />
+          {/* Final Diagnosis */}
+          <div className="flex flex-col gap-1.5 rounded-xl border border-[#E8E6DF] bg-[#FAFAF8] p-3.5">
+            <span className="text-[13px] font-semibold text-[#0E0F12]">Final Diagnosis</span>
+            <span className="text-[11px] font-medium text-[#6B6A65]">ECG Interpretation / Diagnosis</span>
+            <input
+              type="text"
+              className={inputClass}
+              placeholder="Enter your final ECG interpretation..."
+              value={formData.diagnosis}
+              onChange={(e) => setFormData({ ...formData, diagnosis: e.target.value })}
+            />
+          </div>
 
-        <p className="pb-2 text-center text-xs font-semibold text-[#708093] dark:text-[#b7c1d1]">
-          Form adapted from instructor-provided ECG assessment criteria.
-        </p>
+          <p className="text-center text-[10px] text-[#9B9A94]">
+            Form adapted from instructor-provided ECG assessment criteria.
+          </p>
+        </form>
+      </div>
 
-        <div className="space-y-3">
-          <Button type="submit" variant="default" size="lg" className="w-full">
-            Submit Assessment
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="lg" className="w-full"
-            onClick={handleGetAIFeedback}
-            disabled={isLoadingFeedback || !formData.diagnosis.trim()}
-          >
-            {isLoadingFeedback ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating AI Feedback...
-              </>
-            ) : (
-              <>
-                <Sparkles className="mr-2 h-4 w-4" />
-                Get AI Feedback
-              </>
-            )}
-          </Button>
-        </div>
-      </form>
+      {/* Sticky action buttons */}
+      <div className="flex shrink-0 flex-col gap-2 border-t border-[#F5F5F3] px-5 py-4">
+        <Button type="submit" variant="default" size="lg" className="w-full" onClick={handleSubmit}>
+          Submit Assessment
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          className="w-full"
+          onClick={handleGetAIFeedback}
+          disabled={isLoadingFeedback || !formData.diagnosis.trim()}
+        >
+          {isLoadingFeedback ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Generating AI Feedback...
+            </>
+          ) : (
+            <>
+              <Sparkles className="mr-2 h-4 w-4" />
+              Get AI Feedback
+            </>
+          )}
+        </Button>
+      </div>
 
       <Dialog open={showFeedback} onOpenChange={setShowFeedback}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
+              <Sparkles className="h-5 w-5 text-[#0066FF]" />
               AI Tutor Feedback
             </DialogTitle>
             <DialogDescription>
@@ -535,117 +416,56 @@ export function AssessmentForm({ patientCase, ecgFindings }: AssessmentFormProps
 
           {isLoadingFeedback && (
             <div className="flex items-center justify-center py-10">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              <span className="ml-3 text-sm text-muted-foreground">Crunching the ECG details...</span>
+              <Loader2 className="h-6 w-6 animate-spin text-[#0066FF]" />
+              <span className="ml-3 text-sm text-[#9B9A94]">Crunching the ECG details...</span>
             </div>
           )}
 
           {!isLoadingFeedback && feedbackError && (
-            <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
               {feedbackError}
             </div>
           )}
 
           {!isLoadingFeedback && !feedbackError && aiFeedback && (
             <div className="max-h-[65vh] space-y-6 overflow-y-auto pr-1">
-              <div className="rounded-lg border border-border/60 bg-muted/40 p-4">
-                <p className="text-sm leading-relaxed text-muted-foreground">{aiFeedback.summary}</p>
+              <div className="rounded-xl border border-[#E8E6DF] bg-[#FAFAF8] p-4">
+                <p className="text-sm leading-relaxed text-[#6B6A65]">{aiFeedback.summary}</p>
               </div>
 
-              <Card variant="conceptWidget">
-                <CardHeader>
-                  <CardTitle className="text-base">Your submitted findings</CardTitle>
-                  <CardDescription>Snapshot of the values you entered.</CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-3 text-sm text-muted-foreground">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div><span className="font-medium text-foreground">Rate:</span> {formData.rate || "—"} bpm</div>
-                    <div><span className="font-medium text-foreground">Rhythm:</span> {formData.rhythm || "—"}</div>
-                    <div><span className="font-medium text-foreground">PR:</span> {formData.prInterval || "—"} ms</div>
-                    <div><span className="font-medium text-foreground">QRS:</span> {formData.qrsInterval || "—"} ms</div>
-                    <div><span className="font-medium text-foreground">QT:</span> {formData.qtInterval || "—"} ms</div>
-                    <div><span className="font-medium text-foreground">Axis:</span> {formData.axis || "—"}</div>
-                  </div>
-                  <div>
-                    <span className="font-medium text-foreground">Chamber enlargement:</span>{" "}
-                    {Object.entries(formData.chamberEnlargement)
-                      .filter(([_, value]) => value)
-                      .map(([key]) => key.toUpperCase())
-                      .join(", ") || "None"}
-                  </div>
-                  <div>
-                    <span className="font-medium text-foreground">Waveform abnormalities:</span>{" "}
-                    {Object.entries(formData.waveformAbnormalities)
-                      .filter(([_, value]) => value)
-                      .map(([key]) => key)
-                      .join(", ") || "None"}
-                  </div>
-                  <div>
-                    <span className="font-medium text-foreground">Final diagnosis:</span> {formData.diagnosis || "—"}
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="space-y-2">
+                <h4 className="text-[11px] font-semibold uppercase tracking-wider text-[#9B9A94]">What you got right</h4>
+                {renderList(aiFeedback.strengths, "No positives identified yet.")}
+              </div>
 
-              <Card variant="conceptWidget">
-                <CardHeader>
-                  <CardTitle className="text-base">What you got right</CardTitle>
-                  <CardDescription>Keep building on these strengths.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {renderList(aiFeedback.strengths, "No positives identified yet. Double-check your measurements and descriptions.")}
-                </CardContent>
-              </Card>
+              <div className="space-y-2">
+                <h4 className="text-[11px] font-semibold uppercase tracking-wider text-[#9B9A94]">What needs correction</h4>
+                {renderList(aiFeedback.corrections, "No major corrections noted.")}
+              </div>
 
-              <Card variant="conceptWidget">
-                <CardHeader>
-                  <CardTitle className="text-base">What needs correction</CardTitle>
-                  <CardDescription>Specific mistakes or misses to address.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {renderList(aiFeedback.corrections, "No major corrections noted. Revisit the tracing if something feels off.")}
-                </CardContent>
-              </Card>
+              <div className="space-y-2">
+                <h4 className="text-[11px] font-semibold uppercase tracking-wider text-[#9B9A94]">How to improve</h4>
+                {renderList(aiFeedback.improvements, "No targeted improvements provided yet.")}
+              </div>
 
-              <Card variant="conceptWidget">
-                <CardHeader>
-                  <CardTitle className="text-base">How to improve</CardTitle>
-                  <CardDescription>Actionable practice and focus areas.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {renderList(aiFeedback.improvements, "No targeted improvements provided yet. Try adding more detail.")}
-                </CardContent>
-              </Card>
-
-              <Card variant="conceptWidget">
-                <CardHeader>
-                  <CardTitle className="text-base">Resources</CardTitle>
-                  <CardDescription>Trusted places to reinforce the concepts.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {aiFeedback.resources.length ? (
-                    <ul className="space-y-3 text-sm">
-                      {aiFeedback.resources.map((resource, index) => (
-                        <li key={index} className="rounded-lg border border-border/60 bg-background/70 p-3">
-                          <div className="font-medium">{resource.title}</div>
-                          {resource.whyItMatters && <p className="text-muted-foreground">{resource.whyItMatters}</p>}
-                          {resource.url && (
-                            <a
-                              href={resource.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="mt-1 inline-flex text-primary underline underline-offset-4"
-                            >
-                              Visit resource
-                            </a>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">Add more clinical detail to see curated resources.</p>
-                  )}
-                </CardContent>
-              </Card>
+              {aiFeedback.resources.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-[11px] font-semibold uppercase tracking-wider text-[#9B9A94]">Resources</h4>
+                  <ul className="space-y-2 text-sm">
+                    {aiFeedback.resources.map((resource, index) => (
+                      <li key={index} className="rounded-xl border border-[#E8E6DF] bg-[#FAFAF8] p-3">
+                        <div className="font-medium text-[#0E0F12]">{resource.title}</div>
+                        {resource.whyItMatters && <p className="text-[#6B6A65]">{resource.whyItMatters}</p>}
+                        {resource.url && (
+                          <a href={resource.url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex text-[#0066FF] underline underline-offset-4">
+                            Visit resource
+                          </a>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
 

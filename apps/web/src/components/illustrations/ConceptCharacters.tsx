@@ -1,6 +1,6 @@
 "use client"
 
-import type { ReactNode } from "react"
+import { type ReactNode, useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
@@ -31,7 +31,10 @@ function Wrapper({
   className?: string
   children: ReactNode
 }) {
-  if (!animated) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+
+  if (!animated || !mounted) {
     return (
       <div className={cn("inline-flex", className)} style={{ width: size, height: size }}>
         {children}
