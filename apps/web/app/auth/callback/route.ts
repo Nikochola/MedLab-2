@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerClient, type CookieOptions } from "@supabase/ssr"
+import { createServerClient } from "@supabase/ssr"
 
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code")
@@ -16,11 +16,14 @@ export async function GET(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get: (name) => request.cookies.get(name)?.value,
-        set: (name, value, options: CookieOptions) =>
-          response.cookies.set({ name, value, ...options }),
-        remove: (name, options: CookieOptions) =>
-          response.cookies.set({ name, value: "", ...options }),
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
+        },
       },
     }
   )
@@ -43,7 +46,6 @@ export async function GET(request: NextRequest) {
     roles.has("institution_admin") || roles.has("admin") || roles.has("educator") || roles.has("teacher")
 
   if (hasInstitutionPortalAccess) {
-    response.headers.set("Location", new URL("/institution/courses", request.url).toString())
     return NextResponse.redirect(new URL("/institution/courses", request.url))
   }
 
