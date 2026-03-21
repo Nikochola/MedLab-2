@@ -40,7 +40,7 @@ export default function TermsPage() {
           </div>
 
           <Section title="Acceptance of Terms">
-            <P>By creating an account or using the MedLab platform ("the Service"), you agree to be bound by these Terms of Service. If you do not agree, do not use the Service.</P>
+            <P>By creating an account or using the MedLab platform (&ldquo;the Service&rdquo;), you agree to be bound by these Terms of Service. If you do not agree, do not use the Service.</P>
             <P>These terms apply to all users: individual students, educators, and institutional administrators. If you are using MedLab on behalf of an institution, you represent that you have the authority to bind that institution to these terms.</P>
           </Section>
 
@@ -73,7 +73,7 @@ export default function TermsPage() {
             <P>MedLab offers a free tier and paid Pro subscriptions, billed monthly or annually. Institutional plans are governed by a separate agreement.</P>
             <P><strong style={{ color: "#0E0F12", fontWeight: 600 }}>Cancellations.</strong> You may cancel your Pro subscription at any time. Access continues until the end of the current billing period. We do not offer prorated refunds for mid-period cancellations.</P>
             <P><strong style={{ color: "#0E0F12", fontWeight: 600 }}>Refunds.</strong> We offer a 7-day refund window for first-time Pro subscribers who have not consumed more than 10 cases. Refund requests must be submitted to support@getmedlab.com within 7 days of the charge.</P>
-            <P><strong style={{ color: "#0E0F12", fontWeight: 600 }}>Price changes.</strong> We will give at least 30 days' notice before increasing subscription prices. Changes take effect at your next renewal.</P>
+            <P><strong style={{ color: "#0E0F12", fontWeight: 600 }}>Price changes.</strong> We will give at least 30 days&apos; notice before increasing subscription prices. Changes take effect at your next renewal.</P>
           </Section>
 
           <Section title="Intellectual Property">
@@ -87,8 +87,8 @@ export default function TermsPage() {
           </Section>
 
           <Section title="Disclaimers and Limitation of Liability">
-            <P>The Service is provided "as is" without warranty of any kind. We do not guarantee uninterrupted availability, error-free content, or specific educational outcomes.</P>
-            <P>To the maximum extent permitted by law, MedLab's total liability to you for any claim arising from these Terms or your use of the Service shall not exceed the amount you paid us in the 12 months preceding the claim.</P>
+            <P>The Service is provided &ldquo;as is&rdquo; without warranty of any kind. We do not guarantee uninterrupted availability, error-free content, or specific educational outcomes.</P>
+            <P>To the maximum extent permitted by law, MedLab&apos;s total liability to you for any claim arising from these Terms or your use of the Service shall not exceed the amount you paid us in the 12 months preceding the claim.</P>
             <P>MedLab is not liable for any indirect, incidental, consequential, or punitive damages arising from your use of or inability to use the Service, including but not limited to harm arising from reliance on AI-generated clinical content.</P>
           </Section>
 
