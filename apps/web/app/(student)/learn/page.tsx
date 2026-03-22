@@ -124,7 +124,7 @@ export default function LearnPage() {
         {/* Quick practice */}
         <div className="mt-10">
           <SectionLabel>Quick practice</SectionLabel>
-          <div className="mt-3 grid grid-cols-3 gap-3">
+          <div className="mt-3 grid grid-cols-3 gap-2 sm:gap-3">
             {quickPractice.map((item) => (
               <Link
                 key={item.title}

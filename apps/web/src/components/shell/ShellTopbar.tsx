@@ -2,7 +2,7 @@
 
 import { useMemo } from "react"
 import { usePathname } from "next/navigation"
-import { Flame, LogOut } from "lucide-react"
+import { Flame, LogOut, Menu } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useStudentStats } from "@/lib/hooks/useStudentStats"
 
@@ -18,33 +18,49 @@ function getTitle(pathname: string) {
   return "MedLab"
 }
 
-export function ShellTopbar() {
+interface ShellTopbarProps {
+  onMobileMenuToggle: () => void
+}
+
+export function ShellTopbar({ onMobileMenuToggle }: ShellTopbarProps) {
   const pathname = usePathname() || ""
   const title = useMemo(() => getTitle(pathname), [pathname])
   const { user, logout } = useAuth()
 
   return (
     <header
-      className="sticky top-0 z-50 w-full"
+      className="sticky top-0 z-30 w-full"
       style={{
         backgroundColor: "white",
         borderBottom: "1px solid #E8E6DF",
-        height: 72,
+        height: 60,
       }}
     >
-      <div className="flex h-full items-center justify-between gap-4 px-6">
-        <h1 className="text-lg font-semibold" style={{ color: "#0E0F12" }}>
-          {title}
-        </h1>
+      <div className="flex h-full items-center justify-between gap-3 px-4 lg:px-6">
+        {/* Left: hamburger (mobile) + title */}
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            className="lg:hidden flex items-center justify-center h-8 w-8 rounded-md transition-colors shrink-0"
+            onClick={onMobileMenuToggle}
+            aria-label="Open menu"
+            style={{ color: "#6B6A65" }}
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          <h1 className="text-[15px] lg:text-lg font-semibold truncate" style={{ color: "#0E0F12" }}>
+            {title}
+          </h1>
+        </div>
 
-        <div className="flex items-center gap-3">
+        {/* Right: stats (desktop only) + logout */}
+        <div className="flex items-center gap-2 shrink-0">
           <div className="hidden md:flex items-center gap-2">
             <StatsDisplay />
           </div>
 
           <button
             onClick={logout}
-            className="flex items-center gap-2 rounded-[9px] px-3 py-2 text-[13px] font-medium transition-colors"
+            className="flex items-center gap-1.5 rounded-[9px] px-2.5 py-2 text-[13px] font-medium transition-colors"
             style={{ color: "#6B6A65" }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = "#F5F5F3"
@@ -56,7 +72,7 @@ export function ShellTopbar() {
             }}
           >
             <LogOut className="h-4 w-4" style={{ color: "#9B9A94" }} />
-            Log out
+            <span className="hidden sm:inline">Log out</span>
           </button>
         </div>
       </div>

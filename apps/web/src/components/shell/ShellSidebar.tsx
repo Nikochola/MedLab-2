@@ -13,7 +13,9 @@ import {
   LayoutDashboard,
   Users,
   BarChart3,
+  X,
 } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { useAuth } from "@/contexts/AuthContext"
 import { ShellNavItem } from "@/components/shell/ShellNavItem"
 
@@ -108,36 +110,59 @@ function ProfileNavItem({ avatarUrl, userId }: { avatarUrl?: string | null; user
 // Routes to eagerly prefetch so the first click is instant.
 const PREFETCH_ROUTES = ["/learn", "/practice", "/progress", "/more", "/profile", "/ecg", "/xray", "/journey", "/shop"]
 
-export function ShellSidebar() {
+interface ShellSidebarProps {
+  mobileOpen: boolean
+  onMobileClose: () => void
+}
+
+export function ShellSidebar({ mobileOpen, onMobileClose }: ShellSidebarProps) {
   const { user } = useAuth()
   const router = useRouter()
   const navItems = getNavItems(user?.role, user?.primary_role)
   const isEducator = user?.role === "educator" || user?.role === "teacher" || user?.role === "institution_admin" || user?.role === "admin"
 
   useEffect(() => {
-    // Kick off prefetch for all nav routes immediately on mount so they are
-    // already cached when the user clicks — no waiting for IntersectionObserver.
     PREFETCH_ROUTES.forEach((route) => router.prefetch(route))
   }, [router])
 
   return (
     <aside
-      className="flex h-full flex-shrink-0 flex-col"
+      className={cn(
+        // Base styles
+        "flex flex-col transition-transform duration-300 ease-in-out",
+        // Mobile: fixed full-height drawer sliding from left, above overlay
+        "fixed inset-y-0 left-0 z-50",
+        // Desktop (lg+): back to static in flex flow
+        "lg:relative lg:inset-auto lg:z-auto lg:h-full lg:flex-shrink-0",
+        // Slide state
+        mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+      )}
       style={{
         width: 240,
         backgroundColor: "white",
         borderRight: "1px solid #E8E6DF",
       }}
     >
-      {/* Logo */}
-      <div className="flex items-center px-6" style={{ height: 72 }}>
-        <Link href="/">
+      {/* Logo row — with close button on mobile */}
+      <div className="flex items-center justify-between px-6" style={{ height: 72 }}>
+        <Link href="/" onClick={onMobileClose}>
           <img src="/images/logo_black.svg" alt="MedLab" style={{ height: 20 }} />
         </Link>
+        <button
+          className="lg:hidden flex items-center justify-center h-8 w-8 rounded-md transition-colors"
+          onClick={onMobileClose}
+          aria-label="Close menu"
+          style={{ color: "#6B6A65" }}
+        >
+          <X className="h-5 w-5" />
+        </button>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto overflow-x-hidden">
+      {/* Navigation — tap any link to close drawer on mobile */}
+      <nav
+        className="flex-1 px-3 py-4 space-y-1 overflow-y-auto overflow-x-hidden"
+        onClick={onMobileClose}
+      >
         {navItems.map((item) => (
           <ShellNavItem key={item.label} {...item} isCollapsed={false} />
         ))}

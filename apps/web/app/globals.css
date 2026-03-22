@@ -92,7 +92,14 @@
       radial-gradient(circle at 12% 14%, rgba(145, 159, 229, 0.08), transparent 28%),
       radial-gradient(circle at 88% 18%, rgba(175, 211, 226, 0.08), transparent 30%),
       linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%);
-    background-attachment: fixed;
+    background-attachment: fixed; /* overridden to scroll on mobile below */
+  }
+
+  /* background-attachment:fixed causes jank on iOS/Android — use scroll there */
+  @media (max-width: 1023px) {
+    body {
+      background-attachment: scroll;
+    }
   }
 
   .dark body {

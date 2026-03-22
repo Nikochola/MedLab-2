@@ -12,7 +12,7 @@ export default function ProgressPage() {
     <div className="h-full overflow-y-auto">
       <div className="max-w-3xl mx-auto px-6 py-10">
         {/* Primary stats row */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
           <StatCard
             icon={<Flame className="h-5 w-5 text-orange-500" />}
             label="Current Streak"
@@ -102,19 +102,19 @@ function StatCard({
   formatNumber?: boolean
 }) {
   return (
-    <div className="rounded-2xl px-5 py-5" style={{ backgroundColor: "#F5F5F3" }}>
-      <div className="flex items-center gap-2 mb-3">
-        {icon}
-        <span className="text-xs font-medium" style={{ color: "#6B6A65" }}>{label}</span>
+    <div className="rounded-2xl px-3 py-4 sm:px-5 sm:py-5" style={{ backgroundColor: "#F5F5F3" }}>
+      <div className="mb-2 sm:mb-3">
+        <div className="mb-1">{icon}</div>
+        <span className="text-[10px] sm:text-xs font-medium leading-tight block" style={{ color: "#6B6A65" }}>{label}</span>
       </div>
       {isLoading ? (
-        <div className="h-8 w-20 rounded-lg animate-pulse" style={{ backgroundColor: "#E8E6DF" }} />
+        <div className="h-7 w-14 rounded-lg animate-pulse sm:h-8 sm:w-20" style={{ backgroundColor: "#E8E6DF" }} />
       ) : (
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-3xl font-semibold" style={{ color: "#0E0F12" }}>
+        <div className="flex items-baseline gap-1 flex-wrap">
+          <span className="text-2xl sm:text-3xl font-semibold" style={{ color: "#0E0F12" }}>
             {formatNumber ? value.toLocaleString() : value}
           </span>
-          {suffix && <span className="text-sm font-medium" style={{ color: "#9B9A94" }}>{suffix}</span>}
+          {suffix && <span className="text-xs sm:text-sm font-medium" style={{ color: "#9B9A94" }}>{suffix}</span>}
         </div>
       )}
     </div>
