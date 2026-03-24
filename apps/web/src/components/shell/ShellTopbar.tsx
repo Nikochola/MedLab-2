@@ -25,31 +25,35 @@ export function ShellTopbar() {
 
   return (
     <header
-      className="sticky top-0 z-30 w-full"
+      className="sticky top-0 z-30 w-full flex items-center justify-between px-4 lg:px-6"
       style={{
         backgroundColor: "white",
         borderBottom: "1px solid #E8E6DF",
+        height: 60,
       }}
     >
-      {/* ── Mobile layout ── */}
-      <div
-        className="lg:hidden flex items-center justify-between gap-2 px-4"
-        style={{ height: 56 }}
-      >
-        <img src="/images/logo_black.svg" alt="MedLab" style={{ height: 17 }} />
-        <MobileStats userId={user?.id} />
-      </div>
-
-      {/* ── Desktop layout ── */}
-      <div
-        className="hidden lg:flex items-center justify-between gap-3 px-6"
-        style={{ height: 60 }}
-      >
-        <h1 className="text-lg font-semibold truncate" style={{ color: "#0E0F12" }}>
+      {/* Left: logo on mobile, title on desktop */}
+      <div className="flex items-center gap-3 min-w-0">
+        <img
+          src="/images/logo_black.svg"
+          alt="MedLab"
+          className="lg:hidden shrink-0"
+          style={{ height: 17 }}
+        />
+        <h1
+          className="hidden lg:block text-lg font-semibold truncate"
+          style={{ color: "#0E0F12" }}
+        >
           {title}
         </h1>
+      </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+      {/* Right: stat chips on mobile, full stats + logout on desktop */}
+      <div className="flex items-center gap-2 shrink-0">
+        <div className="lg:hidden">
+          <MobileStats userId={user?.id} />
+        </div>
+        <div className="hidden lg:flex items-center gap-2">
           <DesktopStats userId={user?.id} />
           <button
             onClick={logout}
