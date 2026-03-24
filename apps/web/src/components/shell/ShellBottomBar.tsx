@@ -12,6 +12,7 @@ import {
   Users,
   ClipboardText,
   ChartBar,
+  type Icon,
 } from "@phosphor-icons/react"
 import { useAuth } from "@/contexts/AuthContext"
 
@@ -66,7 +67,7 @@ function defaultAvatarUrl(userId: string) {
 interface BottomBarItemProps {
   href: string
   label: string
-  icon: React.ComponentType<{ size?: number; weight?: string; style?: React.CSSProperties }>
+  icon: Icon
   matchPaths?: string[]
 }
 
@@ -90,7 +91,6 @@ function BottomBarItem({ href, label, icon: Icon, matchPaths }: BottomBarItemPro
           border: isActive ? `1.5px solid ${accent.border}` : "1.5px solid transparent",
         }}
       >
-        {/* @ts-ignore phosphor weight prop */}
         <Icon
           size={22}
           weight={isActive ? "fill" : "regular"}
@@ -138,7 +138,6 @@ function ProfileBottomItem({ avatarUrl, userId }: { avatarUrl?: string | null; u
         ) : (
           <UserCircle
             size={22}
-            // @ts-ignore
             weight={isActive ? "fill" : "regular"}
             style={{ color: isActive ? accent.icon : "#9B9A94" }}
           />
