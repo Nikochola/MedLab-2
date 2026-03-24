@@ -2,7 +2,7 @@
 
 import { useMemo } from "react"
 import { usePathname } from "next/navigation"
-import { Flame, LogOut, Menu } from "lucide-react"
+import { Flame, LogOut } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useStudentStats } from "@/lib/hooks/useStudentStats"
 
@@ -18,11 +18,7 @@ function getTitle(pathname: string) {
   return "MedLab"
 }
 
-interface ShellTopbarProps {
-  onMobileMenuToggle: () => void
-}
-
-export function ShellTopbar({ onMobileMenuToggle }: ShellTopbarProps) {
+export function ShellTopbar() {
   const pathname = usePathname() || ""
   const title = useMemo(() => getTitle(pathname), [pathname])
   const { user, logout } = useAuth()
@@ -37,16 +33,14 @@ export function ShellTopbar({ onMobileMenuToggle }: ShellTopbarProps) {
       }}
     >
       <div className="flex h-full items-center justify-between gap-3 px-4 lg:px-6">
-        {/* Left: hamburger (mobile) + title */}
+        {/* Left: logo (mobile) + title */}
         <div className="flex items-center gap-3 min-w-0">
-          <button
-            className="lg:hidden flex items-center justify-center h-8 w-8 rounded-md transition-colors shrink-0"
-            onClick={onMobileMenuToggle}
-            aria-label="Open menu"
-            style={{ color: "#6B6A65" }}
-          >
-            <Menu className="h-5 w-5" />
-          </button>
+          <img
+            src="/images/logo_black.svg"
+            alt="MedLab"
+            className="lg:hidden shrink-0"
+            style={{ height: 18 }}
+          />
           <h1 className="text-[15px] lg:text-lg font-semibold truncate" style={{ color: "#0E0F12" }}>
             {title}
           </h1>
