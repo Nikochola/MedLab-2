@@ -3,38 +3,52 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
-  Home,
-  ClipboardList,
+  House,
   Stethoscope,
-  TrendingUp,
-  BookOpen,
+  ChartLineUp,
+  Books,
   UserCircle,
-  LayoutDashboard,
+  SquaresFour,
   Users,
-  BarChart3,
-} from "lucide-react"
+  ClipboardText,
+  ChartBar,
+} from "@phosphor-icons/react"
 import { useAuth } from "@/contexts/AuthContext"
 
+// Per-tab accent colors — playful, Duolingo-inspired
+const TAB_COLORS: Record<string, { icon: string; bg: string; border: string }> = {
+  Learn:       { icon: "#0066FF", bg: "#EEF3FF", border: "#C7D9FF" },
+  Simulate:    { icon: "#059669", bg: "#ECFDF5", border: "#A7F3D0" },
+  Simulations: { icon: "#059669", bg: "#ECFDF5", border: "#A7F3D0" },
+  Progress:    { icon: "#EA580C", bg: "#FFF7ED", border: "#FED7AA" },
+  Resources:   { icon: "#7C3AED", bg: "#F5F3FF", border: "#DDD6FE" },
+  Profile:     { icon: "#DB2777", bg: "#FDF2F8", border: "#FBCFE8" },
+  Dashboard:   { icon: "#0066FF", bg: "#EEF3FF", border: "#C7D9FF" },
+  Students:    { icon: "#059669", bg: "#ECFDF5", border: "#A7F3D0" },
+  Assignments: { icon: "#EA580C", bg: "#FFF7ED", border: "#FED7AA" },
+  Analytics:   { icon: "#7C3AED", bg: "#F5F3FF", border: "#DDD6FE" },
+}
+
 const independentStudentNav = [
-  { label: "Learn", href: "/learn", icon: Home },
-  { label: "Simulate", href: "/ecg", icon: Stethoscope, matchPaths: ["/ecg", "/xray"] },
-  { label: "Progress", href: "/progress", icon: TrendingUp },
-  { label: "Resources", href: "/more", icon: BookOpen },
+  { label: "Learn",     href: "/learn",     icon: House },
+  { label: "Simulate",  href: "/ecg",       icon: Stethoscope, matchPaths: ["/ecg", "/xray"] },
+  { label: "Progress",  href: "/progress",  icon: ChartLineUp },
+  { label: "Resources", href: "/more",      icon: Books },
 ]
 
 const institutionStudentNav = [
-  { label: "Learn", href: "/learn", icon: Home },
-  { label: "Simulate", href: "/ecg", icon: Stethoscope, matchPaths: ["/ecg", "/xray"] },
-  { label: "Progress", href: "/progress", icon: TrendingUp },
-  { label: "Resources", href: "/more", icon: BookOpen },
+  { label: "Learn",     href: "/learn",     icon: House },
+  { label: "Simulate",  href: "/ecg",       icon: Stethoscope, matchPaths: ["/ecg", "/xray"] },
+  { label: "Progress",  href: "/progress",  icon: ChartLineUp },
+  { label: "Resources", href: "/more",      icon: Books },
 ]
 
 const educatorNav = [
-  { label: "Dashboard", href: "/institution/courses", icon: LayoutDashboard },
-  { label: "Students", href: "/institution/courses", icon: Users },
-  { label: "Assignments", href: "/practice", icon: ClipboardList },
-  { label: "Simulate", href: "/ecg", icon: Stethoscope, matchPaths: ["/ecg", "/xray"] },
-  { label: "Analytics", href: "/institution/courses", icon: BarChart3 },
+  { label: "Dashboard",   href: "/institution/courses", icon: SquaresFour },
+  { label: "Students",    href: "/institution/courses", icon: Users },
+  { label: "Assignments", href: "/practice",            icon: ClipboardText },
+  { label: "Simulations", href: "/ecg",                 icon: Stethoscope, matchPaths: ["/ecg", "/xray"] },
+  { label: "Analytics",   href: "/institution/courses", icon: ChartBar },
 ]
 
 function getNavItems(role?: string, primaryRole?: string) {
@@ -52,7 +66,7 @@ function defaultAvatarUrl(userId: string) {
 interface BottomBarItemProps {
   href: string
   label: string
-  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>
+  icon: React.ComponentType<{ size?: number; weight?: string; style?: React.CSSProperties }>
   matchPaths?: string[]
 }
 
@@ -60,28 +74,35 @@ function BottomBarItem({ href, label, icon: Icon, matchPaths }: BottomBarItemPro
   const pathname = usePathname() || ""
   const paths = matchPaths ?? [href]
   const isActive = paths.some((p) => pathname === p || pathname.startsWith(`${p}/`))
+  const accent = TAB_COLORS[label] ?? TAB_COLORS["Learn"]
 
   return (
     <Link
       href={href}
-      className="flex flex-col items-center justify-center gap-1 flex-1 py-2 transition-colors"
+      className="flex flex-col items-center justify-center flex-1 py-2 gap-1"
     >
-      <Icon
-        className="h-5 w-5"
-        style={{ color: isActive ? "#0066FF" : "#9B9A94" }}
-      />
+      <div
+        className="flex items-center justify-center rounded-xl transition-all"
+        style={{
+          width: 44,
+          height: 36,
+          backgroundColor: isActive ? accent.bg : "transparent",
+          border: isActive ? `1.5px solid ${accent.border}` : "1.5px solid transparent",
+        }}
+      >
+        {/* @ts-ignore phosphor weight prop */}
+        <Icon
+          size={22}
+          weight={isActive ? "fill" : "regular"}
+          style={{ color: isActive ? accent.icon : "#9B9A94" }}
+        />
+      </div>
       <span
         className="text-[10px] font-semibold leading-none"
-        style={{ color: isActive ? "#0066FF" : "#9B9A94" }}
+        style={{ color: isActive ? accent.icon : "#9B9A94" }}
       >
         {label}
       </span>
-      {isActive && (
-        <span
-          className="absolute bottom-0 w-8 h-[3px] rounded-t-full"
-          style={{ backgroundColor: "#0066FF" }}
-        />
-      )}
     </Link>
   )
 }
@@ -90,42 +111,45 @@ function ProfileBottomItem({ avatarUrl, userId }: { avatarUrl?: string | null; u
   const pathname = usePathname() || ""
   const isActive = pathname === "/profile" || pathname.startsWith("/profile/")
   const imgSrc = avatarUrl || (userId ? defaultAvatarUrl(userId) : null)
+  const accent = TAB_COLORS["Profile"]
 
   return (
     <Link
       href="/profile"
-      className="flex flex-col items-center justify-center gap-1 flex-1 py-2 relative transition-colors"
+      className="flex flex-col items-center justify-center flex-1 py-2 gap-1"
     >
-      {imgSrc ? (
-        <img
-          src={imgSrc}
-          alt="Profile"
-          className="rounded-md"
-          width={22}
-          height={22}
-          style={{
-            outline: isActive ? "2px solid #0066FF" : "2px solid transparent",
-            outlineOffset: 1,
-          }}
-        />
-      ) : (
-        <UserCircle
-          className="h-5 w-5"
-          style={{ color: isActive ? "#0066FF" : "#9B9A94" }}
-        />
-      )}
+      <div
+        className="flex items-center justify-center rounded-xl transition-all"
+        style={{
+          width: 44,
+          height: 36,
+          backgroundColor: isActive ? accent.bg : "transparent",
+          border: isActive ? `1.5px solid ${accent.border}` : "1.5px solid transparent",
+        }}
+      >
+        {imgSrc ? (
+          <img
+            src={imgSrc}
+            alt="Profile"
+            className="rounded-lg"
+            width={22}
+            height={22}
+          />
+        ) : (
+          <UserCircle
+            size={22}
+            // @ts-ignore
+            weight={isActive ? "fill" : "regular"}
+            style={{ color: isActive ? accent.icon : "#9B9A94" }}
+          />
+        )}
+      </div>
       <span
         className="text-[10px] font-semibold leading-none"
-        style={{ color: isActive ? "#0066FF" : "#9B9A94" }}
+        style={{ color: isActive ? accent.icon : "#9B9A94" }}
       >
         Profile
       </span>
-      {isActive && (
-        <span
-          className="absolute bottom-0 w-8 h-[3px] rounded-t-full"
-          style={{ backgroundColor: "#0066FF" }}
-        />
-      )}
     </Link>
   )
 }
@@ -145,8 +169,8 @@ export function ShellBottomBar() {
       style={{
         backgroundColor: "white",
         borderTop: "1px solid #E8E6DF",
-        height: 64,
         paddingBottom: "env(safe-area-inset-bottom)",
+        minHeight: 64,
       }}
     >
       {navItems.map((item) => (

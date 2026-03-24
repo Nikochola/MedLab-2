@@ -1,22 +1,22 @@
 "use client"
 
-import type { ComponentType } from "react"
+import type { Icon } from "@phosphor-icons/react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Lock } from "lucide-react"
+import { Lock } from "@phosphor-icons/react"
 import { useGating } from "@/contexts/GatingContext"
 
 interface ShellNavItemProps {
   href: string
   label: string
-  icon: ComponentType<{ className?: string; style?: React.CSSProperties }>
+  icon: Icon
   matchPaths?: string[]
   exactMatch?: boolean
   isCollapsed?: boolean
   isPro?: boolean
 }
 
-export function ShellNavItem({ href, label, icon: Icon, matchPaths, exactMatch, isCollapsed, isPro }: ShellNavItemProps) {
+export function ShellNavItem({ href, label, icon: NavIcon, matchPaths, exactMatch, isCollapsed, isPro }: ShellNavItemProps) {
   const pathname = usePathname() || ""
   const matches = matchPaths ?? [href]
   const isActive = matches.some((path) => {
@@ -53,8 +53,9 @@ export function ShellNavItem({ href, label, icon: Icon, matchPaths, exactMatch, 
       title={isCollapsed ? label : undefined}
     >
       <div className="flex items-center gap-3 overflow-hidden">
-        <Icon
-          className="h-5 w-5 shrink-0"
+        <NavIcon
+          size={20}
+          weight={isActive ? "fill" : "regular"}
           style={{ color: isActive ? "#0066FF" : "#9B9A94" }}
         />
         {!isCollapsed && (
@@ -62,7 +63,7 @@ export function ShellNavItem({ href, label, icon: Icon, matchPaths, exactMatch, 
         )}
       </div>
       {showLock && !isCollapsed && (
-        <Lock className="h-3.5 w-3.5" style={{ color: "#9B9A94" }} />
+        <Lock size={14} style={{ color: "#9B9A94" }} />
       )}
     </Link>
   )

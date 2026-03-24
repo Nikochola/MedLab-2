@@ -4,50 +4,46 @@ import { useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
-  Home,
-  ClipboardList,
+  House,
   Stethoscope,
-  TrendingUp,
-  BookOpen,
+  ChartLineUp,
+  Books,
   UserCircle,
-  LayoutDashboard,
+  SquaresFour,
   Users,
-  BarChart3,
-} from "lucide-react"
+  ClipboardText,
+  ChartBar,
+} from "@phosphor-icons/react"
 import { useAuth } from "@/contexts/AuthContext"
 import { ShellNavItem } from "@/components/shell/ShellNavItem"
 
 const independentStudentNav = [
-  { label: "Learn", href: "/learn", icon: Home },
+  { label: "Learn", href: "/learn", icon: House },
   { label: "Simulations", href: "/ecg", icon: Stethoscope, matchPaths: ["/ecg", "/xray"] },
-  { label: "Progress", href: "/progress", icon: TrendingUp },
-  { label: "Resources", href: "/more", icon: BookOpen },
+  { label: "Progress", href: "/progress", icon: ChartLineUp },
+  { label: "Resources", href: "/more", icon: Books },
 ]
 
 const institutionStudentNav = [
-  { label: "Learn", href: "/learn", icon: Home },
+  { label: "Learn", href: "/learn", icon: House },
   { label: "Simulations", href: "/ecg", icon: Stethoscope, matchPaths: ["/ecg", "/xray"] },
-  { label: "Progress", href: "/progress", icon: TrendingUp },
-  { label: "Resources", href: "/more", icon: BookOpen },
+  { label: "Progress", href: "/progress", icon: ChartLineUp },
+  { label: "Resources", href: "/more", icon: Books },
 ]
 
 const educatorNav = [
-  { label: "Dashboard", href: "/institution/courses", icon: LayoutDashboard },
+  { label: "Dashboard", href: "/institution/courses", icon: SquaresFour },
   { label: "Students", href: "/institution/courses", icon: Users },
-  { label: "Assignments", href: "/practice", icon: ClipboardList },
+  { label: "Assignments", href: "/practice", icon: ClipboardText },
   { label: "Simulations", href: "/ecg", icon: Stethoscope, matchPaths: ["/ecg", "/xray"] },
-  { label: "Analytics", href: "/institution/courses", icon: BarChart3 },
+  { label: "Analytics", href: "/institution/courses", icon: ChartBar },
 ]
 
 function getNavItems(role?: string, primaryRole?: string): typeof independentStudentNav {
   if (role === "educator" || role === "teacher" || role === "institution_admin" || role === "admin") {
     return educatorNav
   }
-
-  if (primaryRole === "institution") {
-    return institutionStudentNav
-  }
-
+  if (primaryRole === "institution") return institutionStudentNav
   return independentStudentNav
 }
 
@@ -90,12 +86,13 @@ function ProfileNavItem({ avatarUrl, userId }: { avatarUrl?: string | null; user
             src={imgSrc}
             alt="Profile"
             className="shrink-0 rounded-md"
-            width={28}
-            height={28}
+            width={20}
+            height={20}
           />
         ) : (
           <UserCircle
-            className="h-5 w-5 shrink-0"
+            size={20}
+            weight={isActive ? "fill" : "regular"}
             style={{ color: isActive ? "#0066FF" : "#9B9A94" }}
           />
         )}
@@ -105,14 +102,17 @@ function ProfileNavItem({ avatarUrl, userId }: { avatarUrl?: string | null; user
   )
 }
 
-// Routes to eagerly prefetch so the first click is instant.
 const PREFETCH_ROUTES = ["/learn", "/practice", "/progress", "/more", "/profile", "/ecg", "/xray", "/journey", "/shop"]
 
 export function ShellSidebar() {
   const { user } = useAuth()
   const router = useRouter()
   const navItems = getNavItems(user?.role, user?.primary_role)
-  const isEducator = user?.role === "educator" || user?.role === "teacher" || user?.role === "institution_admin" || user?.role === "admin"
+  const isEducator =
+    user?.role === "educator" ||
+    user?.role === "teacher" ||
+    user?.role === "institution_admin" ||
+    user?.role === "admin"
 
   useEffect(() => {
     PREFETCH_ROUTES.forEach((route) => router.prefetch(route))
@@ -127,14 +127,12 @@ export function ShellSidebar() {
         borderRight: "1px solid #E8E6DF",
       }}
     >
-      {/* Logo row */}
       <div className="flex items-center px-6" style={{ height: 72 }}>
         <Link href="/">
           <img src="/images/logo_black.svg" alt="MedLab" style={{ height: 20 }} />
         </Link>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto overflow-x-hidden">
         {navItems.map((item) => (
           <ShellNavItem key={item.label} {...item} isCollapsed={false} />
