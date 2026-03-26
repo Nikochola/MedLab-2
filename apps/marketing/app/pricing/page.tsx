@@ -157,12 +157,7 @@ export default function PricingPage() {
 
       {/* Hero */}
       <section className="flex flex-col items-center text-center px-5 md:px-[80px]" style={{ paddingTop: 72, paddingBottom: 48 }}>
-        <FadeUp delay={0}>
-          <div className="flex items-center gap-2 mb-6" style={{ background: "#EEF3FF", border: "1px solid #C7D9FF", borderRadius: 100, padding: "5px 14px 5px 10px" }}>
-            <div style={{ width: 7, height: 7, background: "#0066FF", borderRadius: "50%", flexShrink: 0 }} />
-            <span style={{ fontSize: 11, fontWeight: 600, color: "#0047CC", letterSpacing: "0.06em" }}>FREE FOR STUDENTS · ALWAYS</span>
-          </div>
-        </FadeUp>
+
         <FadeUp delay={0.08}>
           <h1 style={{ fontWeight: 700, fontSize: "clamp(36px, 5vw, 64px)", color: "#0E0F12", letterSpacing: "-0.04em", lineHeight: 1.05, margin: 0, marginBottom: 16 }}>Simple, transparent pricing</h1>
         </FadeUp>

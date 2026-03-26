@@ -11,9 +11,7 @@ function Mission() {
   return (
     <section className="px-5 md:px-[80px]" style={{ paddingTop: 80, paddingBottom: 80 }}>
       <div style={{ maxWidth: 760, margin: "0 auto" }}>
-        <FadeUp delay={0}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: "#0066FF", letterSpacing: "0.1em", textTransform: "uppercase", display: "block", marginBottom: 24 }}>Our Mission</span>
-        </FadeUp>
+
         <FadeUp delay={0.08}>
           <h1 style={{ fontWeight: 700, fontSize: "clamp(32px, 4.5vw, 60px)", color: "#0E0F12", letterSpacing: "-0.04em", lineHeight: 1.08, margin: "0 0 28px" }}>
             Medical education has a reasoning gap. We&apos;re closing&nbsp;it.
