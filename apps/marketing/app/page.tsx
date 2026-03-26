@@ -25,23 +25,6 @@ function Hero() {
       className="flex flex-col items-center text-center px-5 md:px-[80px]"
       style={{ paddingTop: 100, paddingBottom: 80 }}
     >
-      {/* Badge */}
-      <FadeUp delay={0}>
-        <div
-          className="flex items-center gap-2 mb-12"
-          style={{
-            background: "#EEF3FF",
-            border: "1px solid #C7D9FF",
-            borderRadius: 100,
-            padding: "6px 14px 6px 10px",
-          }}
-        >
-          <div style={{ width: 7, height: 7, background: "#0066FF", borderRadius: "50%", flexShrink: 0 }} />
-          <span style={{ fontSize: 12, fontWeight: 600, color: "#0047CC", letterSpacing: "0.06em" }}>
-            NOW AVAILABLE FOR STUDENTS
-          </span>
-        </div>
-      </FadeUp>
 
       {/* Headline */}
       <FadeUp delay={0.08}>
