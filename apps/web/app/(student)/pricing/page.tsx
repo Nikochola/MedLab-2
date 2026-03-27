@@ -56,13 +56,13 @@ export default function PricingPage({ searchParams }: PricingPageProps) {
       : "/learn"
 
   return (
-    <div className="h-full overflow-y-auto">
-      <div className="mx-auto max-w-xl px-5 py-10 md:py-14">
+    <div className="h-full flex flex-col items-center justify-center px-5 py-6">
+      <div className="w-full max-w-xl">
 
         {/* Back */}
         <Link
           href={nextPath}
-          className="inline-flex items-center gap-1.5 text-[13px] font-semibold mb-10"
+          className="inline-flex items-center gap-1.5 text-[13px] font-semibold mb-6"
           style={{ color: "#6B6A65" }}
         >
           <ArrowLeft size={15} />
@@ -70,7 +70,7 @@ export default function PricingPage({ searchParams }: PricingPageProps) {
         </Link>
 
         {/* Hero */}
-        <div className="mb-10">
+        <div className="mb-6">
           <div
             className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 mb-4"
             style={{ backgroundColor: "#EEF3FF", border: "1.5px solid #C7D9FF" }}
@@ -89,11 +89,11 @@ export default function PricingPage({ searchParams }: PricingPageProps) {
         </div>
 
         {/* Feature list */}
-        <div className="flex flex-col gap-3 mb-8">
+        <div className="flex flex-col gap-2 mb-6">
           {proFeatures.map(({ icon: Icon, color, bg, border, title, description }) => (
             <div
               key={title}
-              className="flex items-center gap-4 rounded-2xl px-4 py-4"
+              className="flex items-center gap-4 rounded-2xl px-4 py-3"
               style={{ backgroundColor: "#FAFAF8", border: "1.5px solid #E8E6DF" }}
             >
               <div
@@ -113,7 +113,7 @@ export default function PricingPage({ searchParams }: PricingPageProps) {
 
         {/* Pricing card */}
         <div
-          className="rounded-2xl p-6 mb-4"
+          className="rounded-2xl p-5 mb-3"
           style={{
             backgroundColor: "white",
             border: "1.5px solid #E8E6DF",
@@ -124,7 +124,7 @@ export default function PricingPage({ searchParams }: PricingPageProps) {
             <span className="text-[36px] font-bold leading-none" style={{ color: "#0E0F12", letterSpacing: "-0.04em" }}>$9</span>
             <span className="text-[14px] font-medium mb-1.5" style={{ color: "#9B9A94" }}>/month</span>
           </div>
-          <p className="text-[13px] mb-6" style={{ color: "#9B9A94" }}>
+          <p className="text-[13px] mb-4" style={{ color: "#9B9A94" }}>
             or $99/year — save 31%
           </p>
 
