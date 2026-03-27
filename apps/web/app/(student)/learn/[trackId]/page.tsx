@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { ArrowLeft, Play, ClipboardList, HeartPulse, ScanSearch } from "lucide-react"
+import { Play, ClipboardList } from "lucide-react"
 import { getTrackById } from "@/lib/tracks/trackData"
 import type { TrackUnit } from "@/lib/tracks/trackData"
 
@@ -142,42 +142,12 @@ export default function TrackPage() {
     )
   }
 
-  const Icon = track.modality === "ECG" ? HeartPulse : ScanSearch
-
   const beginner = track.units.filter(u => u.difficulty === "Beginner")
   const intermediate = track.units.filter(u => u.difficulty === "Intermediate")
   const advanced = track.units.filter(u => u.difficulty === "Advanced")
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-8 space-y-8">
-
-      {/* Back */}
-      <Link
-        href="/learn"
-        className="inline-flex items-center gap-1.5 text-sm font-medium transition-colors"
-        style={{ color: "#9B9A94" }}
-        onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#0E0F12")}
-        onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#9B9A94")}
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to Learn
-      </Link>
-
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <div
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px]"
-          style={{ backgroundColor: track.accent === "#0066FF" ? "#0066FF" : "#0E0F12" }}
-        >
-          <Icon className="h-6 w-6 text-white" />
-        </div>
-        <div>
-          <p className="text-[11px] font-bold uppercase" style={{ letterSpacing: "0.16em", color: "#9B9A94" }}>
-            {track.modality} · {track.units.length} units
-          </p>
-          <h1 className="text-2xl font-bold" style={{ color: "#0E0F12" }}>{track.title}</h1>
-        </div>
-      </div>
 
       {/* Beginner */}
       {beginner.length > 0 && (

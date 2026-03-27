@@ -1,12 +1,23 @@
 "use client"
 
 import { useMemo } from "react"
-import { usePathname } from "next/navigation"
-import { Fire, Diamond, Star, SignOut } from "@phosphor-icons/react"
+import { usePathname, useSearchParams } from "next/navigation"
+import Link from "next/link"
+import { Fire, Diamond, Star, SignOut, ArrowLeft } from "@phosphor-icons/react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useStudentStats } from "@/lib/hooks/useStudentStats"
+import { getTrackById } from "@/lib/tracks/trackData"
 
-function getTitle(pathname: string) {
+function getTitle(pathname: string): string {
+  // Sub-pages: derive title dynamically
+  const learnMatch = pathname.match(/^\/learn\/([^/]+)/)
+  if (learnMatch) {
+    const track = getTrackById(learnMatch[1])
+    if (track) return track.title
+  }
+  if (pathname.startsWith("/pricing")) return "Upgrade to Pro"
+
+  // Top-level pages
   if (pathname.startsWith("/learn")) return "Learn"
   if (pathname.startsWith("/ecg") || pathname.startsWith("/xray")) return "Simulations"
   if (pathname.startsWith("/progress")) return "Progress"
@@ -20,8 +31,16 @@ function getTitle(pathname: string) {
 
 export function ShellTopbar() {
   const pathname = usePathname() || ""
+  const searchParams = useSearchParams()
   const title = useMemo(() => getTitle(pathname), [pathname])
   const { user, logout } = useAuth()
+
+  // Determine back destination for sub-pages
+  const backPath = useMemo(() => {
+    if (pathname.match(/^\/learn\/.+/)) return "/learn"
+    if (pathname.startsWith("/pricing")) return searchParams?.get("next") || "/learn"
+    return null
+  }, [pathname, searchParams])
 
   return (
     <header
@@ -32,23 +51,45 @@ export function ShellTopbar() {
         height: 60,
       }}
     >
-      {/* Left: logo on mobile, title on desktop */}
-      <div className="flex items-center gap-3 min-w-0">
-        <img
-          src="/images/logo_black.svg"
-          alt="MedLab"
-          className="lg:hidden shrink-0"
-          style={{ height: 17 }}
-        />
-        <h1
-          className="hidden lg:block text-lg font-semibold truncate"
-          style={{ color: "#0E0F12" }}
-        >
-          {title}
-        </h1>
+      {/* Left */}
+      <div className="flex items-center min-w-0">
+        {backPath ? (
+          <Link
+            href={backPath}
+            className="flex items-center gap-2 group"
+          >
+            <div
+              className="flex items-center justify-center rounded-lg shrink-0 transition-colors"
+              style={{ width: 30, height: 30, backgroundColor: "#F5F5F3", border: "1.5px solid #E8E6DF" }}
+            >
+              <ArrowLeft size={15} style={{ color: "#6B6A65" }} />
+            </div>
+            <span
+              className="text-[15px] lg:text-[16px] font-semibold truncate"
+              style={{ color: "#0E0F12" }}
+            >
+              {title}
+            </span>
+          </Link>
+        ) : (
+          <>
+            <img
+              src="/images/logo_black.svg"
+              alt="MedLab"
+              className="lg:hidden shrink-0"
+              style={{ height: 17 }}
+            />
+            <h1
+              className="hidden lg:block text-lg font-semibold truncate"
+              style={{ color: "#0E0F12" }}
+            >
+              {title}
+            </h1>
+          </>
+        )}
       </div>
 
-      {/* Right: stat chips on mobile, full stats + logout on desktop */}
+      {/* Right */}
       <div className="flex items-center gap-2 shrink-0">
         <div className="lg:hidden">
           <MobileStats userId={user?.id} />
@@ -77,7 +118,6 @@ export function ShellTopbar() {
   )
 }
 
-/** Duolingo-style stat chips for mobile */
 function MobileStats({ userId }: { userId?: string }) {
   const { stats, isLoading } = useStudentStats(userId)
 
@@ -93,43 +133,24 @@ function MobileStats({ userId }: { userId?: string }) {
 
   return (
     <div className="flex items-center gap-1.5">
-      {/* Streak */}
-      <div
-        className="flex items-center gap-1 rounded-xl px-2.5 py-1.5"
-        style={{ backgroundColor: "#FFF7ED", border: "1.5px solid #FED7AA" }}
-      >
+      <div className="flex items-center gap-1 rounded-xl px-2.5 py-1.5" style={{ backgroundColor: "#FFF7ED", border: "1.5px solid #FED7AA" }}>
         <Fire size={15} weight="fill" style={{ color: "#EA580C" }} />
-        <span className="text-[13px] font-bold" style={{ color: "#EA580C" }}>
-          {stats.currentStreak}
-        </span>
+        <span className="text-[13px] font-bold" style={{ color: "#EA580C" }}>{stats.currentStreak}</span>
       </div>
-
-      {/* XP */}
-      <div
-        className="flex items-center gap-1 rounded-xl px-2.5 py-1.5"
-        style={{ backgroundColor: "#EEF3FF", border: "1.5px solid #C7D9FF" }}
-      >
+      <div className="flex items-center gap-1 rounded-xl px-2.5 py-1.5" style={{ backgroundColor: "#EEF3FF", border: "1.5px solid #C7D9FF" }}>
         <Diamond size={15} weight="fill" style={{ color: "#0066FF" }} />
         <span className="text-[13px] font-bold" style={{ color: "#0066FF" }}>
           {stats.totalXP >= 1000 ? `${(stats.totalXP / 1000).toFixed(1)}k` : stats.totalXP}
         </span>
       </div>
-
-      {/* Level */}
-      <div
-        className="flex items-center gap-1 rounded-xl px-2.5 py-1.5"
-        style={{ backgroundColor: "#FEFCE8", border: "1.5px solid #FEF08A" }}
-      >
+      <div className="flex items-center gap-1 rounded-xl px-2.5 py-1.5" style={{ backgroundColor: "#FEFCE8", border: "1.5px solid #FEF08A" }}>
         <Star size={15} weight="fill" style={{ color: "#CA8A04" }} />
-        <span className="text-[13px] font-bold" style={{ color: "#CA8A04" }}>
-          {stats.currentLevel}
-        </span>
+        <span className="text-[13px] font-bold" style={{ color: "#CA8A04" }}>{stats.currentLevel}</span>
       </div>
     </div>
   )
 }
 
-/** Full stat pills for desktop */
 function DesktopStats({ userId }: { userId?: string }) {
   const { stats, isLoading } = useStudentStats(userId)
 
@@ -152,18 +173,10 @@ function DesktopStats({ userId }: { userId?: string }) {
   return (
     <>
       {items.map((stat) => (
-        <div
-          key={stat.label}
-          className="flex items-center gap-2 rounded-lg px-3 py-2"
-          style={{ backgroundColor: "#F5F5F3" }}
-        >
+        <div key={stat.label} className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ backgroundColor: "#F5F5F3" }}>
           {stat.icon}
-          <span className="text-[13px] font-medium" style={{ color: "#6B6A65" }}>
-            {stat.label}
-          </span>
-          <span className="text-[13px] font-semibold" style={{ color: "#0E0F12" }}>
-            {stat.value}
-          </span>
+          <span className="text-[13px] font-medium" style={{ color: "#6B6A65" }}>{stat.label}</span>
+          <span className="text-[13px] font-semibold" style={{ color: "#0E0F12" }}>{stat.value}</span>
         </div>
       ))}
     </>

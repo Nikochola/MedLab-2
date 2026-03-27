@@ -4,7 +4,6 @@ import {
   Scan,
   Books,
   ChartLineUp,
-  ArrowLeft,
   CheckCircle,
   Envelope,
   Lock,
@@ -56,18 +55,8 @@ export default function PricingPage({ searchParams }: PricingPageProps) {
       : "/learn"
 
   return (
-    <div className="h-full flex flex-col justify-center px-6 py-6 lg:px-12">
-      {/* Back */}
-      <Link
-        href={nextPath}
-        className="inline-flex items-center gap-1.5 text-[13px] font-semibold mb-8 self-start"
-        style={{ color: "#6B6A65" }}
-      >
-        <ArrowLeft size={15} />
-        Back
-      </Link>
-
-      <div className="grid lg:grid-cols-[1fr_360px] gap-8 lg:gap-12 items-center w-full max-w-4xl mx-auto">
+    <div className="h-full flex items-center justify-center px-6 py-6 lg:px-12">
+      <div className="grid lg:grid-cols-[1fr_360px] gap-8 lg:gap-12 items-center w-full max-w-4xl">
 
         {/* ── Left: hero + features ── */}
         <div>
