@@ -56,81 +56,99 @@ export default function PricingPage({ searchParams }: PricingPageProps) {
       : "/learn"
 
   return (
-    <div className="h-full flex flex-col items-center justify-center px-5 py-6">
-      <div className="w-full max-w-xl">
+    <div className="h-full flex flex-col justify-center px-6 py-6 lg:px-12">
+      {/* Back */}
+      <Link
+        href={nextPath}
+        className="inline-flex items-center gap-1.5 text-[13px] font-semibold mb-8 self-start"
+        style={{ color: "#6B6A65" }}
+      >
+        <ArrowLeft size={15} />
+        Back
+      </Link>
 
-        {/* Back */}
-        <Link
-          href={nextPath}
-          className="inline-flex items-center gap-1.5 text-[13px] font-semibold mb-6"
-          style={{ color: "#6B6A65" }}
-        >
-          <ArrowLeft size={15} />
-          Back
-        </Link>
+      <div className="grid lg:grid-cols-[1fr_360px] gap-8 lg:gap-12 items-center w-full max-w-4xl mx-auto">
 
-        {/* Hero */}
-        <div className="mb-6">
+        {/* ── Left: hero + features ── */}
+        <div>
           <div
             className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 mb-4"
             style={{ backgroundColor: "#EEF3FF", border: "1.5px solid #C7D9FF" }}
           >
-            <Lock size={12} weight="fill" style={{ color: "#0066FF" }} />
+            <Lock size={11} weight="fill" style={{ color: "#0066FF" }} />
             <span className="text-[11px] font-bold tracking-widest uppercase" style={{ color: "#0047CC" }}>
               Pro Feature
             </span>
           </div>
-          <h1 className="text-[28px] md:text-[34px] font-bold leading-tight mb-3" style={{ color: "#0E0F12", letterSpacing: "-0.03em" }}>
+
+          <h1
+            className="text-[26px] lg:text-[32px] font-bold leading-tight mb-3"
+            style={{ color: "#0E0F12", letterSpacing: "-0.03em" }}
+          >
             Unlock everything in MedLab
           </h1>
-          <p className="text-[15px] leading-relaxed" style={{ color: "#6B6A65" }}>
+          <p className="text-[14px] leading-relaxed mb-8" style={{ color: "#6B6A65", maxWidth: 440 }}>
             You've hit the free plan limit. Upgrade to Pro for unlimited practice, full case access, and detailed analytics.
           </p>
-        </div>
 
-        {/* Feature list */}
-        <div className="flex flex-col gap-2 mb-6">
-          {proFeatures.map(({ icon: Icon, color, bg, border, title, description }) => (
-            <div
-              key={title}
-              className="flex items-center gap-4 rounded-2xl px-4 py-3"
-              style={{ backgroundColor: "#FAFAF8", border: "1.5px solid #E8E6DF" }}
-            >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {proFeatures.map(({ icon: Icon, color, bg, border, title, description }) => (
               <div
-                className="flex items-center justify-center rounded-xl shrink-0"
-                style={{ width: 40, height: 40, backgroundColor: bg, border: `1.5px solid ${border}` }}
+                key={title}
+                className="flex items-start gap-3 rounded-2xl px-4 py-3.5"
+                style={{ backgroundColor: "#FAFAF8", border: "1.5px solid #E8E6DF" }}
               >
-                <Icon size={20} weight="fill" style={{ color }} />
+                <div
+                  className="flex items-center justify-center rounded-xl shrink-0 mt-0.5"
+                  style={{ width: 36, height: 36, backgroundColor: bg, border: `1.5px solid ${border}` }}
+                >
+                  <Icon size={18} weight="fill" style={{ color }} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[13px] font-semibold" style={{ color: "#0E0F12" }}>{title}</p>
+                  <p className="text-[12px] mt-0.5" style={{ color: "#9B9A94" }}>{description}</p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <p className="text-[14px] font-semibold" style={{ color: "#0E0F12" }}>{title}</p>
-                <p className="text-[13px]" style={{ color: "#9B9A94" }}>{description}</p>
-              </div>
-              <CheckCircle size={18} weight="fill" style={{ color: "#0066FF", flexShrink: 0 }} className="ml-auto" />
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        {/* Pricing card */}
+        {/* ── Right: pricing card ── */}
         <div
-          className="rounded-2xl p-5 mb-3"
+          className="rounded-2xl p-6"
           style={{
             backgroundColor: "white",
             border: "1.5px solid #E8E6DF",
-            boxShadow: "0 4px 24px -4px rgba(0,0,0,0.08)",
+            boxShadow: "0 4px 32px -4px rgba(0,0,0,0.08)",
           }}
         >
-          <div className="flex items-end gap-1.5 mb-1">
-            <span className="text-[36px] font-bold leading-none" style={{ color: "#0E0F12", letterSpacing: "-0.04em" }}>$9</span>
-            <span className="text-[14px] font-medium mb-1.5" style={{ color: "#9B9A94" }}>/month</span>
+          <p className="text-[13px] font-semibold mb-4" style={{ color: "#9B9A94" }}>MedLab Pro</p>
+
+          <div className="flex items-end gap-1 mb-1">
+            <span
+              className="text-[42px] font-bold leading-none"
+              style={{ color: "#0E0F12", letterSpacing: "-0.04em" }}
+            >
+              $9
+            </span>
+            <span className="text-[14px] font-medium mb-2" style={{ color: "#9B9A94" }}>/month</span>
           </div>
-          <p className="text-[13px] mb-4" style={{ color: "#9B9A94" }}>
+          <p className="text-[13px] mb-6" style={{ color: "#9B9A94" }}>
             or $99/year — save 31%
           </p>
 
+          <div className="flex flex-col gap-2.5 mb-6">
+            {proFeatures.map(({ title }) => (
+              <div key={title} className="flex items-center gap-2">
+                <CheckCircle size={15} weight="fill" style={{ color: "#0066FF", flexShrink: 0 }} />
+                <span className="text-[13px]" style={{ color: "#3D3C38" }}>{title}</span>
+              </div>
+            ))}
+          </div>
+
           <a
             href="mailto:support@medlabinteractive.com?subject=MedLab%20Pro%20Access%20Request"
-            className="flex items-center justify-center gap-2 w-full rounded-[9px] px-6 py-3.5 text-[15px] font-semibold transition-opacity hover:opacity-90"
+            className="flex items-center justify-center gap-2 w-full rounded-[9px] px-6 py-3.5 text-[15px] font-semibold transition-opacity hover:opacity-90 mb-4"
             style={{
               backgroundColor: "#0066FF",
               color: "white",
@@ -139,31 +157,22 @@ export default function PricingPage({ searchParams }: PricingPageProps) {
             }}
           >
             <Envelope size={16} weight="fill" />
-            Request Pro access
+            Request Pro
           </a>
 
-          <p className="text-center text-[12px] mt-4" style={{ color: "#9B9A94" }}>
-            Email us at{" "}
-            <a
-              href="mailto:support@medlabinteractive.com"
-              className="underline underline-offset-2"
-              style={{ color: "#6B6A65" }}
-            >
-              support@medlabinteractive.com
-            </a>{" "}
-            with your account email. We'll activate Pro manually while self-serve billing is in progress.
+          <p className="text-center text-[11px] leading-relaxed" style={{ color: "#9B9A94" }}>
+            Email us your account address and we'll activate Pro manually. Self-serve billing coming soon.
           </p>
-        </div>
 
-        {/* Continue free */}
-        <div className="text-center">
-          <Link
-            href={nextPath}
-            className="text-[13px] font-medium"
-            style={{ color: "#9B9A94" }}
-          >
-            Continue with free plan
-          </Link>
+          <div className="mt-5 pt-5" style={{ borderTop: "1px solid #E8E6DF" }}>
+            <Link
+              href={nextPath}
+              className="block text-center text-[13px] font-medium"
+              style={{ color: "#9B9A94" }}
+            >
+              Continue with free plan
+            </Link>
+          </div>
         </div>
 
       </div>
