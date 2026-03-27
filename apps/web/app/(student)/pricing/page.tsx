@@ -156,8 +156,7 @@ export default function PricingPage({ searchParams }: PricingPageProps) {
               boxShadow: "0 3px 0 #0047CC",
             }}
           >
-            <Envelope size={16} weight="fill" />
-            Request Pro
+            Upgrade
           </a>
 
           <p className="text-center text-[11px] leading-relaxed" style={{ color: "#9B9A94" }}>
