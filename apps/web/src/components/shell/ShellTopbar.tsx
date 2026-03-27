@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
-import { usePathname, useSearchParams } from "next/navigation"
+import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { Fire, Diamond, Star, SignOut, ArrowLeft } from "@phosphor-icons/react"
 import { useAuth } from "@/contexts/AuthContext"
@@ -31,16 +31,15 @@ function getTitle(pathname: string): string {
 
 export function ShellTopbar() {
   const pathname = usePathname() || ""
-  const searchParams = useSearchParams()
   const title = useMemo(() => getTitle(pathname), [pathname])
   const { user, logout } = useAuth()
 
   // Determine back destination for sub-pages
   const backPath = useMemo(() => {
     if (pathname.match(/^\/learn\/.+/)) return "/learn"
-    if (pathname.startsWith("/pricing")) return searchParams?.get("next") || "/learn"
+    if (pathname.startsWith("/pricing")) return "/learn"
     return null
-  }, [pathname, searchParams])
+  }, [pathname])
 
   return (
     <header
