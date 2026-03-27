@@ -1,120 +1,171 @@
 import Link from "next/link"
-import { ArrowLeft, BadgeCheck, BookOpen, Sparkles } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { CalmBrain, RadiologyMascot } from "@/components/illustrations/ConceptCharacters"
+import {
+  Heartbeat,
+  Scan,
+  Books,
+  ChartLineUp,
+  ArrowLeft,
+  CheckCircle,
+  Envelope,
+  Lock,
+} from "@phosphor-icons/react/dist/ssr"
 
 interface PricingPageProps {
-  searchParams?: {
-    next?: string
-  }
+  searchParams?: { next?: string }
 }
 
 const proFeatures = [
-  "Unlimited ECG practice loops",
-  "Unlimited X-Ray practice sessions",
-  "Full ECG and X-Ray case libraries",
-  "Learning hub and premium progression tracks",
+  {
+    icon: Heartbeat,
+    color: "#059669",
+    bg: "#ECFDF5",
+    border: "#A7F3D0",
+    title: "Unlimited ECG practice",
+    description: "Full ECG case library with no monthly cap.",
+  },
+  {
+    icon: Scan,
+    color: "#7C3AED",
+    bg: "#F5F3FF",
+    border: "#DDD6FE",
+    title: "Unlimited X-Ray sessions",
+    description: "Every radiology case — chest, abdomen, and beyond.",
+  },
+  {
+    icon: Books,
+    color: "#0066FF",
+    bg: "#EEF3FF",
+    border: "#C7D9FF",
+    title: "Complete case libraries",
+    description: "Every specialty and difficulty level, unrestricted.",
+  },
+  {
+    icon: ChartLineUp,
+    color: "#EA580C",
+    bg: "#FFF7ED",
+    border: "#FED7AA",
+    title: "Full progress analytics",
+    description: "Track your performance across sessions and time.",
+  },
 ]
 
 export default function PricingPage({ searchParams }: PricingPageProps) {
   const nextPath =
-    searchParams?.next && searchParams.next.startsWith("/") ? searchParams.next : "/learn"
+    searchParams?.next && searchParams.next.startsWith("/")
+      ? searchParams.next
+      : "/learn"
 
   return (
-    <div className="min-h-full px-6 py-8">
-      <div className="mx-auto max-w-5xl space-y-6">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="font-display text-xs font-black uppercase tracking-[0.16em] text-[#8a8592] dark:text-[#aeb8c8]">
-              MedLab Pro
-            </p>
-            <h1 className="font-display mt-2 text-3xl font-black text-[#212734] dark:text-[#ecf1f8]">
-              Unlock the full student workspace
-            </h1>
-            <p className="mt-2 text-sm font-semibold text-[#667286] dark:text-[#b8c2d2]">
-              Billing is not self-serve yet. Use this page to see what Pro unlocks and contact us for access.
-            </p>
-          </div>
+    <div className="h-full overflow-y-auto">
+      <div className="mx-auto max-w-xl px-5 py-10 md:py-14">
 
-          <Button asChild variant="outline" size="sm">
-            <Link href={nextPath}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Link>
-          </Button>
+        {/* Back */}
+        <Link
+          href={nextPath}
+          className="inline-flex items-center gap-1.5 text-[13px] font-semibold mb-10"
+          style={{ color: "#6B6A65" }}
+        >
+          <ArrowLeft size={15} />
+          Back
+        </Link>
+
+        {/* Hero */}
+        <div className="mb-10">
+          <div
+            className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 mb-4"
+            style={{ backgroundColor: "#EEF3FF", border: "1.5px solid #C7D9FF" }}
+          >
+            <Lock size={12} weight="fill" style={{ color: "#0066FF" }} />
+            <span className="text-[11px] font-bold tracking-widest uppercase" style={{ color: "#0047CC" }}>
+              Pro Feature
+            </span>
+          </div>
+          <h1 className="text-[28px] md:text-[34px] font-bold leading-tight mb-3" style={{ color: "#0E0F12", letterSpacing: "-0.03em" }}>
+            Unlock everything in MedLab
+          </h1>
+          <p className="text-[15px] leading-relaxed" style={{ color: "#6B6A65" }}>
+            You've hit the free plan limit. Upgrade to Pro for unlimited practice, full case access, and detailed analytics.
+          </p>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-          <Card variant="conceptShell">
-            <div className="grid gap-5 md:grid-cols-[1fr_auto] md:items-center">
-              <div>
-                <div className="inline-flex items-center rounded-full border border-[#d8dde7] bg-[#f7f9fc] px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-[#516173] dark:border-[#4f5668] dark:bg-[#2f3540] dark:text-[#dce4ef]">
-                  <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-                  Upgrade Path
-                </div>
-                <h2 className="font-display mt-3 text-2xl font-black text-[#252b39] dark:text-[#eaf0f8]">
-                  Everything you need for continuous practice
-                </h2>
-                <p className="mt-2 text-sm font-semibold text-[#6f7b8f] dark:text-[#b4bfd0]">
-                  Pro is designed for students who want unlimited reps, structured cases, and a complete learning loop.
-                </p>
-                <div className="mt-5 grid gap-3">
-                  {proFeatures.map((feature) => (
-                    <div
-                      key={feature}
-                      className="flex items-center gap-3 rounded-2xl border-2 border-[#d8dde7] bg-[#f7f9fc] px-4 py-3 dark:border-[#4f5668] dark:bg-[#2f3540]"
-                    >
-                      <BadgeCheck className="h-5 w-5 text-[#6b76c6] dark:text-[#b2bbe7]" />
-                      <p className="text-sm font-semibold text-[#415162] dark:text-[#dde6f1]">{feature}</p>
-                    </div>
-                  ))}
-                </div>
+        {/* Feature list */}
+        <div className="flex flex-col gap-3 mb-8">
+          {proFeatures.map(({ icon: Icon, color, bg, border, title, description }) => (
+            <div
+              key={title}
+              className="flex items-center gap-4 rounded-2xl px-4 py-4"
+              style={{ backgroundColor: "#FAFAF8", border: "1.5px solid #E8E6DF" }}
+            >
+              <div
+                className="flex items-center justify-center rounded-xl shrink-0"
+                style={{ width: 40, height: 40, backgroundColor: bg, border: `1.5px solid ${border}` }}
+              >
+                <Icon size={20} weight="fill" style={{ color }} />
               </div>
-
-              <div className="justify-self-center">
-                <CalmBrain size={170} tone="lilac" />
+              <div className="min-w-0">
+                <p className="text-[14px] font-semibold" style={{ color: "#0E0F12" }}>{title}</p>
+                <p className="text-[13px]" style={{ color: "#9B9A94" }}>{description}</p>
               </div>
+              <CheckCircle size={18} weight="fill" style={{ color: "#0066FF", flexShrink: 0 }} className="ml-auto" />
             </div>
-          </Card>
-
-          <div className="grid gap-4">
-            <Card variant="conceptPanel">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="font-display text-xs font-black uppercase tracking-[0.16em] text-[#8a8592] dark:text-[#aeb8c8]">
-                    Current rollout
-                  </p>
-                  <p className="font-display mt-2 text-2xl font-black text-[#252b39] dark:text-[#eaf0f8]">
-                    Manual activation
-                  </p>
-                  <p className="mt-2 text-sm font-semibold text-[#6f7b8f] dark:text-[#b4bfd0]">
-                    Contact the MedLab team and we’ll enable Pro access for your account while billing is offline.
-                  </p>
-                </div>
-                <RadiologyMascot size={112} tone="sky" />
-              </div>
-            </Card>
-
-            <Card variant="conceptWidget">
-              <div className="space-y-3">
-                <p className="font-display text-lg font-black text-[#252b39] dark:text-[#eaf0f8]">
-                  Need Pro access?
-                </p>
-                <p className="text-sm font-semibold text-[#6f7b8f] dark:text-[#b4bfd0]">
-                  Email <a className="underline decoration-dotted underline-offset-4" href="mailto:support@medlab.com">support@medlab.com</a> with your MedLab account email and the program you are using.
-                </p>
-                <Button asChild variant="default" size="lg" className="w-full">
-                  <a href="mailto:support@medlab.com?subject=MedLab%20Pro%20Access%20Request">
-                    <BookOpen className="mr-2 h-4 w-4" />
-                    Contact support
-                  </a>
-                </Button>
-              </div>
-            </Card>
-          </div>
+          ))}
         </div>
+
+        {/* Pricing card */}
+        <div
+          className="rounded-2xl p-6 mb-4"
+          style={{
+            backgroundColor: "white",
+            border: "1.5px solid #E8E6DF",
+            boxShadow: "0 4px 24px -4px rgba(0,0,0,0.08)",
+          }}
+        >
+          <div className="flex items-end gap-1.5 mb-1">
+            <span className="text-[36px] font-bold leading-none" style={{ color: "#0E0F12", letterSpacing: "-0.04em" }}>$9</span>
+            <span className="text-[14px] font-medium mb-1.5" style={{ color: "#9B9A94" }}>/month</span>
+          </div>
+          <p className="text-[13px] mb-6" style={{ color: "#9B9A94" }}>
+            or $99/year — save 31%
+          </p>
+
+          <a
+            href="mailto:support@medlabinteractive.com?subject=MedLab%20Pro%20Access%20Request"
+            className="flex items-center justify-center gap-2 w-full rounded-[9px] px-6 py-3.5 text-[15px] font-semibold transition-opacity hover:opacity-90"
+            style={{
+              backgroundColor: "#0066FF",
+              color: "white",
+              border: "1.5px solid #0047CC",
+              boxShadow: "0 3px 0 #0047CC",
+            }}
+          >
+            <Envelope size={16} weight="fill" />
+            Request Pro access
+          </a>
+
+          <p className="text-center text-[12px] mt-4" style={{ color: "#9B9A94" }}>
+            Email us at{" "}
+            <a
+              href="mailto:support@medlabinteractive.com"
+              className="underline underline-offset-2"
+              style={{ color: "#6B6A65" }}
+            >
+              support@medlabinteractive.com
+            </a>{" "}
+            with your account email. We'll activate Pro manually while self-serve billing is in progress.
+          </p>
+        </div>
+
+        {/* Continue free */}
+        <div className="text-center">
+          <Link
+            href={nextPath}
+            className="text-[13px] font-medium"
+            style={{ color: "#9B9A94" }}
+          >
+            Continue with free plan
+          </Link>
+        </div>
+
       </div>
     </div>
   )
