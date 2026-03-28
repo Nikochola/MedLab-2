@@ -3,7 +3,8 @@
 import { useMemo } from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { Fire, Diamond, Star, SignOut, ArrowLeft } from "@phosphor-icons/react"
+import { SignOut, ArrowLeft } from "@phosphor-icons/react"
+import { StreamlineFlame, StreamlineDiamond, StreamlineStarCircle } from "@/components/icons/streamline"
 import { useAuth } from "@/contexts/AuthContext"
 import { useStudentStats } from "@/lib/hooks/useStudentStats"
 import { getTrackById } from "@/lib/tracks/trackData"
@@ -133,17 +134,17 @@ function MobileStats({ userId }: { userId?: string }) {
   return (
     <div className="flex items-center gap-1.5">
       <div className="flex items-center gap-1 rounded-xl px-2.5 py-1.5" style={{ backgroundColor: "#FFF7ED", border: "1.5px solid #FED7AA" }}>
-        <Fire size={15} weight="fill" style={{ color: "#EA580C" }} />
+        <StreamlineFlame size={15} color="#EA580C" />
         <span className="text-[13px] font-bold" style={{ color: "#EA580C" }}>{stats.currentStreak}</span>
       </div>
       <div className="flex items-center gap-1 rounded-xl px-2.5 py-1.5" style={{ backgroundColor: "#EEF3FF", border: "1.5px solid #C7D9FF" }}>
-        <Diamond size={15} weight="fill" style={{ color: "#0066FF" }} />
+        <StreamlineDiamond size={15} color="#0066FF" />
         <span className="text-[13px] font-bold" style={{ color: "#0066FF" }}>
           {stats.totalXP >= 1000 ? `${(stats.totalXP / 1000).toFixed(1)}k` : stats.totalXP}
         </span>
       </div>
       <div className="flex items-center gap-1 rounded-xl px-2.5 py-1.5" style={{ backgroundColor: "#FEFCE8", border: "1.5px solid #FEF08A" }}>
-        <Star size={15} weight="fill" style={{ color: "#CA8A04" }} />
+        <StreamlineStarCircle size={15} color="#CA8A04" />
         <span className="text-[13px] font-bold" style={{ color: "#CA8A04" }}>{stats.currentLevel}</span>
       </div>
     </div>
@@ -164,9 +165,9 @@ function DesktopStats({ userId }: { userId?: string }) {
   }
 
   const items = [
-    { label: "Streak", value: `${stats.currentStreak}d`, icon: <Fire size={14} weight="fill" style={{ color: "#EA580C" }} /> },
-    { label: "XP",     value: stats.totalXP.toLocaleString(), icon: <Diamond size={14} weight="fill" style={{ color: "#0066FF" }} /> },
-    { label: "Level",  value: `${stats.currentLevel}`,        icon: <Star size={14} weight="fill" style={{ color: "#CA8A04" }} /> },
+    { label: "Streak", value: `${stats.currentStreak}d`, icon: <StreamlineFlame size={14} color="#EA580C" /> },
+    { label: "XP",     value: stats.totalXP.toLocaleString(), icon: <StreamlineDiamond size={14} color="#0066FF" /> },
+    { label: "Level",  value: `${stats.currentLevel}`,        icon: <StreamlineStarCircle size={14} color="#CA8A04" /> },
   ]
 
   return (

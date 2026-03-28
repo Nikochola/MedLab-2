@@ -5,7 +5,8 @@ import { createPortal } from "react-dom"
 import { useAuth } from "@/contexts/AuthContext"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
-import { Check, Pencil, RefreshCw, X, Flame, Zap, Trophy } from "lucide-react"
+import { Check, Pencil, RefreshCw, X } from "lucide-react"
+import { StreamlineFlame, StreamlineDiamond, StreamlineStarCircle } from "@/components/icons/streamline"
 import {
   MagnifyingGlass,
   UserPlus,
@@ -495,9 +496,9 @@ export default function ProfilePage() {
         {stats && (
           <div className="grid grid-cols-3 gap-3 mt-8">
             {[
-              { icon: <Flame className="h-4 w-4 text-orange-500" />, label: "Streak", value: `${stats.currentStreak}d` },
-              { icon: <Zap className="h-4 w-4 text-amber-500" />, label: "Total XP", value: stats.totalXP.toLocaleString() },
-              { icon: <Trophy className="h-4 w-4 text-blue-500" />, label: "Level", value: `${stats.currentLevel}` },
+              { icon: <StreamlineFlame size={16} color="#EA580C" />, label: "Streak", value: `${stats.currentStreak}d` },
+              { icon: <StreamlineDiamond size={16} color="#0066FF" />, label: "Total XP", value: stats.totalXP.toLocaleString() },
+              { icon: <StreamlineStarCircle size={16} color="#CA8A04" />, label: "Level", value: `${stats.currentLevel}` },
             ].map(({ icon, label, value }) => (
               <div key={label} className="rounded-xl px-4 py-4" style={{ backgroundColor: "#F5F5F3" }}>
                 <div className="flex items-center gap-2">{icon}<span className="text-xs font-medium" style={{ color: "#6B6A65" }}>{label}</span></div>
