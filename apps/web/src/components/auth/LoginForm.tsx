@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { buildInstitutionUrl, buildMarketingUrl, buildStudentAppUrl } from "@/lib/runtimeUrls";
+import { buildInstitutionUrl, buildStudentAppUrl } from "@/lib/runtimeUrls";
 
 function GoogleIcon() {
     return (
@@ -19,19 +19,21 @@ function GoogleIcon() {
 }
 
 export default function LoginForm({ type }: { type: "student" | "institution" }) {
-    const router = useRouter();
     const searchParams = useSearchParams();
     const [isLoading, setIsLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
     const isStudent = type === "student";
+    const next = searchParams.get("next");
 
     async function handleGoogleSignIn() {
         setIsGoogleLoading(true);
         const { error } = await supabase.auth.signInWithOAuth({
             provider: "google",
             options: {
-                redirectTo: `${window.location.origin}/auth/callback`,
+                redirectTo: next
+                    ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
+                    : `${window.location.origin}/auth/callback`,
             },
         });
         if (error) {
@@ -115,7 +117,7 @@ export default function LoginForm({ type }: { type: "student" | "institution" })
             ]);
 
             const next = resolveDestination({
-                next: searchParams.get("next"),
+                next,
                 primaryRole: profile?.primary_role,
                 memberships: memberships || []
             });

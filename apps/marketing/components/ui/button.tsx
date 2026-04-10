@@ -12,6 +12,8 @@ const buttonVariants = cva(
                 // Blue button — use on light backgrounds
                 default:
                     "bg-[#0066FF] text-white border-[1.5px] border-[#0047CC] shadow-[0_3px_0_#0047CC] rounded-[9px] hover:brightness-110",
+                secondary:
+                    "bg-secondary text-secondary-foreground border border-border rounded-[9px] hover:bg-secondary/80 shadow-none active:translate-y-0",
                 // Light button — use on light backgrounds
                 outline:
                     "bg-[#F8F7F2] text-[#0E0F12] border-[1.5px] border-[#D8D5CC] shadow-[0_3px_0_#D8D5CC] rounded-[9px] hover:bg-[#F0EDE6]",

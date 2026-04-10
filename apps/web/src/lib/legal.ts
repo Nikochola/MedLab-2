@@ -19,7 +19,7 @@ export const LEGAL = {
   lastUpdated: "[DD Month YYYY]",
 
   // Payment provider (optional, for copy)
-  paymentProviderName: "[Stripe/Paddle/Lemon Squeezy/etc.]",
+  paymentProviderName: "Dodo Payments",
 
   // Refund processing timeframe (edit if needed)
   refundProcessingTime: "5-10 business days",

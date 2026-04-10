@@ -17,6 +17,9 @@ import {
   Check as PhosphorCheck,
 } from "@phosphor-icons/react"
 import { useStudentStats } from "@/lib/hooks/useStudentStats"
+import { useGating } from "@/contexts/GatingContext"
+import Link from "next/link"
+import { CreditCard } from "@phosphor-icons/react"
 
 // ── DiceBear Big Smile options ──────────────────────────────────────────
 
@@ -425,6 +428,58 @@ export default function ProfilePage() {
   const [profileLoaded, setProfileLoaded] = useState(false)
 
   const isIndependent = user?.primary_role !== "institution"
+  const { plan, status } = useGating()
+
+  const [subscription, setSubscription] = useState<{
+    billing_interval: string | null
+    current_period_end: string | null
+    provider_status: string | null
+  } | null>(null)
+  const [portalLoading, setPortalLoading] = useState(false)
+  const [cancelConfirm, setCancelConfirm] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
+  const { refresh: refreshGating } = useGating()
+
+  const handleUpdatePayment = async () => {
+    setPortalLoading(true)
+    try {
+      const res = await fetch("/api/billing/portal", { method: "POST" })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+      else toast.error("Could not open payment portal")
+    } catch {
+      toast.error("Could not open payment portal")
+    } finally {
+      setPortalLoading(false)
+    }
+  }
+
+  const handleCancelPlan = async () => {
+    setCancelling(true)
+    try {
+      const res = await fetch("/api/billing/cancel", { method: "POST" })
+      const data = await res.json()
+      if (!res.ok) { toast.error(data.error || "Could not cancel plan"); return }
+      toast.success("Plan cancelled. You keep Pro until the end of your billing period.")
+      setCancelConfirm(false)
+      setSubscription((s) => s ? { ...s, provider_status: "cancelled" } : s)
+      await refreshGating()
+    } catch {
+      toast.error("Could not cancel plan")
+    } finally {
+      setCancelling(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!user?.id || !isIndependent) return
+    supabase
+      .from("subscriptions")
+      .select("billing_interval, current_period_end, provider_status")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setSubscription(data))
+  }, [user?.id, isIndependent])
 
   useEffect(() => {
     if (!user?.id) return
@@ -514,20 +569,125 @@ export default function ProfilePage() {
         {/* Settings */}
         <div className="mt-8 pt-8" style={{ borderTop: "1px solid #E8E6DF" }}>
           <h3 className="text-sm font-semibold mb-4" style={{ color: "#0E0F12" }}>Settings</h3>
-          <div className="flex items-end gap-3">
-            <div className="flex-1 max-w-sm">
-              <label className="block text-xs font-medium mb-1.5" style={{ color: "#6B6A65" }}>Display Name</label>
-              <input value={name} onChange={(e) => setName(e.target.value)} className="w-full h-11 px-4 rounded-[9px] text-sm font-medium outline-none transition-colors"
+          <div className="flex flex-col gap-2">
+            <label className="block text-xs font-medium" style={{ color: "#6B6A65" }}>Display Name</label>
+            <div className="flex items-center gap-3">
+              <input value={name} onChange={(e) => setName(e.target.value)} className="flex-1 h-11 px-4 rounded-[9px] text-sm font-medium outline-none transition-colors"
                 style={{ backgroundColor: "white", border: "1.5px solid #E8E6DF", color: "#0E0F12" }}
                 onFocus={(e) => (e.currentTarget.style.borderColor = "#0066FF")}
                 onBlur={(e) => (e.currentTarget.style.borderColor = "#E8E6DF")} />
+              <button onClick={handleSaveName} disabled={savingName} className="shrink-0 rounded-[9px] px-5 h-11 text-sm font-semibold text-white transition-all disabled:opacity-50"
+                style={{ backgroundColor: "#0066FF", border: "1.5px solid #0047CC", boxShadow: "0 3px 0 #0047CC" }}>
+                {savingName ? "Saving..." : "Save"}
+              </button>
             </div>
-            <button onClick={handleSaveName} disabled={savingName} className="rounded-[9px] px-5 h-11 text-sm font-semibold text-white transition-all disabled:opacity-50"
-              style={{ backgroundColor: "#0066FF", border: "1.5px solid #0047CC", boxShadow: "0 3px 0 #0047CC" }}>
-              {savingName ? "Saving..." : "Save"}
-            </button>
           </div>
         </div>
+
+        {/* Billing — independent students only */}
+        {isIndependent && (
+          <div className="mt-8 pt-8" style={{ borderTop: "1px solid #E8E6DF" }}>
+            <div className="flex items-center gap-2 mb-4">
+              <CreditCard size={16} weight="fill" style={{ color: "#0E0F12" }} />
+              <h3 className="text-sm font-semibold" style={{ color: "#0E0F12" }}>Billing</h3>
+            </div>
+
+            <div className="rounded-xl overflow-hidden" style={{ border: "1.5px solid #E8E6DF" }}>
+              {/* Plan row */}
+              <div className="flex items-center justify-between gap-4 px-5 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center rounded-xl shrink-0"
+                    style={{ width: 40, height: 40, backgroundColor: plan === "pro" ? "#EEF3FF" : "#F5F5F3", border: `1.5px solid ${plan === "pro" ? "#C7D9FF" : "#E8E6DF"}` }}>
+                    <CreditCard size={18} weight="fill" style={{ color: plan === "pro" ? "#0066FF" : "#9B9A94" }} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold" style={{ color: "#0E0F12" }}>
+                        {plan === "pro" ? "MedLab Pro" : "Free Plan"}
+                      </p>
+                      {plan === "pro" && status === "active" && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wide"
+                          style={{ backgroundColor: "#ECFDF5", color: "#059669", border: "1px solid #A7F3D0" }}>
+                          Active
+                        </span>
+                      )}
+                      {plan === "pro" && status === "past_due" && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wide"
+                          style={{ backgroundColor: "#FFF7ED", color: "#EA580C", border: "1px solid #FED7AA" }}>
+                          Past due
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs mt-0.5" style={{ color: "#9B9A94" }}>
+                      {plan === "pro"
+                        ? `Billed ${subscription?.billing_interval ?? "monthly"}`
+                        : "5 cases/day · core modules only"}
+                    </p>
+                  </div>
+                </div>
+                {plan !== "pro" && (
+                  <Link href="/pricing"
+                    className="shrink-0 rounded-[9px] px-4 py-2 text-sm font-semibold text-white transition-all hover:opacity-90"
+                    style={{ backgroundColor: "#0066FF", border: "1.5px solid #0047CC", boxShadow: "0 3px 0 #0047CC" }}>
+                    Upgrade
+                  </Link>
+                )}
+              </div>
+
+              {/* Next billing date — pro only */}
+              {plan === "pro" && subscription?.current_period_end && (
+                <div className="px-5 py-3 flex items-center justify-between" style={{ borderTop: "1px solid #E8E6DF", backgroundColor: "#FAFAF8" }}>
+                  <span className="text-xs" style={{ color: "#9B9A94" }}>Next billing date</span>
+                  <span className="text-xs font-semibold" style={{ color: "#0E0F12" }}>
+                    {new Date(subscription.current_period_end).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                  </span>
+                </div>
+              )}
+
+              {/* Actions — pro only */}
+              {plan === "pro" && (
+                <div className="px-5 py-3 flex items-center justify-between gap-3" style={{ borderTop: "1px solid #E8E6DF" }}>
+                  <button
+                    onClick={handleUpdatePayment}
+                    disabled={portalLoading}
+                    className="text-xs font-semibold disabled:opacity-50 transition-opacity"
+                    style={{ color: "#6B6A65" }}
+                  >
+                    {portalLoading ? "Opening…" : "Update payment method"}
+                  </button>
+                  {!cancelConfirm ? (
+                    <button
+                      onClick={() => setCancelConfirm(true)}
+                      className="text-xs font-semibold transition-opacity hover:opacity-70"
+                      style={{ color: "#DC2626" }}
+                    >
+                      Cancel plan
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs" style={{ color: "#6B6A65" }}>Are you sure?</span>
+                      <button
+                        onClick={handleCancelPlan}
+                        disabled={cancelling}
+                        className="text-xs font-semibold disabled:opacity-50"
+                        style={{ color: "#DC2626" }}
+                      >
+                        {cancelling ? "Cancelling…" : "Yes, cancel"}
+                      </button>
+                      <button
+                        onClick={() => setCancelConfirm(false)}
+                        className="text-xs font-semibold"
+                        style={{ color: "#6B6A65" }}
+                      >
+                        Keep plan
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
       </div>
 

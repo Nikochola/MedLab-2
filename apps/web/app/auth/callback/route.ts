@@ -1,5 +1,27 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@supabase/ssr"
+import { getInstitutionAppOrigin, getStudentAppOrigin } from "@/lib/runtimeUrls"
+
+function resolveSafeRedirectUrl(request: NextRequest, next: string | null) {
+  if (!next) return null
+
+  if (next.startsWith("/") && !next.startsWith("//")) {
+    return new URL(next, request.url)
+  }
+
+  try {
+    const url = new URL(next)
+    const trustedOrigins = new Set([
+      request.nextUrl.origin,
+      getInstitutionAppOrigin(),
+      getStudentAppOrigin(),
+    ])
+
+    return trustedOrigins.has(url.origin) ? url : null
+  } catch {
+    return null
+  }
+}
 
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code")
@@ -9,7 +31,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/student/login?error=oauth_missing_code", request.url))
   }
 
-  const response = NextResponse.redirect(new URL(next, request.url))
+  const response = NextResponse.redirect(new URL("/", request.url))
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -32,6 +54,11 @@ export async function GET(request: NextRequest) {
 
   if (error || !user) {
     return NextResponse.redirect(new URL("/student/login?error=oauth_failed", request.url))
+  }
+
+  const safeRedirect = resolveSafeRedirectUrl(request, next)
+  if (safeRedirect) {
+    return NextResponse.redirect(safeRedirect)
   }
 
   // Determine where to send them based on role

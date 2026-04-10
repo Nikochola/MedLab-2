@@ -17,7 +17,22 @@
       "mcp__paper__get_node_info",
       "Bash(npx next:*)",
       "Bash(source /Users/nikochola/Projects/MedLab/apps/web/.env.local)",
-      "Bash(claude mcp:*)"
+      "Bash(claude mcp:*)",
+      "Bash(gh api:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(pnpm --filter web build)",
+      "Bash(pnpm ls:*)",
+      "Bash(npx -y playwright test --list)",
+      "WebFetch(domain:www.streamlinehq.com)",
+      "WebSearch",
+      "WebFetch(domain:blog.streamlinehq.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:api.github.com)",
+      "Bash(gh search:*)",
+      "Bash(python3 -c \"import sys,json; data=json.load\\(sys.stdin\\); [print\\(t[''''path'''']\\) for t in data.get\\(''''tree'''',[]\\)]\")"
     ]
   }
 }

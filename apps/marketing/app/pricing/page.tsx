@@ -28,6 +28,22 @@ function ArrowRight() {
   )
 }
 
+function buildStudentBillingAuthHref(input?: {
+  interval?: "monthly" | "yearly"
+  source?: "marketing"
+}) {
+  const nextParams = new URLSearchParams()
+
+  if (input?.interval) {
+    nextParams.set("intent", "checkout")
+    nextParams.set("interval", input.interval)
+    nextParams.set("source", input.source || "marketing")
+  }
+
+  const nextPath = nextParams.toString() ? `/pricing?${nextParams.toString()}` : "/learn"
+  return buildStudentAppUrl(`/student/signup?next=${encodeURIComponent(nextPath)}`)
+}
+
 // ─── Billing Toggle ───────────────────────────────────────────────────────────
 
 function BillingToggle({ yearly, onChange }: { yearly: boolean; onChange: (v: boolean) => void }) {
@@ -57,17 +73,19 @@ function PricingCards({ yearly }: { yearly: boolean }) {
       features: ["5 ECG & radiology cases / month", "Basic clinical reasoning feedback", "Community leaderboard", "Limited case library"],
       cta: "Get Started Free",
       highlighted: false,
+      href: buildStudentBillingAuthHref(),
     },
     {
       name: "Pro",
-      price: yearly ? "$9" : "$12",
-      period: "/ month",
-      subline: yearly ? "billed as $99 / year" : null,
+      price: yearly ? "$99" : "$12",
+      period: yearly ? "/ year" : "/ month",
+      subline: yearly ? "equivalent to $8.25 / month" : "billed monthly",
       badge: "MOST POPULAR",
       description: "Unlimited practice with full AI-powered patient simulations.",
       features: ["Unlimited cases", "Full AI patient simulations", "Detailed performance analytics", "All specialties unlocked", "Early access to new modules", "Downloadable progress reports", "Priority support"],
       cta: yearly ? "Start Pro — Yearly" : "Start Pro",
       highlighted: true,
+      href: buildStudentBillingAuthHref({ interval: yearly ? "yearly" : "monthly", source: "marketing" }),
     },
   ]
 
@@ -106,9 +124,9 @@ function PricingCards({ yearly }: { yearly: boolean }) {
               ))}
             </ul>
             {plan.highlighted ? (
-              <Button className="w-full" asChild><Link href={buildStudentAppUrl("/student/signup")}>{plan.cta}</Link></Button>
+              <Button className="w-full" asChild><Link href={plan.href}>{plan.cta}</Link></Button>
             ) : (
-              <Button variant="outline" className="w-full" asChild><Link href={buildStudentAppUrl("/student/signup")}>{plan.cta}</Link></Button>
+              <Button variant="outline" className="w-full" asChild><Link href={plan.href}>{plan.cta}</Link></Button>
             )}
           </div>
         )
@@ -143,7 +161,7 @@ const faqs = [
   { q: "Can I cancel anytime?", a: "Yes. Pro plans can be cancelled at any time. You'll retain access until the end of your billing period." },
   { q: "Is the Free plan really free?", a: "Yes — free forever with no credit card required. You get 5 cases per month and access to core features." },
   { q: "What's included in AI patient simulations?", a: "Full interactive cases with dynamic labs, ECGs, imaging, and an AI Attending that guides your reasoning using Socratic questioning." },
-  { q: "Do you offer student discounts?", a: "The Free tier is already designed for students. Pro Yearly at $9/month is our best value — that's $99/year billed upfront." },
+  { q: "Do you offer student discounts?", a: "The Free tier is already designed for students. Pro Yearly at $99/year is our best value, equivalent to $8.25/month billed upfront." },
 ]
 
 // ─── Page ─────────────────────────────────────────────────────────────────────

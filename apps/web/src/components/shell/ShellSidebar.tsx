@@ -8,6 +8,7 @@ import {
   Stethoscope,
   ChartLineUp,
   Books,
+  Sparkle,
   UserCircle,
   SquaresFour,
   Users,
@@ -16,6 +17,7 @@ import {
 } from "@phosphor-icons/react"
 import { useAuth } from "@/contexts/AuthContext"
 import { ShellNavItem } from "@/components/shell/ShellNavItem"
+import { useGating } from "@/contexts/GatingContext"
 
 const independentStudentNav = [
   { label: "Learn", href: "/learn", icon: House },
@@ -102,10 +104,11 @@ function ProfileNavItem({ avatarUrl, userId }: { avatarUrl?: string | null; user
   )
 }
 
-const PREFETCH_ROUTES = ["/learn", "/practice", "/progress", "/more", "/profile", "/ecg", "/xray", "/journey", "/shop"]
+const PREFETCH_ROUTES = ["/learn", "/practice", "/progress", "/more", "/profile", "/ecg", "/xray", "/journey", "/shop", "/pricing"]
 
 export function ShellSidebar() {
   const { user } = useAuth()
+  const { plan, status } = useGating()
   const router = useRouter()
   const navItems = getNavItems(user?.role, user?.primary_role)
   const isEducator =
@@ -137,6 +140,15 @@ export function ShellSidebar() {
         {navItems.map((item) => (
           <ShellNavItem key={item.label} {...item} isCollapsed={false} />
         ))}
+        {!isEducator && !(plan === "pro" && (status === "active" || status === "trialing")) && (
+          <ShellNavItem
+            href="/pricing"
+            label="Upgrade"
+            icon={Sparkle}
+            exactMatch={false}
+            isCollapsed={false}
+          />
+        )}
         {!isEducator && <ProfileNavItem avatarUrl={user?.avatarUrl} userId={user?.id} />}
       </nav>
     </aside>

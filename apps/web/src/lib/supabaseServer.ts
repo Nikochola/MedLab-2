@@ -1,7 +1,7 @@
 // lib/supabaseServer.ts
 
 import { cookies } from "next/headers"
-import { createServerClient, type CookieOptions } from "@supabase/ssr"
+import { createServerClient } from "@supabase/ssr"
 import { createClient as createAdminClient } from "@supabase/supabase-js"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -13,14 +13,18 @@ export function createSupabaseServerClient() {
 
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value
+      getAll() {
+        return cookieStore.getAll()
       },
-      set(name: string, value: string, options: CookieOptions) {
-        cookieStore.set(name, value, options)
-      },
-      remove(name: string, options: CookieOptions) {
-        cookieStore.set(name, "", { ...options, maxAge: 0 })
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          try {
+            cookieStore.set(name, value, options)
+          } catch {
+            // Some server contexts can read cookies but cannot persist them.
+            // Middleware handles session refresh persistence for those cases.
+          }
+        })
       },
     },
   })

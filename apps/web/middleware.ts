@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerClient, type CookieOptions } from "@supabase/ssr"
+import { createServerClient } from "@supabase/ssr"
 import { getInstitutionAppOrigin, getStudentAppOrigin } from "@/lib/runtimeUrls"
 
 function isLocalRequest(request: NextRequest) {
@@ -17,6 +17,26 @@ function buildAppUrl(request: NextRequest, kind: "institution" | "student", path
   return new URL(pathname, baseOrigin)
 }
 
+function resolveSafeNextRedirect(request: NextRequest, next: string | null) {
+  if (!next) return null
+
+  if (next.startsWith("/") && !next.startsWith("//")) {
+    return new URL(next, request.nextUrl.origin)
+  }
+
+  try {
+    const url = new URL(next)
+    const trustedOrigins = new Set([
+      request.nextUrl.origin,
+      getInstitutionAppOrigin(),
+      getStudentAppOrigin(),
+    ])
+    return trustedOrigins.has(url.origin) ? url : null
+  } catch {
+    return null
+  }
+}
+
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: {
@@ -29,21 +49,16 @@ export async function middleware(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
+        getAll() {
+          return request.cookies.getAll()
         },
-        set(name: string, value: string, options: CookieOptions) {
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          })
-        },
-        remove(name: string, options: CookieOptions) {
-          response.cookies.set({
-            name,
-            value: "",
-            ...options,
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set({
+              name,
+              value,
+              ...options,
+            })
           })
         },
       },
@@ -105,6 +120,11 @@ export async function middleware(request: NextRequest) {
 
   // 2. Authenticated users on auth pages → redirect to their dashboard
   if (user && isAuthPage) {
+    const safeNext = resolveSafeNextRedirect(request, request.nextUrl.searchParams.get("next"))
+    if (safeNext) {
+      return NextResponse.redirect(safeNext)
+    }
+
     const [{ data: profile }, { data: memberships }] = await Promise.all([
       supabase
         .from("profiles")

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signUpStudent } from "@/server/actions/auth";
 import { User, Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -20,15 +20,22 @@ function GoogleIcon() {
 
 export default function StudentSignupPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [isLoading, setIsLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+    const nextPath = (() => {
+        const next = searchParams.get("next");
+        if (!next || !next.startsWith("/") || next.startsWith("//")) return "/learn";
+        return next;
+    })();
 
     async function handleGoogleSignUp() {
         setIsGoogleLoading(true);
         const { error } = await supabase.auth.signInWithOAuth({
             provider: "google",
             options: {
-                redirectTo: `${window.location.origin}/auth/callback`,
+                redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
             },
         });
         if (error) {
@@ -64,7 +71,7 @@ export default function StudentSignupPage() {
         }
 
         toast.success("Welcome to MedLab! Redirecting...");
-        router.push("/learn");
+        router.push(nextPath);
         router.refresh();
     }
 
@@ -203,7 +210,7 @@ export default function StudentSignupPage() {
 
                     <p className="text-center text-sm" style={{ color: "#6B6A65" }}>
                         Already have an account?{" "}
-                        <a href="/student/login" className="font-medium hover:underline" style={{ color: "#0066FF" }}>
+                        <a href={`/student/login?next=${encodeURIComponent(nextPath)}`} className="font-medium hover:underline" style={{ color: "#0066FF" }}>
                             Log in
                         </a>
                     </p>

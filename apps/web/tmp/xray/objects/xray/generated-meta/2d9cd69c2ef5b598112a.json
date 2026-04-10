@@ -1,17 +1,17 @@
 {
   "response": {
-    "requestId": "907a4e8f1ce367d8931c",
+    "requestId": "2d9cd69c2ef5b598112a",
     "images": [
       {
-        "url": "/api/xray/cache/907a4e8f1ce367d8931c/0?s=e08c1cad48a9dccc0f10",
+        "url": "/api/xray/cache/2d9cd69c2ef5b598112a/0?s=3f1c6e97621ef4d840de",
         "width": 640,
         "height": 800
       }
     ],
     "provenance": [
       {
-        "seed": 922631018,
-        "baseImageId": "cxr_048",
+        "seed": 115740329,
+        "baseImageId": "cxr_028",
         "view": "PA",
         "pathology": "cardiomegaly",
         "severity": "mild",
@@ -19,11 +19,11 @@
         "sourceDataset": "medlab.synthetic.v1",
         "sourceLicense": "CC0-Synthetic-Generated",
         "operations": [
-          "base:cxr_048",
-          "affine:0.013,-0.005",
-          "rotate:0.95",
+          "base:cxr_028",
+          "affine:0.008,0.005",
+          "rotate:-0.76",
           "normalize:clahe",
-          "tissue:gain:1.004:offset:2.35",
+          "tissue:gain:0.992:offset:0.78",
           "pathology:cardiomegaly:central",
           "acquisition:pa",
           "noise:9",
@@ -31,7 +31,7 @@
         ],
         "markers": [
           {
-            "x": 51,
+            "x": 50,
             "y": 61,
             "label": "Enlarged silhouette",
             "severity": "mild"
@@ -48,16 +48,16 @@
       }
     ],
     "cacheHit": false,
-    "generatedAt": "2026-03-15T21:37:53.887Z",
+    "generatedAt": "2026-03-21T11:18:48.615Z",
     "metrics": {
-      "generationMs": 1592,
+      "generationMs": 1493,
       "rejectedSamples": 5
     },
     "diagnosticUse": false,
     "warningText": "Education-only output. Not for diagnosis, treatment, or clinical decision-making."
   },
   "imageFiles": [
-    "xray/generated/907a4e8f1ce367d8931c_0.png"
+    "xray/generated/2d9cd69c2ef5b598112a_0.png"
   ],
-  "createdAt": 1773610673887
+  "createdAt": 1774091928615
 }
