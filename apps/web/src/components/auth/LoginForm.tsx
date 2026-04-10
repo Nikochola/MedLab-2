@@ -116,13 +116,13 @@ export default function LoginForm({ type }: { type: "student" | "institution" })
                     .eq("user_id", user.id)
             ]);
 
-            const next = resolveDestination({
+            const destination = resolveDestination({
                 next,
                 primaryRole: profile?.primary_role,
                 memberships: memberships || []
             });
             toast.success("Welcome back!");
-            window.location.assign(next);
+            window.location.assign(destination);
         }
     }
 
