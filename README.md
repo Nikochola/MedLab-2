@@ -15,7 +15,3 @@ Medlab
 - Simple client-side authentication (free access)
 - User session management with localStorage
 - Protected routes for dashboard access
-
-## License
-Free for educational use as of December 11 2025.
-
