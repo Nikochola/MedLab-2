@@ -1,3 +1,6 @@
+import Link from "next/link"
+import { ChevronRight } from "lucide-react"
+
 import { supabaseAdmin, hasSupabaseServiceRole } from "@/server/supabaseAdmin"
 
 async function getInstitutions() {
@@ -71,10 +74,11 @@ export default async function InstitutionsPage() {
               : { bg: "#FFF7ED", text: "#92400E", border: "#FED7AA" }
 
             return (
-              <div
+              <Link
                 key={inst.id}
-                className="flex flex-col gap-4 rounded-[12px] p-5 sm:flex-row sm:items-center sm:justify-between"
-                style={{ backgroundColor: "white", border: "1.5px solid #E8E6DF" }}
+                href={`/admin/institutions/${inst.id}`}
+                className="institution-card flex flex-col gap-4 rounded-[12px] p-5 transition-all sm:flex-row sm:items-center sm:justify-between"
+                style={{ backgroundColor: "white", border: "1.5px solid #E8E6DF", display: "flex" }}
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
@@ -101,7 +105,8 @@ export default async function InstitutionsPage() {
                     {inst.seat_limit ? ` · ${inst.seat_limit} seat limit` : ""}
                   </p>
                 </div>
-              </div>
+                <ChevronRight className="h-4 w-4 shrink-0" style={{ color: "#9B9A94" }} />
+              </Link>
             )
           })}
         </div>

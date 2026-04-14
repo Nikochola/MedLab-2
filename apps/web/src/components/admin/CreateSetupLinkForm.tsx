@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Copy, Check, ArrowRight } from "lucide-react"
+import { Copy, Check, ArrowRight, Mail, AlertTriangle } from "lucide-react"
 
 const institutionTypes = [
   "University",
@@ -47,7 +47,13 @@ const inputStyle = {
 export function CreateSetupLinkForm() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<{ setupUrl: string; expiresAt: string } | null>(null)
+  const [result, setResult] = useState<{
+    setupUrl: string
+    expiresAt: string
+    emailSent: boolean
+    emailError: string | null
+    workEmail?: string
+  } | null>(null)
   const [copied, setCopied] = useState(false)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -73,7 +79,7 @@ export function CreateSetupLinkForm() {
     setLoading(false)
 
     if (res.ok) {
-      setResult(data)
+      setResult({ ...data, workEmail: formData.get("workEmail") as string })
       router.refresh()
     }
   }
@@ -96,7 +102,7 @@ export function CreateSetupLinkForm() {
           Generate Setup Link
         </h3>
         <p className="mt-0.5 text-xs" style={{ color: "#9B9A94" }}>
-          Fill in the institution's details from your Cal.com call.
+          The setup link will be emailed directly to the institution admin.
         </p>
       </div>
 
@@ -189,24 +195,43 @@ export function CreateSetupLinkForm() {
         {result && (
           <div
             className="rounded-[9px] p-4 space-y-3"
-            style={{ backgroundColor: "#F0FDF4", border: "1.5px solid #BBF7D0" }}
+            style={{
+              backgroundColor: result.emailSent ? "#F0FDF4" : "#FFFBEB",
+              border: `1.5px solid ${result.emailSent ? "#BBF7D0" : "#FDE68A"}`,
+            }}
           >
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-bold uppercase" style={{ letterSpacing: "0.12em", color: "#15803D" }}>
-                Link ready — copy and send manually
-              </p>
-              <p className="text-xs" style={{ color: "#16A34A" }}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2">
+                {result.emailSent ? (
+                  <Mail className="h-4 w-4 shrink-0" style={{ color: "#15803D" }} />
+                ) : (
+                  <AlertTriangle className="h-4 w-4 shrink-0" style={{ color: "#92400E" }} />
+                )}
+                <div>
+                  <p
+                    className="text-xs font-bold uppercase"
+                    style={{ letterSpacing: "0.12em", color: result.emailSent ? "#15803D" : "#92400E" }}
+                  >
+                    {result.emailSent
+                      ? `Setup link emailed to ${result.workEmail}`
+                      : "Email failed — copy link manually"}
+                  </p>
+                  {result.emailError && (
+                    <p className="mt-0.5 text-[11px]" style={{ color: "#92400E" }}>
+                      {result.emailError}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <p className="shrink-0 text-xs" style={{ color: result.emailSent ? "#16A34A" : "#92400E" }}>
                 Expires {new Date(result.expiresAt).toLocaleDateString()}
               </p>
             </div>
             <div
               className="flex items-center gap-2 rounded-[7px] p-2"
-              style={{ backgroundColor: "white", border: "1px solid #BBF7D0" }}
+              style={{ backgroundColor: "white", border: `1px solid ${result.emailSent ? "#BBF7D0" : "#FDE68A"}` }}
             >
-              <p
-                className="flex-1 truncate px-2 text-xs font-mono"
-                style={{ color: "#0E0F12" }}
-              >
+              <p className="flex-1 truncate px-2 text-xs font-mono" style={{ color: "#0E0F12" }}>
                 {result.setupUrl}
               </p>
               <button

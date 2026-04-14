@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+.institution-card:hover {
+  border-color: #C8C5BC !important;
+  background-color: #FAFAF8 !important;
+}
+
 @layer base {
   :root {
     --surface-canvas: 34 20% 98%;

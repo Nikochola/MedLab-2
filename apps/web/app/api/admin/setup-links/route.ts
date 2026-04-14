@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     institutionName: body.institutionName,
     institutionType: body.institutionType as InstitutionRequestType,
     estimatedStudents: body.estimatedStudents,
-    adminEmail: "admin@getmedlab.com",
+    adminEmail: email,
   })
 
   return NextResponse.json(result)

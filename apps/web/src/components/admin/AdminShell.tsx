@@ -3,14 +3,12 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { ReactNode } from "react"
-import { Building2, LinkIcon, Inbox, Settings, LogOut } from "lucide-react"
+import { Building2, LinkIcon, LogOut } from "lucide-react"
 import { createBrowserClient } from "@supabase/ssr"
 
 const navItems = [
-  { label: "Requests", href: "/admin", icon: Inbox, exactMatch: true },
   { label: "Setup Links", href: "/admin/setup-links", icon: LinkIcon },
   { label: "Institutions", href: "/admin/institutions", icon: Building2 },
-  { label: "Settings", href: "/admin/settings", icon: Settings },
 ]
 
 function AdminNavItem({
@@ -21,7 +19,7 @@ function AdminNavItem({
 }: {
   href: string
   label: string
-  icon: typeof Inbox
+  icon: typeof Building2
   exactMatch?: boolean
 }) {
   const pathname = usePathname() || ""
@@ -55,16 +53,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const pathname = usePathname() || ""
 
   const titleMap: Record<string, string> = {
-    "/admin": "Requests",
     "/admin/setup-links": "Setup Links",
     "/admin/institutions": "Institutions",
-    "/admin/settings": "Settings",
   }
 
   const title =
-    Object.entries(titleMap).find(([path]) =>
-      path === "/admin" ? pathname === "/admin" : pathname.startsWith(path)
-    )?.[1] || "Admin"
+    Object.entries(titleMap).find(([path]) => pathname.startsWith(path))?.[1] || "Admin"
 
   async function handleLogout() {
     const supabase = createBrowserClient(

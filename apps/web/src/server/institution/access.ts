@@ -1,8 +1,11 @@
 import crypto from "crypto"
 
+import { render } from "@react-email/render"
 import { Resend } from "resend"
 
 import { buildInstitutionUrl } from "@/lib/runtimeUrls"
+import SetupLinkEmail from "@/emails/SetupLinkEmail"
+import VerificationCodeEmail from "@/emails/VerificationCodeEmail"
 import { provisionPasswordAuthUser } from "@/server/auth/provision"
 import { supabaseAdmin } from "@/server/supabaseAdmin"
 
@@ -231,18 +234,20 @@ async function sendSetupLinkEmail(input: {
   }
 
   try {
+    const html = render(
+      SetupLinkEmail({
+        fullName: input.fullName,
+        institutionName: input.institutionName,
+        setupUrl
+      })
+    )
+
     await resend.emails.send({
       from: notificationFrom,
       to: input.email,
       replyTo: replyToEmail,
       subject: `Complete your MedLab administrator setup for ${input.institutionName}`,
-      html: `
-        <h1>Finish your MedLab workspace setup</h1>
-        <p>Hello ${input.fullName},</p>
-        <p>Your institution access request has been approved. Use the link below to create your administrator account and finish setup.</p>
-        <p><a href="${setupUrl}">Complete administrator setup</a></p>
-        <p>This setup link expires in 7 days and can only be used once.</p>
-      `
+      html
     })
 
     return { sent: true, error: null, setupUrl }
@@ -266,18 +271,20 @@ async function sendSetupVerificationCodeEmail(input: {
   }
 
   try {
+    const html = render(
+      VerificationCodeEmail({
+        fullName: input.fullName,
+        institutionName: input.institutionName,
+        code: input.code
+      })
+    )
+
     await resend.emails.send({
       from: notificationFrom,
       to: input.email,
       replyTo: replyToEmail,
       subject: `Your MedLab verification code for ${input.institutionName}`,
-      html: `
-        <h1>Email verification</h1>
-        <p>Hello ${input.fullName},</p>
-        <p>Enter this verification code to continue your MedLab administrator setup:</p>
-        <p style="font-size: 28px; font-weight: 700; letter-spacing: 0.2em;">${input.code}</p>
-        <p>This code expires in 15 minutes.</p>
-      `
+      html
     })
 
     return { sent: true, error: null }
@@ -987,11 +994,18 @@ export async function createDirectSetupLink(input: {
     throw new Error(`Failed to create direct setup link: ${error.message}`)
   }
 
-  const setupUrl = buildInstitutionUrl(`/institution/setup/${token}`)
+  const emailResult = await sendSetupLinkEmail({
+    email: normalizeEmail(input.workEmail),
+    fullName: input.fullName.trim(),
+    institutionName: input.institutionName.trim(),
+    token
+  })
 
   return {
-    setupUrl,
+    setupUrl: emailResult.setupUrl,
     expiresAt,
+    emailSent: emailResult.sent,
+    emailError: emailResult.error,
   }
 }
 

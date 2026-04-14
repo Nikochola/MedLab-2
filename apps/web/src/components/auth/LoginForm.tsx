@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { buildInstitutionUrl, buildStudentAppUrl } from "@/lib/runtimeUrls";
+import { buildInstitutionUrl, buildStudentAppUrl, buildMarketingUrl } from "@/lib/runtimeUrls";
 
 function GoogleIcon() {
     return (
@@ -18,7 +18,15 @@ function GoogleIcon() {
     );
 }
 
-export default function LoginForm({ type }: { type: "student" | "institution" }) {
+export default function LoginForm({
+    type,
+    institutionName,
+    onSubdomain,
+}: {
+    type: "student" | "institution"
+    institutionName?: string
+    onSubdomain?: boolean
+}) {
     const searchParams = useSearchParams();
     const [isLoading, setIsLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -52,35 +60,32 @@ export default function LoginForm({ type }: { type: "student" | "institution" })
                 .filter((membership) => membership.status === "ACTIVE")
                 .map((membership) => (membership.role || "").toLowerCase())
         );
-        const hasAnyInstitutionMembership = activeRoles.size > 0
+        const hasAnyInstitutionMembership = activeRoles.size > 0;
+        const hasPortalAccess =
+            activeRoles.has("institution_admin") ||
+            activeRoles.has("admin") ||
+            activeRoles.has("educator") ||
+            activeRoles.has("teacher");
+
+        // On a subdomain: use relative paths so the user stays on slug.medlabinteractive.com
+        if (onSubdomain) {
+            if (input.next && input.next.startsWith("/")) return input.next;
+            if (hasPortalAccess) return "/institution/courses";
+            if (hasAnyInstitutionMembership) return "/learn";
+            if (input.primaryRole === "institution") return "/institution/onboarding";
+            return "/learn";
+        }
 
         if (input.next) {
-            if (/^https?:\/\//i.test(input.next)) {
-                return input.next;
-            }
-
+            if (/^https?:\/\//i.test(input.next)) return input.next;
             return hasAnyInstitutionMembership || input.primaryRole === "institution"
                 ? buildInstitutionUrl(input.next)
                 : buildStudentAppUrl(input.next);
         }
 
-        if (
-            activeRoles.has("institution_admin") ||
-            activeRoles.has("admin") ||
-            activeRoles.has("educator") ||
-            activeRoles.has("teacher")
-        ) {
-            return buildInstitutionUrl("/institution/courses");
-        }
-
-        if (hasAnyInstitutionMembership) {
-            return buildInstitutionUrl("/learn");
-        }
-
-        if (input.primaryRole === "institution") {
-            return buildInstitutionUrl("/institution/onboarding");
-        }
-
+        if (hasPortalAccess) return buildInstitutionUrl("/institution/courses");
+        if (hasAnyInstitutionMembership) return buildInstitutionUrl("/learn");
+        if (input.primaryRole === "institution") return buildInstitutionUrl("/institution/onboarding");
         return buildStudentAppUrl("/learn");
     }
 
@@ -105,15 +110,8 @@ export default function LoginForm({ type }: { type: "student" | "institution" })
 
         if (user) {
             const [{ data: profile }, { data: memberships }] = await Promise.all([
-                supabase
-                    .from("profiles")
-                    .select("primary_role")
-                    .eq("id", user.id)
-                    .single(),
-                supabase
-                    .from("institution_memberships")
-                    .select("role,status")
-                    .eq("user_id", user.id)
+                supabase.from("profiles").select("primary_role").eq("id", user.id).single(),
+                supabase.from("institution_memberships").select("role,status").eq("user_id", user.id)
             ]);
 
             const destination = resolveDestination({
@@ -126,6 +124,8 @@ export default function LoginForm({ type }: { type: "student" | "institution" })
         }
     }
 
+    const showGoogleOAuth = !onSubdomain;
+
     return (
         <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: "#F8F7F2" }}>
             <div className="w-full max-w-[400px]">
@@ -136,37 +136,57 @@ export default function LoginForm({ type }: { type: "student" | "institution" })
 
                 {/* Heading */}
                 <div className="text-center mb-8">
-                    <h1 className="text-2xl font-semibold tracking-tight" style={{ color: "#0E0F12" }}>
-                        {isStudent ? "Student Login" : "Institution Login"}
-                    </h1>
-                    <p className="mt-2 text-sm" style={{ color: "#6B6A65" }}>
-                        {isStudent
-                            ? "Sign in to continue your learning journey."
-                            : "Administrators, educators, and institution students."}
-                    </p>
+                    {institutionName ? (
+                        <>
+                            <p className="text-xs font-semibold uppercase mb-2" style={{ letterSpacing: "0.14em", color: "#9B9A94" }}>
+                                Institution Portal
+                            </p>
+                            <h1 className="text-2xl font-semibold tracking-tight" style={{ color: "#0E0F12" }}>
+                                {institutionName}
+                            </h1>
+                            <p className="mt-2 text-sm" style={{ color: "#6B6A65" }}>
+                                Sign in to continue.
+                            </p>
+                        </>
+                    ) : (
+                        <>
+                            <h1 className="text-2xl font-semibold tracking-tight" style={{ color: "#0E0F12" }}>
+                                {isStudent ? "Student Login" : "Institution Login"}
+                            </h1>
+                            <p className="mt-2 text-sm" style={{ color: "#6B6A65" }}>
+                                {isStudent
+                                    ? "Sign in to continue your learning journey."
+                                    : "Administrators, educators, and institution students."}
+                            </p>
+                        </>
+                    )}
                 </div>
 
-                {/* Google */}
-                <button
-                    type="button"
-                    onClick={handleGoogleSignIn}
-                    disabled={isGoogleLoading || isLoading}
-                    className="w-full h-12 rounded-[9px] text-sm font-medium flex items-center justify-center gap-3 transition-all disabled:opacity-50 mb-4"
-                    style={{
-                        backgroundColor: "white",
-                        border: "1.5px solid #E8E6DF",
-                        color: "#0E0F12",
-                    }}
-                >
-                    {isGoogleLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleIcon />}
-                    Continue with Google
-                </button>
+                {/* Google OAuth — hidden on subdomain portals */}
+                {showGoogleOAuth && (
+                    <>
+                        <button
+                            type="button"
+                            onClick={handleGoogleSignIn}
+                            disabled={isGoogleLoading || isLoading}
+                            className="w-full h-12 rounded-[9px] text-sm font-medium flex items-center justify-center gap-3 transition-all disabled:opacity-50 mb-4"
+                            style={{
+                                backgroundColor: "white",
+                                border: "1.5px solid #E8E6DF",
+                                color: "#0E0F12",
+                            }}
+                        >
+                            {isGoogleLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleIcon />}
+                            Continue with Google
+                        </button>
 
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="flex-1 h-px" style={{ backgroundColor: "#E8E6DF" }} />
-                    <span className="text-xs font-medium" style={{ color: "#9B9A94" }}>or</span>
-                    <div className="flex-1 h-px" style={{ backgroundColor: "#E8E6DF" }} />
-                </div>
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="flex-1 h-px" style={{ backgroundColor: "#E8E6DF" }} />
+                            <span className="text-xs font-medium" style={{ color: "#9B9A94" }}>or</span>
+                            <div className="flex-1 h-px" style={{ backgroundColor: "#E8E6DF" }} />
+                        </div>
+                    </>
+                )}
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -241,15 +261,11 @@ export default function LoginForm({ type }: { type: "student" | "institution" })
                     {isStudent ? (
                         <p className="text-center text-sm" style={{ color: "#6B6A65" }}>
                             Don&apos;t have an account?{" "}
-                            <a
-                                href="/student/signup"
-                                className="font-medium hover:underline"
-                                style={{ color: "#0066FF" }}
-                            >
+                            <a href="/student/signup" className="font-medium hover:underline" style={{ color: "#0066FF" }}>
                                 Sign up
                             </a>
                         </p>
-                    ) : (
+                    ) : !onSubdomain ? (
                         <div className="space-y-1.5 text-center">
                             <p className="text-sm" style={{ color: "#6B6A65" }}>
                                 Need a new institution workspace?{" "}
@@ -261,7 +277,7 @@ export default function LoginForm({ type }: { type: "student" | "institution" })
                                 Administrators receive a setup link after review. Educators and students log in after being invited.
                             </p>
                         </div>
-                    )}
+                    ) : null}
                 </form>
             </div>
         </div>
