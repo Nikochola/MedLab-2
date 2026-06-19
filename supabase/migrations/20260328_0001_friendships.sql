@@ -34,23 +34,23 @@ CREATE TRIGGER friendships_updated_at
 
 ALTER TABLE friendships ENABLE ROW LEVEL SECURITY;
 
--- Users can see friendships they are a party to
+DROP POLICY IF EXISTS "users_see_own_friendships" ON friendships;
 CREATE POLICY "users_see_own_friendships" ON friendships
   FOR SELECT USING (
     auth.uid() = requester_id OR auth.uid() = addressee_id
   );
 
--- Any authenticated user can send a friend request (as requester)
+DROP POLICY IF EXISTS "users_can_send_request" ON friendships;
 CREATE POLICY "users_can_send_request" ON friendships
   FOR INSERT WITH CHECK (auth.uid() = requester_id);
 
--- Only the addressee can accept or decline; only the requester can cancel
+DROP POLICY IF EXISTS "parties_can_update_friendship" ON friendships;
 CREATE POLICY "parties_can_update_friendship" ON friendships
   FOR UPDATE USING (
     auth.uid() = addressee_id OR auth.uid() = requester_id
   );
 
--- Either party can remove a friendship
+DROP POLICY IF EXISTS "parties_can_delete_friendship" ON friendships;
 CREATE POLICY "parties_can_delete_friendship" ON friendships
   FOR DELETE USING (
     auth.uid() = requester_id OR auth.uid() = addressee_id

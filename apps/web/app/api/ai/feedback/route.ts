@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateCaseFeedback } from "@/lib/ai/aiClient"
+import { authorizeAiRequest } from "@/lib/ai/guard"
 
 export async function POST(request: NextRequest) {
   try {
+    const access = await authorizeAiRequest()
+    if (!access.ok) return access.response
+
     const body = await request.json()
     const { studentAssessment, patientCase, findings, role } = body
 
@@ -19,6 +23,8 @@ export async function POST(request: NextRequest) {
       findings,
       role
     )
+
+    await access.commitUsage()
 
     return NextResponse.json({ feedback })
   } catch (error) {

@@ -5,6 +5,7 @@ import { Loader2, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 import { mutate } from "swr"
 import { useAuth } from "@/contexts/AuthContext"
+import { handleAiLimit } from "@/lib/ai/aiClientErrors"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -85,7 +86,7 @@ export function XRayAssessmentForm({ patientCase, xrayFindings }: XRayAssessment
                 action: "case_submit",
                 data: { caseType: "xray" }
             })
-        }).then(() => mutate(`/api/student/stats?studentId=${user.id}`))
+        }).then(() => mutate("/api/student/stats"))
     }
 
     const handleGetAIFeedback = async () => {
@@ -103,6 +104,8 @@ export function XRayAssessmentForm({ patientCase, xrayFindings }: XRayAssessment
                     role: "expert radiologist"
                 }),
             })
+
+            if (handleAiLimit(response)) return
 
             if (response.ok) {
                 const data = await response.json()

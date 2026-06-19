@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from "react"
 import { generateECGWaveform, ECGWaveformParams } from "./ECGWaveformGenerator"
 
 interface ECGDisplayProps {
@@ -10,8 +10,17 @@ interface ECGDisplayProps {
   fitToContainer?: boolean
 }
 
-export function ECGDisplay({ params, zoom = 1, onZoomChange, fitToContainer = false }: ECGDisplayProps) {
+export interface ECGDisplayHandle {
+  getCanvas: () => HTMLCanvasElement | null
+}
+
+export const ECGDisplay = forwardRef<ECGDisplayHandle, ECGDisplayProps>(
+function ECGDisplay({ params, zoom = 1, onZoomChange, fitToContainer = false }, ref) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
+
+  useImperativeHandle(ref, () => ({
+    getCanvas: () => canvasRef.current,
+  }))
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [canvasSize, setCanvasSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 })
   const [containerWidth, setContainerWidth] = useState<number | null>(null)
@@ -196,7 +205,7 @@ export function ECGDisplay({ params, zoom = 1, onZoomChange, fitToContainer = fa
   return (
     <div
       ref={containerRef}
-      className={`relative w-full flex justify-center mt-4 overflow-hidden`}
+      className="relative mt-4 flex w-full justify-center overflow-hidden"
       style={{ cursor: zoom > 1 ? (isDragging.current ? "grabbing" : "grab") : "default" }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -214,7 +223,7 @@ export function ECGDisplay({ params, zoom = 1, onZoomChange, fitToContainer = fa
       />
     </div>
   )
-}
+})
 
 /* ---------------------------------------------------------------
    DRAW A SINGLE LEAD STRIP IN A RECTANGLE

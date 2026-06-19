@@ -748,7 +748,7 @@ export function ClinicalWorkupMode({ workupCase }: { workupCase: WorkupCase }) {
 
   useEffect(() => { setWorkbenchMode(true); return () => setWorkbenchMode(false) }, [setWorkbenchMode])
 
-  function useTool(id: ToolId) {
+  function markToolUsed(id: ToolId) {
     setUsedTools((prev) => new Set(Array.from(prev).concat(id)))
   }
 
@@ -823,7 +823,7 @@ export function ClinicalWorkupMode({ workupCase }: { workupCase: WorkupCase }) {
               <ECGMonitorPanel
                 unlocked={usedTools.has("ecg")}
                 params={workupCase.ecgParams}
-                onUnlock={() => useTool("ecg")}
+                onUnlock={() => markToolUsed("ecg")}
               />
             </div>
             <div className="h-[240px] flex gap-[4px]">
@@ -831,14 +831,14 @@ export function ClinicalWorkupMode({ workupCase }: { workupCase: WorkupCase }) {
                 <VitalSignsPanel
                   unlocked={usedTools.has("vitals")}
                   vitals={workupCase.vitals}
-                  onUnlock={() => useTool("vitals")}
+                  onUnlock={() => markToolUsed("vitals")}
                 />
               </div>
               <div className="flex-1">
                 <BloodWorkPanel
                   unlocked={usedTools.has("bloods")}
                   results={workupCase.labResults}
-                  onUnlock={() => useTool("bloods")}
+                  onUnlock={() => markToolUsed("bloods")}
                 />
               </div>
             </div>
@@ -851,7 +851,7 @@ export function ClinicalWorkupMode({ workupCase }: { workupCase: WorkupCase }) {
               <PatientHistoryPanel
                 unlocked={usedTools.has("history")}
                 workupCase={workupCase}
-                onUnlock={() => useTool("history")}
+                onUnlock={() => markToolUsed("history")}
               />
             </div>
 
@@ -860,13 +860,13 @@ export function ClinicalWorkupMode({ workupCase }: { workupCase: WorkupCase }) {
               <AuscultationPanel
                 unlocked={usedTools.has("auscultate")}
                 auscultation={workupCase.auscultation}
-                onUnlock={() => useTool("auscultate")}
+                onUnlock={() => markToolUsed("auscultate")}
               />
             </div>
 
             {/* Standard Clipboard for Checklist */}
             <div className="w-[320px] h-full self-start mt-6 transition-transform duration-500 hover:translate-y-[-10px]" style={{ transform: "rotate(-1deg)" }}>
-              <ChecklistPanel usedTools={usedTools} onUseTool={useTool} />
+              <ChecklistPanel usedTools={usedTools} onUseTool={markToolUsed} />
             </div>
           </div>
         </div>

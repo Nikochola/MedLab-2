@@ -132,18 +132,6 @@ async function reconcileLegacyUserByEmail(input: {
   await safeUpdateTable("student_progress", "student_id", legacyUserId, input.canonicalUserId)
   await safeUpdateTable("student_activities", "student_id", legacyUserId, input.canonicalUserId)
 
-  try {
-    await supabaseAdmin.from("user_identities").upsert(
-      {
-        canonical_user_id: input.canonicalUserId,
-        legacy_user_id: legacyUserId,
-        email: input.canonicalEmail
-      },
-      { onConflict: "legacy_user_id" }
-    )
-  } catch {
-    // user_identities table is optional for backward compatibility.
-  }
 }
 
 async function getLegacySessionFromCookie(): Promise<SessionData | null> {
@@ -256,31 +244,8 @@ export async function ensureAppUser(session: Awaited<ReturnType<typeof getServer
   return { id: userId, email, name, avatarUrl }
 }
 
-export async function getMembershipLookupUserIds(canonicalUserId: string) {
-  if (!hasSupabaseServiceRole) {
-    return [canonicalUserId]
-  }
-
-  const ids = new Set<string>([canonicalUserId])
-
-  try {
-    const { data, error } = await supabaseAdmin
-      .from("user_identities")
-      .select("legacy_user_id")
-      .eq("canonical_user_id", canonicalUserId)
-
-    if (!error) {
-      for (const row of data || []) {
-        if (row.legacy_user_id) {
-          ids.add(String(row.legacy_user_id))
-        }
-      }
-    }
-  } catch {
-    // Mapping table is optional.
-  }
-
-  return Array.from(ids)
+export function getMembershipLookupUserIds(canonicalUserId: string) {
+  return [canonicalUserId]
 }
 
 export async function resolveRoleForUser(userId: string): Promise<AppRole> {

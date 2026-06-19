@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateStepIntroduction } from "@/lib/ai/aiClient"
+import { authorizeAiRequest } from "@/lib/ai/guard"
 
 export async function POST(request: NextRequest) {
     try {
+        const access = await authorizeAiRequest()
+        if (!access.ok) return access.response
+
         const body = await request.json()
         const { step, context, specialty } = body
 
@@ -18,6 +22,8 @@ export async function POST(request: NextRequest) {
             context,
             specialty
         )
+
+        await access.commitUsage()
 
         return NextResponse.json({ introduction })
     } catch (error) {

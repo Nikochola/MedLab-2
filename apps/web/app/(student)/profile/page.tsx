@@ -349,7 +349,7 @@ function FriendsSection({ userId }: { userId: string }) {
         </div>
       )}
       {searchResults.length === 0 && query && !searching && (
-        <p className="text-xs mb-4" style={{ color: "#9B9A94" }}>No users found for "{query}".</p>
+        <p className="text-xs mb-4" style={{ color: "#9B9A94" }}>No users found for &quot;{query}&quot;.</p>
       )}
 
       {/* Incoming requests */}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { CheckCircle, ClockCountdown, WarningCircle } from "@phosphor-icons/react"
@@ -20,10 +20,11 @@ export default function BillingSuccessPage() {
   const [state, setState] = useState<SyncState>("syncing")
   const [message, setMessage] = useState("Confirming your subscription and refreshing access.")
 
-  const nextPath = useMemo(() => {
+  // Keep a stable initial value; update from URL only on the client to avoid hydration mismatch.
+  const [nextPath, setNextPath] = useState("/learn")
+  useEffect(() => {
     const next = searchParams.get("next")
-    if (!next || !next.startsWith("/") || next.startsWith("//")) return "/learn"
-    return next
+    if (next && next.startsWith("/") && !next.startsWith("//")) setNextPath(next)
   }, [searchParams])
 
   useEffect(() => {

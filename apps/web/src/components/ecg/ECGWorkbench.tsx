@@ -9,7 +9,7 @@ import { generateRandomECGParams, ECGWaveformParams } from "@/components/ecg/ECG
 import { generateRandomCase, PatientCase } from "@/components/case-based/CaseGenerator"
 import { InterpretationStep, INTERPRETATION_STEPS, STEP_QUESTIONS } from "@/lib/constants"
 import { validateAnswer, getHintsForStep } from "@/lib/answerValidation"
-import { ZoomIn, ZoomOut, Activity, X, AlertCircle } from "lucide-react"
+import { ZoomIn, ZoomOut, Activity, X, AlertCircle, ChevronDown } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { toast } from "sonner"
 import { mutate } from "swr"
@@ -26,10 +26,15 @@ export function ECGWorkbench({
   presetParams?: ECGWaveformParams
 }) {
   const [mode, setMode] = useState<Mode>(initialMode)
-  const [ecgParams, setEcgParams] = useState<ECGWaveformParams>(presetParams ?? generateRandomECGParams())
+  // Use a stable default on the first render so server and client produce identical HTML.
+  // The useEffect below replaces it with random params (or preset) immediately after mount.
+  const [ecgParams, setEcgParams] = useState<ECGWaveformParams>(
+    presetParams ?? { heartRate: 75, rhythm: "normal", abnormalities: {} }
+  )
   const [currentStep, setCurrentStep] = useState<InterpretationStep>(INTERPRETATION_STEPS[0])
   const [currentCase, setCurrentCase] = useState<PatientCase | null>(presetCase ?? null)
   const [zoom, setZoom] = useState(1)
+  const [historyCollapsed, setHistoryCollapsed] = useState(false)
   const { user, setWorkbenchMode } = useAuth()
   const router = useRouter()
 
@@ -57,6 +62,7 @@ export function ECGWorkbench({
       setEcgParams(newCase.ecgParams)
     }
     setZoom(1)
+    setHistoryCollapsed(false)
   }, [initialMode, presetCase, presetParams])
 
   const nudgeZoom = (delta: number) => {
@@ -109,7 +115,7 @@ export function ECGWorkbench({
           action: "ecg_step_correct",
           data: { step: currentStep }
         }),
-      }).then(() => mutate(`/api/student/stats?studentId=${user.id}`))
+      }).then(() => mutate("/api/student/stats"))
     }
 
     return { isCorrect, message, explanation }
@@ -162,11 +168,11 @@ export function ECGWorkbench({
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
 
         {/* LEFT PANEL: AI Tutor or Case Info */}
-        <div
-          className="w-full lg:w-[400px] flex-shrink-0 overflow-y-auto"
-          style={{ borderRight: "1px solid #E8E6DF" }}
-        >
-          {mode === "simulation" ? (
+        {mode === "simulation" && (
+          <div
+            className="w-full lg:w-[400px] flex-shrink-0 overflow-y-auto"
+            style={{ borderRight: "1px solid #E8E6DF" }}
+          >
             <DoctorPanel
               currentStep={currentStep}
               onAnswerSubmit={handleAnswerSubmit}
@@ -174,45 +180,44 @@ export function ECGWorkbench({
               hints={hints}
               ecgParams={ecgParams}
             />
-          ) : (
-            <div className="flex flex-col p-6 space-y-5 h-full">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: "#9B9A94" }}>Clinical Context</p>
-                <h2 className="text-xl font-semibold" style={{ color: "#0E0F12" }}>{currentCase?.age}-year-old {currentCase?.gender}</h2>
-                <p className="text-sm mt-1" style={{ color: "#6B6A65" }}>{currentCase?.chiefComplaint}</p>
-              </div>
-
-              <div className="rounded-xl px-4 py-3" style={{ backgroundColor: "#EEF3FF", border: "1px solid #C7D9FF" }}>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <AlertCircle className="h-3.5 w-3.5" style={{ color: "#0066FF" }} />
-                  <span className="text-xs font-semibold" style={{ color: "#0066FF" }}>Presenting History</span>
-                </div>
-                <p className="text-sm leading-relaxed" style={{ color: "#0E0F12" }}>{currentCase?.historyOfPresentIllness}</p>
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: "#9B9A94" }}>Medical Background</p>
-                <p
-                  className="text-sm leading-relaxed rounded-xl px-4 py-3"
-                  style={{ color: "#6B6A65", backgroundColor: "#F5F5F3" }}
-                >
-                  {currentCase?.pastMedicalHistory}
-                </p>
-              </div>
-
-              <div className="flex-1 flex items-center justify-center rounded-xl px-4 py-6" style={{ border: "1px dashed #E8E6DF" }}>
-                <p className="text-xs text-center" style={{ color: "#9B9A94" }}>
-                  Analyze the rhythm strips, then complete the assessment form.
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* MAIN AREA: ECG Display */}
         <div className="flex-1 relative overflow-hidden flex flex-col" style={{ backgroundColor: "#FAFAF8" }}>
+          {mode === "case-based" && (
+            <div className="absolute bottom-4 left-4 z-20 w-[min(360px,calc(100%-2rem))] rounded-xl px-4 py-3 shadow-sm" style={{ backgroundColor: "#EEF3FF", border: "1px solid #C7D9FF" }}>
+              <button
+                type="button"
+                onClick={() => setHistoryCollapsed((collapsed) => !collapsed)}
+                className="flex w-full items-center justify-between gap-3 text-left"
+              >
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-3.5 w-3.5" style={{ color: "#0066FF" }} />
+                  <span className="text-xs font-semibold" style={{ color: "#0066FF" }}>Presenting History</span>
+                </div>
+                <ChevronDown
+                  className={`h-4 w-4 shrink-0 transition-transform duration-300 ease-out ${historyCollapsed ? "rotate-180" : "rotate-0"}`}
+                  style={{ color: "#0066FF" }}
+                />
+              </button>
+              <div
+                className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${historyCollapsed ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100"}`}
+              >
+                <div className="overflow-hidden">
+                  <p
+                    className={`text-sm leading-relaxed transition-[transform,opacity,margin] duration-300 ease-out ${historyCollapsed ? "mt-0 -translate-y-1 opacity-0" : "mt-2 translate-y-0 opacity-100"}`}
+                    style={{ color: "#0E0F12" }}
+                  >
+                    {currentCase?.historyOfPresentIllness}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Zoom controls */}
-          <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5">
+          <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5">
             <button
               onClick={() => nudgeZoom(0.25)}
               className="flex items-center justify-center h-9 w-9 rounded-lg transition-colors"

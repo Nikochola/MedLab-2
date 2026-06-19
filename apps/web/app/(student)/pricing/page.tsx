@@ -65,7 +65,9 @@ function getIntervalFromSearch(value: string | null): BillingInterval {
 export default function PricingPage() {
   const searchParams = useSearchParams()
   const { plan, status, isLoading, refresh } = useGating()
-  const [interval, setInterval] = useState<BillingInterval>(getIntervalFromSearch(searchParams.get("interval")))
+  // Initialize with a stable default; the useEffect below syncs from the URL on the client.
+  // Using searchParams.get() synchronously in useState causes a server/client mismatch.
+  const [interval, setInterval] = useState<BillingInterval>("yearly")
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [portalLoading, setPortalLoading] = useState(false)
   const autoCheckoutStarted = useRef(false)

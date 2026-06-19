@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react"
 import { Lightbulb, Activity, Send, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { handleAiLimit } from "@/lib/ai/aiClientErrors"
 import type { XRayPathologyType, XRaySeverity, XRayView } from "@/lib/xray/types"
 
 const DR_RAY_AVATAR = "https://api.dicebear.com/9.x/big-smile/svg?seed=dr-ray-radiology&hair=wavyBob&eyes=normal&mouth=openedSmile&skinColor=efcc9f&hairColor=71635a&backgroundColor=eef3ff&scale=90&radius=50&accessoriesProbability=0"
@@ -149,6 +150,8 @@ export function XRayDoctorPanel({
                         isFreeConsult: true
                     })
                 })
+
+                if (handleAiLimit(response)) return
 
                 if (response.ok) {
                     const data = await response.json()

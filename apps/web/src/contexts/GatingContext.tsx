@@ -2,6 +2,7 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { FREE_PRACTICE_DAILY_LIMIT } from "@/lib/freeTier";
 import { useAuth } from "./AuthContext";
 
 type Plan = "free" | "pro";
@@ -147,12 +148,12 @@ export function GatingProvider({ children }: { children: React.ReactNode }) {
 
         if (entitlement === "ecg.practice") {
             const currentUsage = usage["ecg_practice"] || 0;
-            return currentUsage < 3;
+            return currentUsage < FREE_PRACTICE_DAILY_LIMIT;
         }
 
         if (entitlement === "xray.practice") {
             const currentUsage = usage["xray_practice"] || 0;
-            return currentUsage < 3;
+            return currentUsage < FREE_PRACTICE_DAILY_LIMIT;
         }
 
         if (entitlement === "ecg.cases") return false;

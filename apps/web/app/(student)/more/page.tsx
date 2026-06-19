@@ -707,7 +707,7 @@ function InstitutionMaterials() {
             </div>
             <p className="text-base font-bold" style={{ color: "#0E0F12" }}>No materials yet</p>
             <p className="mt-2 max-w-xs text-sm" style={{ color: "#9B9A94" }}>
-              Your institution hasn't uploaded any materials yet. Check back later or contact your administrator.
+              Your institution hasn&apos;t uploaded any materials yet. Check back later or contact your administrator.
             </p>
           </div>
         )}

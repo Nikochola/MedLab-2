@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { validateAnswerWithAI } from "@/lib/ai/aiClient"
+import { authorizeAiRequest } from "@/lib/ai/guard"
 
 export async function POST(request: NextRequest) {
   try {
+    const access = await authorizeAiRequest()
+    if (!access.ok) return access.response
+
     const body = await request.json()
     const { studentAnswer, question, context, correctAnswer, specialty } = body
 
@@ -20,6 +24,8 @@ export async function POST(request: NextRequest) {
       correctAnswer,
       specialty
     )
+
+    await access.commitUsage()
 
     return NextResponse.json(result)
   } catch (error) {

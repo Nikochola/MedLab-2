@@ -5,6 +5,7 @@ import { Lightbulb, Activity, Send, Loader2 } from "lucide-react"
 import { ECGWaveformParams } from "@/components/ecg/ECGWaveformGenerator"
 import { InterpretationStep, STEP_QUESTIONS } from "@/lib/constants"
 import { cn } from "@/lib/utils"
+import { handleAiLimit } from "@/lib/ai/aiClientErrors"
 
 const DR_SMITH_AVATAR = "https://api.dicebear.com/9.x/big-smile/svg?seed=dr-smith-ecg&hair=shortHair&eyes=cheery&mouth=teethSmile&skinColor=d5a87a&hairColor=3a1a00&backgroundColor=EEF3FF&scale=90&radius=50&accessoriesProbability=100&accessories=glasses"
 
@@ -145,6 +146,8 @@ export function DoctorPanel({
             isFreeConsult: true
           })
         })
+
+        if (handleAiLimit(response)) return
 
         if (response.ok) {
           const data = await response.json()
