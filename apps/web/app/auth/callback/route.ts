@@ -61,8 +61,19 @@ async function ensureOAuthProfile(user: User) {
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code")
   const next = request.nextUrl.searchParams.get("next") ?? "/"
+  const oauthError = request.nextUrl.searchParams.get("error")
+  const oauthErrorDescription = request.nextUrl.searchParams.get("error_description")
 
   if (!code) {
+    if (oauthError) {
+      const url = new URL("/student/login", request.url)
+      url.searchParams.set("error", oauthError)
+      if (oauthErrorDescription) {
+        url.searchParams.set("error_description", oauthErrorDescription)
+      }
+      return NextResponse.redirect(url)
+    }
+
     return NextResponse.redirect(new URL("/student/login?error=oauth_missing_code", request.url))
   }
 

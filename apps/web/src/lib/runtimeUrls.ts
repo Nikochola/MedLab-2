@@ -6,10 +6,15 @@ function ensureLeadingSlash(pathname: string) {
   return pathname.startsWith("/") ? pathname : `/${pathname}`
 }
 
+function getDefaultAppOrigin() {
+  if (process.env.NODE_ENV === "development") return "http://localhost:3015"
+  return "https://app.medlabinteractive.com"
+}
+
 /** Origin for the current app — used when an absolute URL is needed for same-app links. */
 function getCurrentOrigin() {
   if (typeof window !== "undefined") return window.location.origin
-  return process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "http://localhost:3015"
+  return process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || getDefaultAppOrigin()
 }
 
 export function getInstitutionAppOrigin() {
@@ -32,7 +37,9 @@ export function getStudentAppOrigin() {
   return stripTrailingSlash(
     process.env.NEXT_PUBLIC_STUDENT_APP_URL ||
       process.env.STUDENT_APP_URL ||
-      getCurrentOrigin()
+      process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.APP_URL ||
+      getDefaultAppOrigin()
   )
 }
 
@@ -53,4 +60,10 @@ export function buildStudentAppUrl(pathname: string) {
   const path = ensureLeadingSlash(pathname)
   if (typeof window !== "undefined" && origin === window.location.origin) return path
   return `${origin}${path}`
+}
+
+export function buildAuthCallbackUrl(next?: string | null) {
+  const url = new URL("/auth/callback", getStudentAppOrigin())
+  if (next) url.searchParams.set("next", next)
+  return url.toString()
 }

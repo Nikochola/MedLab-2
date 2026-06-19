@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { buildInstitutionUrl, buildStudentAppUrl, buildMarketingUrl } from "@/lib/runtimeUrls";
+import { buildAuthCallbackUrl, buildInstitutionUrl, buildStudentAppUrl, buildMarketingUrl } from "@/lib/runtimeUrls";
 
 function GoogleIcon() {
     return (
@@ -39,9 +39,7 @@ export default function LoginForm({
         const { error } = await supabase.auth.signInWithOAuth({
             provider: "google",
             options: {
-                redirectTo: next
-                    ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
-                    : `${window.location.origin}/auth/callback`,
+                redirectTo: buildAuthCallbackUrl(next),
             },
         });
         if (error) {

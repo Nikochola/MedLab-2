@@ -6,6 +6,7 @@ import { signUpStudent } from "@/server/actions/auth";
 import { User, Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { buildAuthCallbackUrl } from "@/lib/runtimeUrls";
 
 function GoogleIcon() {
     return (
@@ -35,7 +36,7 @@ function StudentSignupForm() {
         const { error } = await supabase.auth.signInWithOAuth({
             provider: "google",
             options: {
-                redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
+                redirectTo: buildAuthCallbackUrl(nextPath),
             },
         });
         if (error) {
