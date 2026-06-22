@@ -168,7 +168,7 @@ export default function PricingPage() {
   const price = interval === "monthly" ? "$12" : "$99"
   const periodLabel = interval === "monthly" ? "/month" : "/year"
   const subline = interval === "monthly" ? "Billed monthly" : "Equivalent to $8.25/month, billed yearly"
-  const primaryActionLabel = interval === "monthly" ? "Upgrade to Pro Monthly" : "Upgrade to Pro Yearly"
+  const primaryActionLabel = "Start 7-day free trial"
 
   return (
     <div className="h-full flex items-center justify-center px-6 py-6 lg:px-12">
@@ -191,7 +191,7 @@ export default function PricingPage() {
             Unlock everything in MedLab
           </h1>
           <p className="mb-8 max-w-[480px] text-[14px] leading-relaxed" style={{ color: "#6B6A65" }}>
-            Upgrade for unlimited practice, full case access, and complete performance analytics. Your existing free progress stays intact.
+            Start with a 7-day free trial for unlimited practice, full case access, and complete performance analytics. Your existing free progress stays intact.
           </p>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -325,7 +325,7 @@ export default function PricingPage() {
           )}
 
           <p className="mt-4 text-center text-[11px] leading-relaxed" style={{ color: "#9B9A94" }}>
-            Secure checkout via Dodo Payments. Cancel from the billing portal at any time.
+            7-day free trial. Secure checkout via Dodo Payments. Cancel from the billing portal at any time.
           </p>
 
           <div className="mt-5 border-t pt-5" style={{ borderTopColor: "#E8E6DF" }}>

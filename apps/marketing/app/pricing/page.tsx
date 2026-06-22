@@ -81,9 +81,9 @@ function PricingCards({ yearly }: { yearly: boolean }) {
       period: yearly ? "/ year" : "/ month",
       subline: yearly ? "equivalent to $8.25 / month" : "billed monthly",
       badge: "MOST POPULAR",
-      description: "Unlimited practice with full AI-powered patient simulations.",
+      description: "Start with a 7-day free trial, then continue with unlimited AI-powered patient simulations.",
       features: ["Unlimited cases", "Full AI patient simulations", "Detailed performance analytics", "All specialties unlocked", "Early access to new modules", "Downloadable progress reports", "Priority support"],
-      cta: yearly ? "Start Pro — Yearly" : "Start Pro",
+      cta: "Start 7-day free trial",
       highlighted: true,
       href: buildStudentBillingAuthHref({ interval: yearly ? "yearly" : "monthly", source: "marketing" }),
     },
@@ -194,7 +194,7 @@ export default function PricingPage() {
         </InView>
         <InView>
           <div style={{ maxWidth: 1080, margin: "0 auto" }}>
-            <p style={{ fontSize: 13, color: "#9B9A94", marginTop: 20, textAlign: "center" }}>All plans include access to the MedLab web platform. Pro upgrades can be cancelled anytime.</p>
+            <p style={{ fontSize: 13, color: "#9B9A94", marginTop: 20, textAlign: "center" }}>All plans include access to the MedLab web platform. Pro starts with a 7-day free trial and can be cancelled anytime.</p>
             <InstitutionBanner />
             <FAQAccordion items={faqs} />
           </div>
