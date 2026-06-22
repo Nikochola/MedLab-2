@@ -210,6 +210,27 @@ function getIntervalFromFrequency(value?: string | null): BillingInterval | null
   return null
 }
 
+function isLocalProStatus(status: LocalSubscriptionStatus) {
+  return status === "active" || status === "trialing"
+}
+
+function normalizePaymentStatus(status?: string | null) {
+  return status?.trim().toLowerCase() || null
+}
+
+function isSuccessfulPaymentStatus(status?: string | null) {
+  return normalizePaymentStatus(status) === "succeeded"
+}
+
+function isTerminalFailedPaymentStatus(status?: string | null) {
+  const normalized = normalizePaymentStatus(status)
+  return normalized === "failed" ||
+    normalized === "cancelled" ||
+    normalized === "requires_payment_method" ||
+    normalized === "requires_merchant_action" ||
+    normalized === "requires_confirmation"
+}
+
 export function mapDodoStatusToLocalStatus(status?: string | null): LocalSubscriptionStatus {
   switch ((status || "").trim().toLowerCase()) {
     case "active":
@@ -309,6 +330,22 @@ export async function listDodoSubscriptionsForCustomer(customerId: string) {
   })
   const response = await dodoFetch<DodoSubscriptionListResponse>("/subscriptions", undefined, params)
   return response.items || []
+}
+
+async function findLatestProSubscriptionForCustomer(customerId: string) {
+  const subscriptions = await listDodoSubscriptionsForCustomer(customerId)
+  const matchingProductIds = new Set([
+    process.env.DODO_PRODUCT_ID_PRO_MONTHLY,
+    process.env.DODO_PRODUCT_ID_PRO_YEARLY,
+  ].filter((value): value is string => Boolean(value)))
+
+  return subscriptions
+    .filter((subscription) => matchingProductIds.size === 0 || matchingProductIds.has(subscription.product_id || ""))
+    .sort((a, b) => {
+      const aDate = new Date((a as DodoSubscription & { created_at?: string | null }).created_at || 0).getTime()
+      const bDate = new Date((b as DodoSubscription & { created_at?: string | null }).created_at || 0).getTime()
+      return bDate - aDate
+    })[0] || null
 }
 
 async function resolveUserIdForSubscription(subscription: DodoSubscription) {
@@ -482,51 +519,112 @@ export async function resolveCustomerPortalTarget(input: {
   return customer?.customer_id || null
 }
 
+async function markFailedCheckoutInactive(input: {
+  userId: string
+  customerId?: string | null
+  subscriptionId?: string | null
+  paymentStatus?: string | null
+}) {
+  const payload = {
+    status: "inactive" as LocalSubscriptionStatus,
+    provider_status: input.paymentStatus || "failed",
+    ...(input.customerId ? { dodo_customer_id: input.customerId } : {}),
+    ...(input.subscriptionId ? { dodo_subscription_id: input.subscriptionId } : {}),
+    updated_at: new Date().toISOString(),
+  }
+
+  if (input.subscriptionId) {
+    const { data, error } = await supabaseAdmin
+      .from("subscriptions")
+      .update(payload)
+      .eq("dodo_subscription_id", input.subscriptionId)
+      .select("id")
+
+    if (error) {
+      throw new Error(`Failed to revoke failed checkout subscription: ${error.message}`)
+    }
+    if (data?.length) return
+  }
+
+  const { error } = await supabaseAdmin
+    .from("subscriptions")
+    .update(payload)
+    .eq("user_id", input.userId)
+    .eq("provider", "dodo")
+
+  if (error) {
+    throw new Error(`Failed to revoke failed checkout subscription: ${error.message}`)
+  }
+}
+
 export async function syncCheckoutReturn(input: {
   userId: string
   email: string
   subscriptionId?: string | null
   sessionId?: string | null
 }) {
+  let paymentStatus: string | null = null
+  let checkoutEmail: string | null = null
+
+  if (input.sessionId) {
+    const checkout = await retrieveDodoCheckoutSession(input.sessionId)
+    paymentStatus = checkout.payment_status || null
+    checkoutEmail = checkout.customer_email?.trim().toLowerCase() || null
+
+    if (!isSuccessfulPaymentStatus(paymentStatus)) {
+      if (isTerminalFailedPaymentStatus(paymentStatus)) {
+        const email = checkoutEmail || input.email.trim().toLowerCase()
+        const customer = await findDodoCustomerByEmail(email)
+        const latest = customer?.customer_id
+          ? await findLatestProSubscriptionForCustomer(customer.customer_id)
+          : null
+
+        await markFailedCheckoutInactive({
+          userId: input.userId,
+          customerId: customer?.customer_id || null,
+          subscriptionId: latest?.subscription_id || null,
+          paymentStatus,
+        })
+      }
+
+      return { subscriptionId: null, paymentStatus }
+    }
+  }
+
   if (input.subscriptionId) {
     const subscription = await retrieveDodoSubscription(input.subscriptionId)
+    const localStatus = mapDodoStatusToLocalStatus(subscription.status)
+
     await syncSubscriptionFromDodo(subscription)
-    return { subscriptionId: subscription.subscription_id, paymentStatus: "succeeded" }
+    return {
+      subscriptionId: isLocalProStatus(localStatus) ? subscription.subscription_id : null,
+      paymentStatus: paymentStatus || (isLocalProStatus(localStatus) ? "succeeded" : null),
+    }
   }
 
   if (!input.sessionId) {
     throw new DodoApiError("Missing checkout session identifier.", 400)
   }
 
-  const checkout = await retrieveDodoCheckoutSession(input.sessionId)
-  const paymentStatus = checkout.payment_status || null
-  const email = checkout.customer_email?.trim().toLowerCase() || input.email.trim().toLowerCase()
+  const email = checkoutEmail || input.email.trim().toLowerCase()
 
   const customer = await findDodoCustomerByEmail(email)
   if (!customer?.customer_id) {
     return { subscriptionId: null, paymentStatus }
   }
 
-  const subscriptions = await listDodoSubscriptionsForCustomer(customer.customer_id)
-  const matchingProductIds = new Set([
-    process.env.DODO_PRODUCT_ID_PRO_MONTHLY,
-    process.env.DODO_PRODUCT_ID_PRO_YEARLY,
-  ].filter((value): value is string => Boolean(value)))
-
-  const latest = subscriptions
-    .filter((subscription) => matchingProductIds.size === 0 || matchingProductIds.has(subscription.product_id || ""))
-    .sort((a, b) => {
-      const aDate = new Date((a as DodoSubscription & { created_at?: string | null }).created_at || 0).getTime()
-      const bDate = new Date((b as DodoSubscription & { created_at?: string | null }).created_at || 0).getTime()
-      return bDate - aDate
-    })[0]
-
+  const latest = await findLatestProSubscriptionForCustomer(customer.customer_id)
   if (!latest?.subscription_id) {
     return { subscriptionId: null, paymentStatus }
   }
 
   const subscription = await retrieveDodoSubscription(latest.subscription_id)
+  const localStatus = mapDodoStatusToLocalStatus(subscription.status)
+
   await syncSubscriptionFromDodo(subscription)
 
-  return { subscriptionId: subscription.subscription_id, paymentStatus }
+  return {
+    subscriptionId: isLocalProStatus(localStatus) ? subscription.subscription_id : null,
+    paymentStatus,
+  }
 }

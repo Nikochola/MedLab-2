@@ -104,7 +104,7 @@ function ProfileNavItem({ avatarUrl, userId }: { avatarUrl?: string | null; user
   )
 }
 
-const PREFETCH_ROUTES = ["/learn", "/practice", "/progress", "/more", "/profile", "/ecg", "/xray", "/journey", "/shop", "/pricing"]
+const BASE_PREFETCH_ROUTES = ["/learn", "/practice", "/progress", "/more", "/profile", "/ecg", "/xray", "/journey", "/shop"]
 
 export function ShellSidebar() {
   const { user } = useAuth()
@@ -116,10 +116,13 @@ export function ShellSidebar() {
     user?.role === "teacher" ||
     user?.role === "institution_admin" ||
     user?.role === "admin"
+  const hasProAccess = plan === "pro" && (status === "active" || status === "trialing")
+  const showUpgrade = !isEducator && !hasProAccess
 
   useEffect(() => {
-    PREFETCH_ROUTES.forEach((route) => router.prefetch(route))
-  }, [router])
+    const routes = showUpgrade ? [...BASE_PREFETCH_ROUTES, "/pricing"] : BASE_PREFETCH_ROUTES
+    routes.forEach((route) => router.prefetch(route))
+  }, [router, showUpgrade])
 
   return (
     <aside
@@ -140,7 +143,7 @@ export function ShellSidebar() {
         {navItems.map((item) => (
           <ShellNavItem key={item.label} {...item} isCollapsed={false} />
         ))}
-        {!isEducator && !(plan === "pro" && (status === "active" || status === "trialing")) && (
+        {showUpgrade && (
           <ShellNavItem
             href="/pricing"
             label="Upgrade"
