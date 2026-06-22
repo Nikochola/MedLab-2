@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
+import { Alignment, Fit, Layout, useRive } from "@rive-app/react-canvas"
 import {
   Loader2, Sparkles, ChevronRight, ChevronLeft, Check,
   ThumbsUp, AlertCircle, BookOpen, XCircle, Trophy, Zap,
@@ -40,6 +41,11 @@ const STEPS = [
   { id: "waveforms", title: "Waveform Abnormalities", subtitle: "Select all that apply, or continue if none." },
   { id: "diagnosis", title: "Final Diagnosis",        subtitle: "Summarise your ECG interpretation." },
 ]
+
+const STREAK_FIRE_LAYOUT = new Layout({
+  fit: Fit.Contain,
+  alignment: Alignment.Center,
+})
 
 function isStepComplete(stepId: string, formData: AssessmentFormData): boolean {
   switch (stepId) {
@@ -120,6 +126,31 @@ function AnimationPlaceholder({ label, className }: { label: string; className?:
   )
 }
 
+function StreakFireAnimation() {
+  const { RiveComponent } = useRive({
+    src: "/animations/dynamic-streak-fire.riv",
+    autoplay: true,
+    layout: STREAK_FIRE_LAYOUT,
+  })
+
+  return (
+    <div
+      className="relative h-48 w-full max-w-xs overflow-hidden rounded-3xl border-2 border-[#FED7AA] bg-[#FFF7ED]"
+      aria-label="Streak fire animation"
+      role="img"
+    >
+      <div
+        className="absolute inset-x-8 bottom-0 top-10 rounded-full opacity-60 blur-2xl"
+        style={{ background: "radial-gradient(circle, rgba(255,200,0,0.55) 0%, rgba(234,88,12,0.18) 58%, rgba(234,88,12,0) 72%)" }}
+      />
+      <RiveComponent
+        className="relative h-full w-full"
+        aria-hidden="true"
+      />
+    </div>
+  )
+}
+
 // ── Counts from 0 up to `target` over `duration` ms ─────────────────────────
 function useCountUp(target: number, duration = 1000) {
   const [count, setCount] = useState(0)
@@ -168,7 +199,7 @@ function CelebScreen2({ streak, onContinue }: { streak: number; onContinue: () =
   const count = useCountUp(streak, 900)
   return (
     <>
-      <AnimationPlaceholder label="Streak animation" className="h-44 w-full max-w-xs" />
+      <StreakFireAnimation />
 
       <div
         className="flex flex-col items-center gap-1"
