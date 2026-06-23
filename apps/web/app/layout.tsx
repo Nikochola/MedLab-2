@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Instrument_Sans } from "next/font/google"
+import Script from "next/script"
 import { Toaster } from "sonner"
 
 import "./globals.css"
@@ -23,6 +24,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${instrumentSans.variable} antialiased`}>
+        <Script
+          defer
+          data-website-id="dfid_GOAXYCcC4YzgRGLJFgj8q"
+          data-domain="medlabinteractive.com"
+          src="https://datafa.st/js/script.js"
+        />
         <AuthProvider>
           <GatingProvider>
             {children}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Instrument_Sans } from "next/font/google"
+import Script from "next/script"
 import "./globals.css"
 
 const siteUrl = new URL(
@@ -60,6 +61,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${instrumentSans.variable} scroll-smooth`}>
       <body className="antialiased" style={{ backgroundColor: "#F8F7F2", color: "#0E0F12", fontFamily: "var(--font-instrument-sans), system-ui, sans-serif" }}>
+        <Script
+          defer
+          data-website-id="dfid_GOAXYCcC4YzgRGLJFgj8q"
+          data-domain="medlabinteractive.com"
+          src="https://datafa.st/js/script.js"
+        />
         {children}
       </body>
     </html>
