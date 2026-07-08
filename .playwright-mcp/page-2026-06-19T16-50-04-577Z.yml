@@ -1,0 +1,230 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic "Simulator status" [ref=e5]:
+        - button "Toggle simulators sidebar" [pressed] [ref=e6] [cursor=pointer]:
+          - generic [ref=e7]: iPhone 17
+        - generic [ref=e8]: connecting
+      - generic [ref=e10]:
+        - generic [ref=e17]: Connecting...
+        - separator "Resize simulator width. Drag the corner or use Left and Right Arrow keys; hold Shift for larger steps." [ref=e18]:
+          - img
+        - generic: 247 × 533
+      - generic [ref=e19]:
+        - generic "Simulator actions" [ref=e20]:
+          - generic [ref=e21]:
+            - button "Home" [disabled] [ref=e22]:
+              - img [ref=e23]
+              - tooltip: Home
+            - button "Screenshot" [disabled] [ref=e25]:
+              - img [ref=e26]
+              - tooltip: Screenshot
+            - button "Rotate device" [disabled] [ref=e28]:
+              - img [ref=e29]
+              - tooltip: Rotate device
+        - generic "Accessibility overlay" [ref=e33]:
+          - button "Show accessibility overlay" [disabled] [ref=e34]:
+            - img [ref=e35]
+            - tooltip: AX off
+    - generic:
+      - button "Open tools panel" [pressed]:
+        - img
+      - button "Open WebKit DevTools":
+        - img
+    - complementary [ref=e38]:
+      - generic [ref=e39]:
+        - generic [ref=e40]: Tools
+        - button "Close panel" [ref=e41] [cursor=pointer]:
+          - img [ref=e42]
+      - generic [ref=e45]:
+        - generic "Waiting for foreground app" [ref=e46]
+        - group [ref=e53]:
+          - generic "Simulator" [ref=e54] [cursor=pointer]:
+            - generic [ref=e55]: Simulator
+            - img [ref=e56]
+          - generic [ref=e59]:
+            - generic [ref=e60]:
+              - generic [ref=e61]:
+                - img [ref=e63]
+                - text: Appearance
+              - button "Appearance" [disabled] [ref=e68]:
+                - generic [ref=e69]: Light
+            - generic [ref=e70]:
+              - generic [ref=e71]:
+                - img [ref=e73]
+                - text: Liquid Glass
+              - button "Liquid Glass" [disabled] [ref=e78]:
+                - generic [ref=e79]: Clear
+            - generic [ref=e80]:
+              - generic [ref=e81]:
+                - img [ref=e83]
+                - text: Color Filter
+              - button "Color Filter" [disabled] [ref=e88]:
+                - generic [ref=e89]: None
+            - generic [ref=e90]:
+              - generic [ref=e91]:
+                - img [ref=e93]
+                - text: Text Size
+              - slider "Text Size" [disabled] [ref=e97]: "3"
+            - generic [ref=e98]:
+              - generic [ref=e99]:
+                - img [ref=e101]
+                - text: Reduce Motion
+              - switch "Reduce Motion" [disabled] [ref=e105]
+            - generic [ref=e107]:
+              - generic [ref=e108]:
+                - img [ref=e110]
+                - text: Increase Contrast
+              - switch "Increase Contrast" [disabled] [ref=e114]
+            - generic [ref=e116]:
+              - generic [ref=e117]:
+                - img [ref=e119]
+                - text: Show Borders
+              - switch "Show Borders" [disabled] [ref=e122]
+            - generic [ref=e124]:
+              - generic [ref=e125]:
+                - img [ref=e127]
+                - text: Reduce Transparency
+              - switch "Reduce Transparency" [disabled] [ref=e130]
+            - generic [ref=e132]:
+              - generic [ref=e133]:
+                - img [ref=e135]
+                - text: VoiceOver
+              - switch "VoiceOver" [disabled] [ref=e140]
+        - generic [ref=e143]:
+          - generic [ref=e144]: AX Tree
+          - switch "Enable overlay" [ref=e145] [cursor=pointer]
+        - group [ref=e147]:
+          - generic "Camera Ready" [ref=e148] [cursor=pointer]:
+            - generic [ref=e149]: Camera
+            - generic [ref=e150]: Ready
+            - img [ref=e151]
+        - group [ref=e153]:
+          - generic "Location" [ref=e154] [cursor=pointer]:
+            - generic [ref=e155]: Location
+            - img [ref=e156]
+        - generic [ref=e159]:
+          - generic [ref=e160]: Permissions
+          - status "Loading permissions" [ref=e161]
+    - separator "Resize tools panel" [ref=e162]
+    - complementary:
+      - generic:
+        - generic: No inspectable Safari or WKWebView targets
+        - button:
+          - img
+      - generic:
+        - generic: Open Safari or an inspectable WKWebView in the simulator.
+    - separator
+  - complementary [ref=e163]:
+    - generic [ref=e164]:
+      - button "Close devices sidebar" [pressed] [ref=e165] [cursor=pointer]:
+        - img [ref=e166]
+      - generic [ref=e168]: Devices
+    - generic [ref=e170]:
+      - img [ref=e171]
+      - textbox [ref=e174]:
+        - /placeholder: Search
+    - generic [ref=e176]:
+      - generic [ref=e177]: Available
+      - generic [ref=e178]:
+        - button "iPhone 17 Streaming 26.5 Shut down simulator" [pressed] [ref=e179] [cursor=pointer]:
+          - img [ref=e182]
+          - generic [ref=e185]:
+            - generic [ref=e186]: iPhone 17
+            - generic [ref=e187]: Streaming
+          - generic [ref=e188]:
+            - generic [ref=e189]: "26.5"
+            - button "Shut down simulator" [ref=e190]:
+              - img [ref=e191]
+        - button "iPhone 17 26.4" [ref=e194] [cursor=pointer]:
+          - img [ref=e197]
+          - generic [ref=e200]: iPhone 17
+          - generic [ref=e202]: "26.4"
+        - button "iPhone 17 Pro 26.5" [ref=e203] [cursor=pointer]:
+          - img [ref=e206]
+          - generic [ref=e209]: iPhone 17 Pro
+          - generic [ref=e211]: "26.5"
+        - button "iPhone 17 Pro 26.4" [ref=e212] [cursor=pointer]:
+          - img [ref=e215]
+          - generic [ref=e218]: iPhone 17 Pro
+          - generic [ref=e220]: "26.4"
+        - button "iPhone 17 Pro Max 26.5" [ref=e221] [cursor=pointer]:
+          - img [ref=e224]
+          - generic [ref=e227]: iPhone 17 Pro Max
+          - generic [ref=e229]: "26.5"
+        - button "iPhone 17 Pro Max 26.4" [ref=e230] [cursor=pointer]:
+          - img [ref=e233]
+          - generic [ref=e236]: iPhone 17 Pro Max
+          - generic [ref=e238]: "26.4"
+        - button "iPhone 17e 26.5" [ref=e239] [cursor=pointer]:
+          - img [ref=e242]
+          - generic [ref=e245]: iPhone 17e
+          - generic [ref=e247]: "26.5"
+        - button "iPhone 17e 26.4" [ref=e248] [cursor=pointer]:
+          - img [ref=e251]
+          - generic [ref=e254]: iPhone 17e
+          - generic [ref=e256]: "26.4"
+        - button "iPhone Air 26.5" [ref=e257] [cursor=pointer]:
+          - img [ref=e260]
+          - generic [ref=e263]: iPhone Air
+          - generic [ref=e265]: "26.5"
+        - button "iPhone Air 26.4" [ref=e266] [cursor=pointer]:
+          - img [ref=e269]
+          - generic [ref=e272]: iPhone Air
+          - generic [ref=e274]: "26.4"
+        - button "iPad (A16) 26.5" [ref=e275] [cursor=pointer]:
+          - img [ref=e278]
+          - generic [ref=e281]: iPad (A16)
+          - generic [ref=e283]: "26.5"
+        - button "iPad (A16) 26.4" [ref=e284] [cursor=pointer]:
+          - img [ref=e287]
+          - generic [ref=e290]: iPad (A16)
+          - generic [ref=e292]: "26.4"
+        - button "iPad Air 11-inch (M4) 26.5" [ref=e293] [cursor=pointer]:
+          - img [ref=e296]
+          - generic [ref=e299]: iPad Air 11-inch (M4)
+          - generic [ref=e301]: "26.5"
+        - button "iPad Air 11-inch (M4) 26.4" [ref=e302] [cursor=pointer]:
+          - img [ref=e305]
+          - generic [ref=e308]: iPad Air 11-inch (M4)
+          - generic [ref=e310]: "26.4"
+        - button "iPad Air 13-inch (M4) 26.5" [ref=e311] [cursor=pointer]:
+          - img [ref=e314]
+          - generic [ref=e317]: iPad Air 13-inch (M4)
+          - generic [ref=e319]: "26.5"
+        - button "iPad Air 13-inch (M4) 26.4" [ref=e320] [cursor=pointer]:
+          - img [ref=e323]
+          - generic [ref=e326]: iPad Air 13-inch (M4)
+          - generic [ref=e328]: "26.4"
+        - button "iPad mini (A17 Pro) 26.5" [ref=e329] [cursor=pointer]:
+          - img [ref=e332]
+          - generic [ref=e335]: iPad mini (A17 Pro)
+          - generic [ref=e337]: "26.5"
+        - button "iPad mini (A17 Pro) 26.4" [ref=e338] [cursor=pointer]:
+          - img [ref=e341]
+          - generic [ref=e344]: iPad mini (A17 Pro)
+          - generic [ref=e346]: "26.4"
+        - button "iPad Pro 11-inch (M5) 26.5" [ref=e347] [cursor=pointer]:
+          - img [ref=e350]
+          - generic [ref=e353]: iPad Pro 11-inch (M5)
+          - generic [ref=e355]: "26.5"
+        - button "iPad Pro 11-inch (M5) 26.4" [ref=e356] [cursor=pointer]:
+          - img [ref=e359]
+          - generic [ref=e362]: iPad Pro 11-inch (M5)
+          - generic [ref=e364]: "26.4"
+        - button "iPad Pro 13-inch (M5) 26.5" [ref=e365] [cursor=pointer]:
+          - img [ref=e368]
+          - generic [ref=e371]: iPad Pro 13-inch (M5)
+          - generic [ref=e373]: "26.5"
+        - button "iPad Pro 13-inch (M5) 26.4" [ref=e374] [cursor=pointer]:
+          - img [ref=e377]
+          - generic [ref=e380]: iPad Pro 13-inch (M5)
+          - generic [ref=e382]: "26.4"
+    - generic [ref=e386]:
+      - generic [ref=e387]: 1/35 sims
+      - text: ·
+      - generic [ref=e388]: 12 GB free
+  - separator "Resize simulators sidebar" [ref=e391]
+  - generic:
+    - button "Open devices sidebar" [pressed]:
+      - img
