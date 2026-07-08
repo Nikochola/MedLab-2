@@ -2,8 +2,8 @@
 
 import { useParams } from "next/navigation"
 import { ECGWorkbench } from "@/components/ecg/ECGWorkbench"
-import { XRayWorkbench } from "@/components/xray/XRayWorkbench"
 import { ClinicalWorkupMode } from "@/components/clinical/ClinicalWorkupMode"
+import { RadiologyComingSoon } from "@/components/RadiologyComingSoon"
 import { getTrackById } from "@/lib/tracks/trackData"
 import { getUnitPreset } from "@/lib/tracks/trackCaseData"
 
@@ -16,12 +16,16 @@ export default function UnitPage() {
   const unit = track?.units.find((u) => u.id === unitId)
   const preset = getUnitPreset(unitId)
 
+  if (trackId === "chest-xray") {
+    return <RadiologyComingSoon />
+  }
+
   // No preset — fall back to standard random simulations
   if (!preset) {
     if (trackId === "ecg-fundamentals") {
       return <ECGWorkbench initialMode={unit?.type === "case" ? "case-based" : "simulation"} />
     }
-    return <XRayWorkbench initialMode={unit?.type === "case" ? "case-based" : "simulation"} />
+    return <RadiologyComingSoon />
   }
 
   if (preset.type === "workup") {
@@ -36,10 +40,5 @@ export default function UnitPage() {
     return <ECGWorkbench initialMode="case-based" presetCase={preset.patientCase} />
   }
 
-  return (
-    <XRayWorkbench
-      initialMode={unit?.type === "case" ? "case-based" : "simulation"}
-      presetCase={preset.xrayCase}
-    />
-  )
+  return <RadiologyComingSoon />
 }

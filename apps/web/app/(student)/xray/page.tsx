@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation"
+import { RadiologyComingSoon } from "@/components/RadiologyComingSoon"
 
 export default function XRayPage() {
-  redirect("/ecg")
+  return <RadiologyComingSoon />
 }

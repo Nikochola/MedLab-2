@@ -1,7 +1,5 @@
-"use client"
-
 import { RadiologyComingSoon } from "@/components/RadiologyComingSoon"
 
-export default function XRayCasesPage() {
+export default function CTPage() {
   return <RadiologyComingSoon />
 }

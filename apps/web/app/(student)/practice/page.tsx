@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Activity, ScanSearch, HeartPulse, ClipboardCheck } from "lucide-react"
+import { Activity, ScanSearch, HeartPulse, ClipboardCheck, Clock } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { CalmBrain, FocusFace, RadiologyMascot, MoodDots } from "@/components/illustrations/ConceptCharacters"
@@ -77,7 +77,7 @@ export default function PracticePage() {
 
           <div className="grid gap-6 md:grid-cols-2">
             {/* 2.1 X-Ray Simulation */}
-            <Card variant="conceptPanel" className="group relative flex flex-col justify-between overflow-hidden transition-all hover:translate-y-[-2px] hover:shadow-[0_12px_0_#ddd5cc]">
+            <Card variant="conceptPanel" className="relative flex flex-col justify-between overflow-hidden opacity-75">
               <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -90,13 +90,14 @@ export default function PracticePage() {
                   Clinical radiology viewer with density manipulation, measurements, and orientation drills.
                 </p>
               </div>
-              <Button asChild variant="default" size="lg" className="mt-6 w-full">
-                <Link href="/xray/practice">Launch Simulation</Link>
+              <Button variant="outline" size="lg" className="mt-6 w-full cursor-not-allowed" disabled>
+                <Clock className="mr-2 h-4 w-4" />
+                Coming Soon
               </Button>
             </Card>
 
             {/* 2.2 X-Ray Case */}
-            <Card variant="conceptPanel" className="group relative flex flex-col justify-between overflow-hidden transition-all hover:translate-y-[-2px] hover:shadow-[0_12px_0_#ddd5cc]">
+            <Card variant="conceptPanel" className="relative flex flex-col justify-between overflow-hidden opacity-75">
               <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -109,8 +110,9 @@ export default function PracticePage() {
                   Guided case reviews with specific focus on finding localization and quality assessment.
                 </p>
               </div>
-              <Button asChild variant="outline" size="lg" className="mt-6 w-full">
-                <Link href="/xray/cases">Review Cases</Link>
+              <Button variant="outline" size="lg" className="mt-6 w-full cursor-not-allowed" disabled>
+                <Clock className="mr-2 h-4 w-4" />
+                Coming Soon
               </Button>
             </Card>
           </div>

@@ -1,0 +1,73 @@
+{
+  "identifier" : "MedLab",
+  "nonRenewingSubscriptions" : [],
+  "products" : [],
+  "settings" : {
+    "_applicationInternalID" : "com.medlabinteractive.medlab",
+    "_developerTeamID" : "",
+    "_lastSynchronizedDate" : 771811200,
+    "_storefront" : "USA",
+    "_storeKitErrors" : []
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "2147483647",
+      "localizations" : [
+        {
+          "description" : "MedLab Pro",
+          "displayName" : "MedLab Pro",
+          "locale" : "en_US"
+        }
+      ],
+      "name" : "MedLab Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "9.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "1",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Unlimited practice and clinical cases.",
+              "displayName" : "MedLab Pro Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.medlabinteractive.medlab.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "MedLab Pro Monthly",
+          "subscriptionGroupID" : "2147483647",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "79.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "2",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Unlimited practice and clinical cases.",
+              "displayName" : "MedLab Pro Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.medlabinteractive.medlab.pro.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "MedLab Pro Yearly",
+          "subscriptionGroupID" : "2147483647",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { Play, ClipboardList } from "lucide-react"
+import { RadiologyComingSoon } from "@/components/RadiologyComingSoon"
 import { getTrackById } from "@/lib/tracks/trackData"
 import type { TrackUnit } from "@/lib/tracks/trackData"
 
@@ -130,6 +131,10 @@ export default function TrackPage() {
   const params = useParams()
   const trackId = params?.trackId as string
   const track = getTrackById(trackId)
+
+  if (trackId === "chest-xray") {
+    return <RadiologyComingSoon />
+  }
 
   if (!track) {
     return (

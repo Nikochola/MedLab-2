@@ -32,14 +32,14 @@ const TAB_COLORS: Record<string, { icon: string; bg: string; border: string }> =
 
 const independentStudentNav = [
   { label: "Learn",     href: "/learn",     icon: House },
-  { label: "Simulate",  href: "/ecg",       icon: Stethoscope, matchPaths: ["/ecg", "/xray"] },
+  { label: "Simulate",  href: "/ecg",       icon: Stethoscope, matchPaths: ["/ecg", "/xray", "/ct"] },
   { label: "Progress",  href: "/progress",  icon: ChartLineUp },
   { label: "Resources", href: "/more",      icon: Books },
 ]
 
 const institutionStudentNav = [
   { label: "Learn",     href: "/learn",     icon: House },
-  { label: "Simulate",  href: "/ecg",       icon: Stethoscope, matchPaths: ["/ecg", "/xray"] },
+  { label: "Simulate",  href: "/ecg",       icon: Stethoscope, matchPaths: ["/ecg", "/xray", "/ct"] },
   { label: "Progress",  href: "/progress",  icon: ChartLineUp },
   { label: "Resources", href: "/more",      icon: Books },
 ]
@@ -48,7 +48,7 @@ const educatorNav = [
   { label: "Dashboard",   href: "/institution/courses", icon: SquaresFour },
   { label: "Students",    href: "/institution/courses", icon: Users },
   { label: "Assignments", href: "/practice",            icon: ClipboardText },
-  { label: "Simulations", href: "/ecg",                 icon: Stethoscope, matchPaths: ["/ecg", "/xray"] },
+  { label: "Simulations", href: "/ecg",                 icon: Stethoscope, matchPaths: ["/ecg", "/xray", "/ct"] },
   { label: "Analytics",   href: "/institution/courses", icon: ChartBar },
 ]
 

@@ -3,7 +3,6 @@
 import Link from "next/link"
 import {
   HeartPulse,
-  ScanSearch,
   ArrowRight,
   Play,
   Target,
@@ -26,16 +25,6 @@ const tracks = [
     simulations: 24,
     accent: "#0066FF",
     accentLight: "#EEF3FF",
-  },
-  {
-    id: "chest-xray",
-    title: "Chest X-Ray Interpretation",
-    description: "Systematic review of projection, quality, and pathology patterns across real cases.",
-    icon: ScanSearch,
-    href: "/learn/chest-xray",
-    simulations: 18,
-    accent: "#0E0F12",
-    accentLight: "#F5F5F3",
   },
 ]
 
@@ -81,8 +70,8 @@ export default function LearnPage() {
           </h1>
           <p className="text-sm mt-1.5" style={{ color: "#9B9A94" }}>
             {hasActivity
-              ? "Pick up where you left off, or start something new."
-              : "Start your first training track or jump into a quick drill."}
+              ? "Pick up where you left off, or start a new ECG drill."
+              : "Start Cardiology ECG training or jump into a quick drill."}
           </p>
         </div>
 

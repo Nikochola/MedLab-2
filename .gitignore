@@ -44,3 +44,5 @@ package-lock.json
 # dump files
 dump.sql
 schema_dump.sql
+
+.claude

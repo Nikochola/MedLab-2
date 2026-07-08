@@ -20,7 +20,7 @@ function getTitle(pathname: string): string {
 
   // Top-level pages
   if (pathname.startsWith("/learn")) return "Learn"
-  if (pathname.startsWith("/ecg") || pathname.startsWith("/xray")) return "Simulations"
+  if (pathname.startsWith("/ecg") || pathname.startsWith("/xray") || pathname.startsWith("/ct")) return "Simulations"
   if (pathname.startsWith("/progress")) return "Progress"
   if (pathname.startsWith("/more")) return "Resources"
   if (pathname.startsWith("/shop")) return "Shop"

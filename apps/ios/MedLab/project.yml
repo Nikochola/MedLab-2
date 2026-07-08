@@ -1,0 +1,52 @@
+name: MedLab
+options:
+  bundleIdPrefix: com.medlabinteractive
+  deploymentTarget:
+    iOS: "17.0"
+packages:
+  Supabase:
+    url: https://github.com/supabase/supabase-swift.git
+    from: 2.0.0
+settings:
+  base:
+    SWIFT_VERSION: 5.0
+    IPHONEOS_DEPLOYMENT_TARGET: 17.0
+    MEDLAB_API_BASE_URL: http://localhost:3015
+    MEDLAB_SUPABASE_URL: "https://sfmaokxbltmjtwsgztpn.supabase.co"
+    MEDLAB_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmbWFva3hibHRtanR3c2d6dHBuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU0NTk1NDUsImV4cCI6MjA4MTAzNTU0NX0.SI3d3rAMxsoPZ39R0w_ZZwlKZRhH0Z3vfXywjQ6TT3s"
+targets:
+  MedLab:
+    type: application
+    platform: iOS
+    sources:
+      - MedLab/Sources
+      - MedLab/Resources
+    dependencies:
+      - package: Supabase
+        product: Supabase
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.medlabinteractive.medlab
+        INFOPLIST_FILE: MedLab/Resources/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: MedLab
+        CODE_SIGN_STYLE: Automatic
+  MedLabTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - MedLabTests
+    dependencies:
+      - target: MedLab
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  MedLab:
+    build:
+      targets:
+        MedLab: all
+        MedLabTests: [test]
+    test:
+      targets:
+        - MedLabTests
+      gatherCoverageData: true

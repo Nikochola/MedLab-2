@@ -1,9 +1,23 @@
 "use client"
 
 import Link from "next/link"
-import { HeartPulse, ScanSearch, Activity, Stethoscope, ClipboardCheck, ArrowRight } from "lucide-react"
+import { HeartPulse, ScanSearch, Activity, Stethoscope, ClipboardCheck, ArrowRight, Clock } from "lucide-react"
 
-const sections = [
+type SimulationSection = {
+  title: string
+  icon: typeof HeartPulse
+  accent: string
+  accentLight: string
+  comingSoon?: boolean
+  items: {
+    title: string
+    description: string
+    href: string
+    icon: typeof Stethoscope
+  }[]
+}
+
+const sections: SimulationSection[] = [
   {
     title: "ECG",
     icon: HeartPulse,
@@ -29,6 +43,7 @@ const sections = [
     icon: ScanSearch,
     accent: "#0E0F12",
     accentLight: "#F5F5F3",
+    comingSoon: true,
     items: [
       {
         title: "Simulation",
@@ -49,6 +64,7 @@ const sections = [
     icon: Activity,
     accent: "#0E0F12",
     accentLight: "#F5F5F3",
+    comingSoon: true,
     items: [
       {
         title: "Simulation",
@@ -85,23 +101,58 @@ export default function SimulationsPage() {
 
             {/* Items */}
             <div className="space-y-2">
-              {section.items.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="group flex items-center gap-4 rounded-2xl px-5 py-4 transition-colors"
-                  style={{ border: "1px solid #E8E6DF" }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#C7D9FF"; e.currentTarget.style.backgroundColor = "#FAFAFA" }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#E8E6DF"; e.currentTarget.style.backgroundColor = "transparent" }}
-                >
+              {section.items.map((item) => {
+                const content = (
+                  <>
                   <item.icon className="h-5 w-5 shrink-0" style={{ color: "#9B9A94" }} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-[15px] font-semibold" style={{ color: "#0E0F12" }}>{item.title}</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-[15px] font-semibold" style={{ color: "#0E0F12" }}>{item.title}</p>
+                      {section.comingSoon && (
+                        <span
+                          className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                          style={{ backgroundColor: "#FFF7ED", color: "#D97706" }}
+                        >
+                          <Clock className="h-3 w-3" />
+                          Coming soon
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm mt-0.5" style={{ color: "#9B9A94" }}>{item.description}</p>
                   </div>
-                  <ArrowRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5" style={{ color: "#9B9A94" }} />
-                </Link>
-              ))}
+                  {section.comingSoon ? (
+                    <Clock className="h-4 w-4 shrink-0" style={{ color: "#C8C5BC" }} />
+                  ) : (
+                    <ArrowRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5" style={{ color: "#9B9A94" }} />
+                  )}
+                  </>
+                )
+
+                if (section.comingSoon) {
+                  return (
+                    <div
+                      key={item.href}
+                      className="flex cursor-not-allowed items-center gap-4 rounded-2xl px-5 py-4 opacity-75"
+                      style={{ border: "1px solid #E8E6DF", backgroundColor: "#FAFAFA" }}
+                    >
+                      {content}
+                    </div>
+                  )
+                }
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="group flex items-center gap-4 rounded-2xl px-5 py-4 transition-colors"
+                    style={{ border: "1px solid #E8E6DF" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#C7D9FF"; e.currentTarget.style.backgroundColor = "#FAFAFA" }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#E8E6DF"; e.currentTarget.style.backgroundColor = "transparent" }}
+                  >
+                    {content}
+                  </Link>
+                )
+              })}
             </div>
           </div>
         ))}

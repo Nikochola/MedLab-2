@@ -1,25 +1,7 @@
-"use client";
+"use client"
 
-import { XRayWorkbench } from "@/components/xray/XRayWorkbench"
-import { useGating } from "@/contexts/GatingContext";
-import { LockedState } from "@/components/LockedState";
+import { RadiologyComingSoon } from "@/components/RadiologyComingSoon"
 
 export default function XRayPracticePage() {
-  const { hasEntitlement, isLoading, plan } = useGating();
-
-  if (!isLoading && plan === "free" && !hasEntitlement("xray.practice")) {
-    return (
-      <div className="container mx-auto p-8 pt-24">
-        <LockedState
-          variant="limit"
-          title="Daily Limit Reached"
-          description="You've completed your 3 free X-Ray practice sessions for today. Upgrade to Pro for unlimited access."
-        />
-      </div>
-    );
-  }
-
-  if (isLoading) return null;
-
-  return <XRayWorkbench initialMode="simulation" modality="XRAY" />
+  return <RadiologyComingSoon />
 }
