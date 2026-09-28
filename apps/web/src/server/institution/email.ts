@@ -22,6 +22,17 @@ function roleLabel(role: "INSTITUTION_ADMIN" | "EDUCATOR" | "STUDENT") {
   return "Student"
 }
 
+const MAX_SEND_ATTEMPTS = 4
+const RETRY_BASE_DELAY_MS = 1000
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function isRetryableSendError(error: { name?: string; statusCode?: number | null }) {
+  return error.statusCode === 429 || (error.statusCode ?? 0) >= 500 || error.name === "rate_limit_exceeded"
+}
+
 export async function sendInviteEmail(input: {
   email: string
   token: string
@@ -55,25 +66,36 @@ export async function sendInviteEmail(input: {
     })
   )
 
-  try {
-    await resend.emails.send({
-      from: inviteFrom,
-      to: input.email,
-      replyTo: replyToEmail,
-      subject,
-      html
-    })
+  const payload = {
+    from: inviteFrom,
+    to: input.email,
+    replyTo: replyToEmail,
+    subject,
+    html
+  }
 
-    return {
-      sent: true,
-      error: null,
-      inviteUrl
+  // Resend reports API failures (rate limits, unverified domains, bad
+  // recipients) in the returned `error` rather than throwing.
+  let lastError = "Email send failed"
+  for (let attempt = 0; attempt < MAX_SEND_ATTEMPTS; attempt++) {
+    try {
+      const { error } = await resend.emails.send(payload)
+      if (!error) {
+        return { sent: true, error: null, inviteUrl }
+      }
+
+      lastError = error.message || lastError
+      if (!isRetryableSendError(error)) break
+    } catch (error) {
+      lastError = error instanceof Error ? error.message : lastError
     }
-  } catch (error) {
-    return {
-      sent: false,
-      error: error instanceof Error ? error.message : "Email send failed",
-      inviteUrl
-    }
+
+    await sleep(RETRY_BASE_DELAY_MS * 2 ** attempt)
+  }
+
+  return {
+    sent: false,
+    error: lastError,
+    inviteUrl
   }
 }

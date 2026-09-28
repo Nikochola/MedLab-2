@@ -2,19 +2,55 @@ import { createSupabaseAdminClient } from "@/lib/supabaseServer";
 
 export type Plan = "free" | "pro";
 
-export async function getSubscription(userId: string) {
+export type SubscriptionSummary = { plan: Plan; status: string; source?: "subscription" | "institution" };
+
+function isActiveProSubscription(sub: { plan?: string | null; status?: string | null } | null | undefined) {
+    return sub?.plan === "pro" && (sub.status === "active" || sub.status === "trialing");
+}
+
+/**
+ * Active members of an institution with an active billing status get Pro access
+ * through their institution, regardless of any personal subscription.
+ */
+export async function hasInstitutionProAccess(userId: string): Promise<boolean> {
     const supabase = createSupabaseAdminClient();
     const { data, error } = await supabase
+        .from("institution_memberships")
+        .select("institution_id,institutions!inner(billing_status)")
+        .eq("user_id", userId)
+        .eq("status", "ACTIVE")
+        .eq("institutions.billing_status", "active")
+        .limit(1);
+
+    if (error) {
+        console.error("[gating] Failed to check institution access:", error.message);
+        return false;
+    }
+
+    return Boolean(data?.length);
+}
+
+export async function getSubscription(userId: string): Promise<SubscriptionSummary> {
+    const supabase = createSupabaseAdminClient();
+    const { data } = await supabase
         .from("subscriptions")
         .select("*")
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
 
-    if (error || !data) {
-        return { plan: "free" as Plan, status: "inactive" };
+    if (isActiveProSubscription(data)) {
+        return { plan: "pro", status: data.status, source: "subscription" };
     }
 
-    return data as { plan: Plan; status: string };
+    if (await hasInstitutionProAccess(userId)) {
+        return { plan: "pro", status: "active", source: "institution" };
+    }
+
+    if (!data) {
+        return { plan: "free", status: "inactive" };
+    }
+
+    return { plan: data.plan as Plan, status: data.status, source: "subscription" };
 }
 
 export async function hasEntitlement(userId: string, entitlement: string): Promise<boolean> {

@@ -60,15 +60,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const [profileRes, membershipRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", session.user.id).single(),
-      supabase.from("institution_memberships").select("role").eq("user_id", session.user.id).maybeSingle()
+      supabase.from("institution_memberships").select("role").eq("user_id", session.user.id).eq("status", "ACTIVE")
     ])
 
     const profile = profileRes.data
-    const membership = membershipRes.data
+    const membershipRoles = new Set((membershipRes.data || []).map((row: { role: string }) => row.role))
 
+    // Membership roles are stored uppercase; the client uses lowercase app roles.
+    // A user can belong to several institutions, so take the highest role.
     let appRole: UserRole = "student"
-    if (membership?.role) {
-      appRole = membership.role as UserRole
+    if (membershipRoles.has("INSTITUTION_ADMIN")) {
+      appRole = "institution_admin"
+    } else if (membershipRoles.has("EDUCATOR")) {
+      appRole = "educator"
     }
 
     const newUser = {

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { calculateXPForAction } from "@/lib/xp/xpConfig"
 import { calculateStreak } from "@/lib/xp/streakUtils"
 import { isMobileContext, requireMobileUser } from "@/server/mobile/auth"
+import { recordInstitutionalPracticeOutcome } from "@/server/institution"
 import { supabaseAdmin } from "@/server/supabaseAdmin"
 
 const ALLOWED_ACTIONS = new Set([
@@ -38,6 +39,9 @@ export async function POST(request: Request) {
   if (!ALLOWED_ACTIONS.has(action)) {
     return NextResponse.json({ error: "Unknown action" }, { status: 400 })
   }
+  if (action === "case_submit" && !String(data?.caseId || "").trim()) {
+    return NextResponse.json({ error: "Missing case identifier" }, { status: 400 })
+  }
 
   const { amount, reason } = calculateXPForAction(action as any, sanitizeContext(body?.context))
   if (amount === 0) {
@@ -60,6 +64,20 @@ export async function POST(request: Request) {
     }
   }
 
+  let institutionAttemptIds: string[] | null = null
+  try {
+    institutionAttemptIds = await recordInstitutionalPracticeOutcome({
+      userId: context.user.id,
+      action,
+      data,
+      context: body?.context,
+      source: "mobile"
+    })
+  } catch (attemptError) {
+    console.error("[mobile/xp/award] institution attempt recording error:", attemptError)
+    return NextResponse.json({ error: "Practice could not be saved. Please retry." }, { status: 503 })
+  }
+
   const caseId = action === "case_submit" && data?.caseId != null ? String(data.caseId) : null
   const { data: awardRows, error: awardError } = await supabaseAdmin.rpc("award_student_xp", {
     p_student_id: context.user.id,
@@ -75,6 +93,9 @@ export async function POST(request: Request) {
 
   if (awardError) {
     console.error("[mobile/xp/award]", awardError)
+    if (institutionAttemptIds?.length) {
+      return NextResponse.json({ xpAwarded: 0, reason: "Practice saved; XP is temporarily unavailable", attemptRecorded: true, currentStreak: 0 })
+    }
     return NextResponse.json({ error: "Failed to award XP" }, { status: 500 })
   }
 
@@ -115,5 +136,6 @@ export async function POST(request: Request) {
     reason: result?.reason ?? reason,
     newLevel: result?.leveled_up ? result?.current_level : undefined,
     currentStreak,
+    attemptRecorded: Boolean(institutionAttemptIds?.length),
   })
 }

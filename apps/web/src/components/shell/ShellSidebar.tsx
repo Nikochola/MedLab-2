@@ -106,7 +106,7 @@ function ProfileNavItem({ avatarUrl, userId }: { avatarUrl?: string | null; user
 
 const BASE_PREFETCH_ROUTES = ["/learn", "/practice", "/progress", "/more", "/profile", "/ecg", "/xray", "/journey", "/shop"]
 
-export function ShellSidebar() {
+export function ShellSidebar({ branding }: { branding?: { name: string | null; logoUrl: string | null; hideMedlabBranding: boolean } | null }) {
   const { user } = useAuth()
   const { plan, status } = useGating()
   const router = useRouter()
@@ -135,7 +135,7 @@ export function ShellSidebar() {
     >
       <div className="flex items-center px-6" style={{ height: 72 }}>
         <Link href="/">
-          <img src="/images/logo_black.svg" alt="MedLab" style={{ height: 20 }} />
+          {branding?.logoUrl ? <img src={branding.logoUrl} alt={branding.name || "Institution"} className="max-w-[170px] object-contain object-left" style={{ height: 28 }} /> : branding?.name ? <span className="text-lg font-semibold tracking-[-.03em] text-[#0e0f12]">{branding.name}</span> : <img src="/images/logo_black.svg" alt="MedLab" style={{ height: 20 }} />}
         </Link>
       </div>
 

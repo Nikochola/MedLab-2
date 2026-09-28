@@ -1,17 +1,19 @@
 "use client"
 
 import Link from "next/link"
+import { useEffect, useState } from "react"
 import {
   HeartPulse,
   ArrowRight,
   Play,
   Target,
-  Sparkles,
   Stethoscope,
   ClipboardCheck,
+  ScanSearch,
 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useStudentStats } from "@/lib/hooks/useStudentStats"
+import { StudentAssignments } from "@/components/institution/StudentAssignments"
 
 // ── Training tracks ─────────────────────────────────────────────────────
 
@@ -22,9 +24,19 @@ const tracks = [
     description: "Rhythm recognition, axis determination, and interval analysis through progressive drills.",
     icon: HeartPulse,
     href: "/learn/ecg-fundamentals",
-    simulations: 24,
+    units: 12,
     accent: "#0066FF",
     accentLight: "#EEF3FF",
+  },
+  {
+    id: "chest-xray",
+    title: "Chest X-Ray Interpretation",
+    description: "Projection, anatomy, and pathology interpretation through structured simulations and clinical cases.",
+    icon: ScanSearch,
+    href: "/learn/chest-xray",
+    units: 12,
+    accent: "#0E0F12",
+    accentLight: "#F0EEE8",
   },
 ]
 
@@ -49,6 +61,12 @@ const quickPractice = [
     href: "/ecg",
     icon: Stethoscope,
   },
+  {
+    title: "X-Ray Cases",
+    description: "Structured radiology reads",
+    href: "/learn/chest-xray",
+    icon: ScanSearch,
+  },
 ]
 
 // ── Page ─────────────────────────────────────────────────────────────────
@@ -56,8 +74,11 @@ const quickPractice = [
 export default function LearnPage() {
   const { user } = useAuth()
   const { stats, isLoading } = useStudentStats(user?.id)
+  const [hasMounted, setHasMounted] = useState(false)
   const firstName = user?.name?.split(" ")[0] || "there"
   const hasActivity = stats && stats.casesCompleted + stats.simulationsCompleted > 0
+
+  useEffect(() => setHasMounted(true), [])
 
   return (
     <div className="h-full overflow-y-auto">
@@ -75,8 +96,10 @@ export default function LearnPage() {
           </p>
         </div>
 
+        <StudentAssignments />
+
         {/* Continue / Recommended action */}
-        <ResumeCard stats={stats} isLoading={isLoading} hasActivity={!!hasActivity} />
+        <ResumeCard stats={stats} isLoading={!hasMounted || isLoading} hasActivity={!!hasActivity} />
 
         {/* Training tracks */}
         <div className="mt-10">
@@ -102,7 +125,7 @@ export default function LearnPage() {
                   <p className="text-sm mt-0.5 leading-snug" style={{ color: "#9B9A94" }}>{track.description}</p>
                 </div>
                 <div className="hidden sm:flex items-center gap-2 shrink-0">
-                  <span className="text-xs font-medium" style={{ color: "#9B9A94" }}>{track.simulations} simulations</span>
+                  <span className="text-xs font-medium" style={{ color: "#9B9A94" }}>{track.units} units</span>
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" style={{ color: "#9B9A94" }} />
                 </div>
               </Link>
@@ -113,7 +136,7 @@ export default function LearnPage() {
         {/* Quick practice */}
         <div className="mt-10">
           <SectionLabel>Quick practice</SectionLabel>
-          <div className="mt-3 grid grid-cols-3 gap-2 sm:gap-3">
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
             {quickPractice.map((item) => (
               <Link
                 key={item.title}
@@ -220,7 +243,7 @@ function ResumeCard({
       onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#0066FF" }}
     >
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>
-        <Sparkles className="h-5 w-5 text-white" />
+        <span aria-hidden className="text-xl leading-none text-white">✦</span>
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[15px] font-semibold text-white">Start your first simulation</p>

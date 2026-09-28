@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 
+import { getSubscription } from "@/lib/gating/server"
 import { FREE_AI_DAILY_LIMIT, FREE_PRACTICE_DAILY_LIMIT } from "@/lib/freeTier"
 import { isMobileContext, requireMobileUser } from "@/server/mobile/auth"
 import { supabaseAdmin } from "@/server/supabaseAdmin"
@@ -20,8 +21,9 @@ export async function GET(request: Request) {
       .eq("user_id", context.user.id),
   ])
 
-  const plan = subscription?.plan === "pro" ? "pro" : "free"
-  const status = subscription?.status || "inactive"
+  const resolved = await getSubscription(context.user.id)
+  const plan = resolved.plan === "pro" ? "pro" : "free"
+  const status = resolved.status || "inactive"
   const proActive = plan === "pro" && (status === "active" || status === "trialing")
   const usage = Object.fromEntries((usageRows || []).map((row: any) => [row.feature, row.usage_count || 0]))
 

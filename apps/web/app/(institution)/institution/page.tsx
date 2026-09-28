@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
 
 export default function InstitutionIndexPage() {
-  redirect("/institution/courses")
+  redirect("/institution/overview")
 }

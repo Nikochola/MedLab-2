@@ -3,7 +3,6 @@
 import { getServerSession } from "@/server/auth/session"
 import { getCurrentInstitutionForUser } from "@/server/institution/getCurrentInstitutionForUser"
 import { ensureDefaultCourse } from "@/server/institution/courses"
-import { validateInstitutionBillingCode } from "@/server/institution/access"
 import { inviteMembers } from "@/server/institution/members"
 import { supabaseAdmin } from "@/server/supabaseAdmin"
 
@@ -50,18 +49,6 @@ async function ensureAvailableInstitutionSlug(rawValue: string, currentInstituti
   }
 
   return candidate
-}
-
-function normalizeCardNumber(value: string) {
-  return value.replace(/\D/g, "")
-}
-
-function inferCardBrand(cardNumber: string) {
-  if (/^4/.test(cardNumber)) return "Visa"
-  if (/^(5[1-5]|2[2-7])/.test(cardNumber)) return "Mastercard"
-  if (/^3[47]/.test(cardNumber)) return "American Express"
-  if (/^6(?:011|5)/.test(cardNumber)) return "Discover"
-  return "Card"
 }
 
 export async function checkInstitutionWorkspaceSlugAvailability(rawValue: string, currentInstitutionId?: string | null) {
@@ -263,26 +250,8 @@ export async function completeInstitutionOnboarding(input: {
     throw new Error("SSO is only available on the Enterprise plan.")
   }
 
-  const validBillingCode = input.billingCode
-    ? await validateInstitutionBillingCode(input.billingCode, input.billingPlan)
-    : null
-
-  const normalizedCardNumber = normalizeCardNumber(input.billingCardNumber || "")
-  const cardRequired = input.billingPlan !== "ENTERPRISE" && !validBillingCode?.waives_card
-
-  if (cardRequired) {
-    if (
-      !input.billingCardholderName?.trim() ||
-      normalizedCardNumber.length < 12 ||
-      !/^\d{2}\/\d{2}$/.test((input.billingCardExpiry || "").trim()) ||
-      !/^\d{3,4}$/.test((input.billingCardCvc || "").trim())
-    ) {
-      throw new Error("Valid card details are required unless a promo or contract code waives billing.")
-    }
-  }
-
-  const billingCardBrand = normalizedCardNumber ? inferCardBrand(normalizedCardNumber) : null
-  const billingCardLast4 = normalizedCardNumber ? normalizedCardNumber.slice(-4) : null
+  const billingCardBrand = null
+  const billingCardLast4 = null
 
   const { error: profileError } = await supabaseAdmin
     .from("profiles")
@@ -332,8 +301,8 @@ export async function completeInstitutionOnboarding(input: {
         billing_plan: input.billingPlan,
         billing_status: input.billingPlan ? "active" : "draft",
         billing_interval: input.billingInterval,
-        billing_code: validBillingCode?.code || input.billingCode?.trim() || null,
-        billing_contact_name: input.billingCardholderName?.trim() || adminName,
+        billing_code: input.billingCode?.trim() || null,
+        billing_contact_name: adminName,
         billing_card_brand: billingCardBrand,
         billing_card_last4: billingCardLast4,
         content_library: input.contentLibrary,
@@ -387,8 +356,8 @@ export async function completeInstitutionOnboarding(input: {
     workspaceSlug: input.workspaceSlug,
     billingPlan: input.billingPlan,
     billingInterval: input.billingInterval,
-    billingCode: validBillingCode?.code || input.billingCode,
-    billingContactName: input.billingCardholderName?.trim() || adminName,
+    billingCode: input.billingCode,
+    billingContactName: adminName,
     billingCardBrand,
     billingCardLast4,
     accessRequestId: input.accessRequestId || null,

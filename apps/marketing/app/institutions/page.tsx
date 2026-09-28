@@ -142,7 +142,7 @@ function SocialProof() {
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
         <span style={{ fontSize: 12, fontWeight: 700, color: "#0066FF", letterSpacing: "0.1em", textTransform: "uppercase", display: "block", marginBottom: 48 }}>Trusted by leading medical programs</span>
         <div style={{ background: "#0E0F12", borderRadius: 20, padding: "40px 32px", marginBottom: 20, position: "relative", overflow: "hidden" }}>
-          <span style={{ position: "absolute", top: 24, right: 48, fontSize: 200, fontWeight: 700, color: "rgba(255,255,255,0.03)", lineHeight: 1, letterSpacing: "-0.05em", userSelect: "none" }}>"</span>
+          <span style={{ position: "absolute", top: 24, right: 48, fontSize: 200, fontWeight: 700, color: "rgba(255,255,255,0.03)", lineHeight: 1, letterSpacing: "-0.05em", userSelect: "none" }}>“</span>
           <div className="flex flex-col md:flex-row items-start gap-8 md:gap-16">
             <div className="flex flex-row md:flex-col gap-4 items-center md:items-start" style={{ flexShrink: 0 }}>
               <div style={{ width: 60, height: 60, background: "rgba(255,255,255,0.06)", border: "1.5px solid rgba(255,255,255,0.1)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -155,7 +155,7 @@ function SocialProof() {
             </div>
             <div className="flex flex-col gap-6">
               <p style={{ fontSize: "clamp(16px, 2vw, 22px)", fontWeight: 500, color: "#fff", lineHeight: 1.55, letterSpacing: "-0.02em", margin: 0, fontStyle: "italic" }}>
-                "MedLab gave our students a structured space to practice clinical reasoning outside the ward — something we simply didn't have before. Faculty reported spending significantly less time on case debriefs while students arrived better prepared."
+                “MedLab gave our students a structured space to practice clinical reasoning outside the ward — something we simply didn’t have before. Faculty reported spending significantly less time on case debriefs while students arrived better prepared.”
               </p>
               <div className="flex items-center gap-3">
                 <div style={{ width: 36, height: 36, background: "rgba(0,102,255,0.2)", borderRadius: "50%", flexShrink: 0 }} />
@@ -185,8 +185,8 @@ function SocialProof() {
 
 function HowItWorks() {
   const steps = [
-    { num: "01", title: "Onboard your cohort", body: "We set up your institution workspace, subdomain, and role structure. Invite students and educators by CSV or link. Most programs are live within a week.", detail: "Setup call included · CSV import · Custom subdomain" },
-    { num: "02", title: "Assign cases", body: "Educators select from the full case library or request custom cases. Assign to specific cohorts with deadlines. Cases adapt to individual student performance.", detail: "Full case library · Custom case requests · Deadline management" },
+    { num: "01", title: "Onboard your cohort", body: "We set up your institution workspace and role structure. Invite students and educators by CSV or secure link. Most programs are live within a week.", detail: "Guided setup · CSV import · Role-based access" },
+    { num: "02", title: "Assign cases", body: "Educators select from the full case library and assign case sets to classes with clear deadlines. Progress appears automatically as students submit.", detail: "Full case library · Class assignments · Deadline management" },
     { num: "03", title: "Track progress", body: "The educator dashboard shows attempt history, reasoning quality scores, and cohort-wide weak spots. Export reports for accreditation or faculty review.", detail: "Cohort analytics · CSV exports · Accreditation-ready reports" },
   ]
 
@@ -290,7 +290,7 @@ function InstitutionPricing() {
 
 function IntegrationCompliance() {
   const items = [
-    { icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="12" rx="2.5" stroke="#0066FF" strokeWidth="1.6" /><path d="M6 10h8M10 7v6" stroke="#0066FF" strokeWidth="1.6" strokeLinecap="round" /></svg>, title: "LMS Integration", body: "Native compatibility with Moodle and Canvas. Single sign-on, grade passback, and assignment sync. MedLab fits inside your existing infrastructure." },
+    { icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="12" rx="2.5" stroke="#0066FF" strokeWidth="1.6" /><path d="M6 10h8M10 7v6" stroke="#0066FF" strokeWidth="1.6" strokeLinecap="round" /></svg>, title: "LMS Integration", body: "Secure connections for Moodle and Canvas with course mapping and one-way roster sync. MedLab fits alongside your existing learning infrastructure." },
     { icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2L3 6v5c0 4 3.1 7.3 7 8 3.9-.7 7-4 7-8V6L10 2z" stroke="#0066FF" strokeWidth="1.6" strokeLinejoin="round" /><path d="M7 10l2 2 4-4" stroke="#0066FF" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>, title: "FERPA-Ready", body: "Student data is never sold or used for third-party model training. Role-based access controls ensure educators only see their own cohorts." },
     { icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#0066FF" strokeWidth="1.6" /><path d="M10 6v4l3 1.5" stroke="#0066FF" strokeWidth="1.6" strokeLinecap="round" /></svg>, title: "Custom Subdomain", body: "Growth and Enterprise plans include a dedicated subdomain — school.getmedlab.com. Keeps the experience on-brand and familiar for your students." },
     { icon: <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 4h5v5H4zM11 4h5v5h-5zM4 11h5v5H4zM14 11v2m0 2v.01" stroke="#0066FF" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>, title: "API Access", body: "Enterprise plans include full API access for custom integrations, automated cohort management, and data pipeline connections to your institutional analytics stack." },
@@ -324,12 +324,12 @@ function IntegrationCompliance() {
 // ─── FAQ data ─────────────────────────────────────────────────────────────────
 
 const faqs = [
-  { q: "How long does onboarding take?", a: "Most institutions are fully onboarded within one week. We run a setup call, configure your subdomain, and help you import your first cohort via CSV. Your account manager handles the technical setup." },
+  { q: "How long does onboarding take?", a: "Most institutions are fully onboarded within one week. We help you configure the workspace and import your first class via CSV. Growth customers also receive a dedicated account manager and custom-subdomain setup." },
   { q: "Can we trial before committing?", a: "Yes. We offer a structured pilot program — typically 4–8 weeks with a small cohort — before any annual contract is signed. Book a demo to discuss pilot terms." },
-  { q: "Do you support custom cases?", a: "Growth and Enterprise plans include custom case authoring. You can submit clinical scenarios specific to your curriculum and our team will build and validate them within the platform." },
+  { q: "Do you support custom cases?", a: "Enterprise plans include custom case authoring tools for clinical scenarios specific to your curriculum." },
   { q: "What does the educator dashboard show?", a: "Attempt history, time-on-task, reasoning quality scores by case and student, cohort-wide weak spots, and completion rates. All exportable as CSV for accreditation reporting." },
   { q: "Is student data used to train AI models?", a: "No. Student data is never used for third-party model training or sold. All data is processed under strict access controls and stored in compliance with applicable privacy regulations." },
-  { q: "What LMS platforms are supported?", a: "We currently support Moodle and Canvas natively. Additional integrations are available on Enterprise. SSO (SAML 2.0, OAuth) is supported on Growth and above." },
+  { q: "What LMS platforms are supported?", a: "Growth and Enterprise plans support Moodle and Canvas integration." },
 ]
 
 // ─── Final CTA ────────────────────────────────────────────────────────────────
@@ -341,7 +341,7 @@ function FinalCTA() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8" style={{ background: "#0066FF", borderRadius: 24, padding: "60px 40px" }}>
         <div className="flex flex-col gap-4" style={{ maxWidth: 520 }}>
           <h2 style={{ fontWeight: 700, fontSize: "clamp(28px, 3.5vw, 52px)", color: "#fff", letterSpacing: "-0.04em", lineHeight: 1.1, margin: 0 }}>Ready to bring MedLab to your program?</h2>
-          <p style={{ fontSize: 16, color: "rgba(255,255,255,0.72)", lineHeight: 1.65, margin: 0 }}>Book a 30-minute demo. We'll walk through the platform, answer your procurement questions, and discuss pilot options — no commitment required.</p>
+          <p style={{ fontSize: 16, color: "rgba(255,255,255,0.72)", lineHeight: 1.65, margin: 0 }}>Book a 30-minute demo. We’ll walk through the platform, answer your procurement questions, and discuss pilot options — no commitment required.</p>
         </div>
         <div className="flex flex-col gap-3 items-start md:items-end" style={{ flexShrink: 0 }}>
           <Button variant="white" size="lg" asChild>

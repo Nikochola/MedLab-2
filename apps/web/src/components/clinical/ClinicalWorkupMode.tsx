@@ -1,11 +1,16 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowRight, TrendingUp, TrendingDown } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { ECGDisplay } from "@/components/ecg/ECGDisplay"
 import type { ECGWaveformParams } from "@/components/ecg/ECGWaveformGenerator"
+import {
+  createPracticeAttemptId,
+  practiceDurationSeconds,
+  submitPracticeCompletion,
+} from "@/lib/institution/submitPracticeCompletion"
 
 // ── Figma asset URLs ─────────────────────────────────────────────────────────
 const CLIP_SVG = "https://www.figma.com/api/mcp/asset/1603a692-fb9d-47b9-9de9-6f3e52af5e1c"
@@ -738,13 +743,15 @@ function FeedbackPanel({ feedback, expectedDiagnosis, teachingPoints, onDone }: 
 
 // ── Main Layout ───────────────────────────────────────────────────────────────
 
-export function ClinicalWorkupMode({ workupCase }: { workupCase: WorkupCase }) {
+export function ClinicalWorkupMode({ workupCase, unitId, courseId }: { workupCase: WorkupCase; unitId?: string; courseId?: string | null }) {
   const { setWorkbenchMode } = useAuth()
   const router = useRouter()
   const [usedTools, setUsedTools] = useState<Set<ToolId>>(new Set())
   const [showImpression, setShowImpression] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [feedback, setFeedback] = useState<{ correct: boolean; response: string } | null>(null)
+  const startedAt = useRef(Date.now())
+  const attemptId = useRef(createPracticeAttemptId())
 
   useEffect(() => { setWorkbenchMode(true); return () => setWorkbenchMode(false) }, [setWorkbenchMode])
 
@@ -757,6 +764,7 @@ export function ClinicalWorkupMode({ workupCase }: { workupCase: WorkupCase }) {
   async function handleSubmit(diagnosis: string, management: string) {
     setIsSubmitting(true)
     setShowImpression(false)
+    let validation: { isCorrect?: boolean; feedback?: string } | null = null
     try {
       const res = await fetch("/api/ai/validate", {
         method: "POST",
@@ -768,10 +776,30 @@ export function ClinicalWorkupMode({ workupCase }: { workupCase: WorkupCase }) {
           specialty: "Emergency Cardiology",
         }),
       })
-      const data = res.ok ? await res.json() : {}
-      setFeedback({ correct: !!data.isCorrect, response: data.feedback || "Review the teaching points below." })
+      validation = res.ok ? await res.json() : null
     } catch {
-      setFeedback({ correct: false, response: "Could not reach the AI tutor. Review teaching points below." })
+      validation = null
+    }
+
+    try {
+      await submitPracticeCompletion({
+        action: "case_submit",
+        data: {
+          caseId: unitId || "clinical-workup",
+          modality: "ECG",
+          caseType: "ecg",
+          courseId: courseId || undefined,
+          attemptId: attemptId.current,
+          durationSec: practiceDurationSeconds(startedAt.current),
+        },
+        context: validation ? { accuracy: validation.isCorrect ? 1 : 0 } : {},
+      })
+      setFeedback({
+        correct: !!validation?.isCorrect,
+        response: validation?.feedback || "The attempt was saved. Review the teaching points below."
+      })
+    } catch {
+      setFeedback({ correct: false, response: "Your completed workup could not be saved. Please try submitting it again." })
     } finally {
       setIsSubmitting(false)
     }

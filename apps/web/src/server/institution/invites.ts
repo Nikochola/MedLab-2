@@ -26,7 +26,7 @@ export async function getInviteByToken(token: string) {
   const { data, error } = await supabaseAdmin
     .from("invites")
     .select(
-      "id,institution_id,course_id,email,role,expires_at,accepted_at,metadata,last_error,institutions(name),courses(name)"
+      "id,institution_id,course_id,email,role,expires_at,accepted_at,metadata,last_error,created_by_user_id,institutions(name),courses(name)"
     )
     .eq("token_hash", tokenHash)
     .is("accepted_at", null)
@@ -142,6 +142,38 @@ export async function acceptInvite(input: {
     if (upsertCourseMembershipError) {
       throw new Error(`Failed to create course membership: ${upsertCourseMembershipError.message}`)
     }
+
+    if (invite.role === "STUDENT") {
+      const educatorEmail = String((invite.metadata as any)?.educator_email || "").trim().toLowerCase()
+      if (educatorEmail) {
+        const { data: educatorProfile } = await supabaseAdmin
+          .from("profiles")
+          .select("id")
+          .eq("email", educatorEmail)
+          .maybeSingle()
+
+        if (educatorProfile?.id) {
+          const { data: educatorCourseMembership } = await supabaseAdmin
+            .from("course_memberships")
+            .select("id")
+            .eq("course_id", invite.course_id)
+            .eq("user_id", educatorProfile.id)
+            .eq("role", "EDUCATOR")
+            .eq("status", "ACTIVE")
+            .maybeSingle()
+
+          if (educatorCourseMembership) {
+            await supabaseAdmin.from("educator_student_assignments").upsert({
+              institution_id: invite.institution_id,
+              course_id: invite.course_id,
+              educator_user_id: educatorProfile.id,
+              student_user_id: input.userId,
+              created_by_user_id: invite.created_by_user_id || null
+            }, { onConflict: "course_id,student_user_id" })
+          }
+        }
+      }
+    }
   }
 
   const { error: markAcceptedError } = await supabaseAdmin
@@ -154,7 +186,7 @@ export async function acceptInvite(input: {
   }
 
   if (invite.role === "INSTITUTION_ADMIN" || invite.role === "EDUCATOR") {
-    return "/institution/courses"
+    return "/institution/overview"
   }
 
   return "/learn"

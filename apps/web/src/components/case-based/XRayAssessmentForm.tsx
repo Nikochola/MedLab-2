@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { Loader2, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 import { mutate } from "swr"
@@ -16,6 +16,11 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
+import {
+    createPracticeAttemptId,
+    practiceDurationSeconds,
+    submitPracticeCompletion,
+} from "@/lib/institution/submitPracticeCompletion"
 
 interface XRayAssessmentData {
     projection: "PA" | "AP" | "Lateral" | ""
@@ -29,6 +34,8 @@ interface XRayAssessmentData {
 interface XRayAssessmentFormProps {
     patientCase?: any
     xrayFindings?: any
+    unitId?: string
+    courseId?: string | null
 }
 
 const inputClass = "w-full rounded-lg border border-[#E8E6DF] bg-white px-2.5 py-2 text-[13px] outline-none placeholder:text-[#9B9A94] focus:border-[#0066FF] focus:ring-1 focus:ring-[#0066FF]/20"
@@ -52,7 +59,7 @@ function TogglePill({ label, selected, onClick }: { label: string; selected: boo
     )
 }
 
-export function XRayAssessmentForm({ patientCase, xrayFindings }: XRayAssessmentFormProps) {
+export function XRayAssessmentForm({ patientCase, xrayFindings, unitId, courseId }: XRayAssessmentFormProps) {
     const [formData, setFormData] = useState<XRayAssessmentData>({
         projection: "",
         quality: "",
@@ -65,7 +72,10 @@ export function XRayAssessmentForm({ patientCase, xrayFindings }: XRayAssessment
     const [aiFeedback, setAiFeedback] = useState<any>(null)
     const [isLoadingFeedback, setIsLoadingFeedback] = useState(false)
     const [showFeedback, setShowFeedback] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
     const { user } = useAuth()
+    const startedAt = useRef(Date.now())
+    const attemptId = useRef(createPracticeAttemptId())
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault()
@@ -73,20 +83,40 @@ export function XRayAssessmentForm({ patientCase, xrayFindings }: XRayAssessment
             toast.error("Please sign in to submit.")
             return
         }
+        if (isSubmitting) return
 
-        toast.success("X-Ray Assessment Submitted!", {
-            description: "Your report has been saved to your training record.",
-        })
+        const normalized = `${formData.pattern} ${formData.diagnosis}`.toLowerCase().replace(/_/g, " ")
+        const pathology = String(xrayFindings?.pathology || "").toLowerCase().replace(/_/g, " ")
+        const score =
+            (formData.projection === patientCase?.view ? 20 : 0) +
+            (formData.quality ? 10 : 0) +
+            (formData.localization.trim() ? 15 : 0) +
+            (formData.findings.trim() ? 15 : 0) +
+            (pathology && normalized.includes(pathology) ? 40 : 0)
 
-        void fetch("/api/student/award-xp", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                studentId: user.id,
+        setIsSubmitting(true)
+        try {
+            await submitPracticeCompletion({
                 action: "case_submit",
-                data: { caseType: "xray" }
+                data: {
+                    caseType: "xray",
+                    caseId: unitId || patientCase?.id,
+                    modality: "X-Ray",
+                    courseId: courseId || undefined,
+                    attemptId: attemptId.current,
+                    durationSec: practiceDurationSeconds(startedAt.current),
+                },
+                context: { accuracy: score / 100 }
             })
-        }).then(() => mutate("/api/student/stats"))
+            await mutate("/api/student/stats")
+            toast.success("X-Ray assessment submitted", {
+                description: "Your report is now included in your training record.",
+            })
+        } catch {
+            toast.error("Your assessment could not be saved. Please try again.")
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
     const handleGetAIFeedback = async () => {
@@ -216,8 +246,9 @@ export function XRayAssessmentForm({ patientCase, xrayFindings }: XRayAssessment
 
                 {/* Action buttons */}
                 <div className="shrink-0 space-y-2 px-5 py-3" style={{ borderTop: "1px solid #E8E6DF" }}>
-                    <Button type="submit" variant="default" size="lg" className="w-full">
-                        Submit Assessment
+                    <Button type="submit" variant="default" size="lg" className="w-full" disabled={isSubmitting}>
+                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isSubmitting ? "Saving…" : "Submit Assessment"}
                     </Button>
                     <Button
                         type="button"

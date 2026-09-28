@@ -280,7 +280,7 @@ export async function resolveRoleForUser(userId: string): Promise<AppRole> {
 
 export function redirectPathForRole(role: AppRole) {
   if (role === "institution_admin" || role === "educator") {
-    return "/institution/courses"
+    return "/institution/overview"
   }
 
   return "/learn"

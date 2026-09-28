@@ -14,6 +14,11 @@ import { useAuth } from "@/contexts/AuthContext"
 import { saveCaseAssessment } from "@/lib/storage"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import {
+  createPracticeAttemptId,
+  practiceDurationSeconds,
+  submitPracticeCompletion,
+} from "@/lib/institution/submitPracticeCompletion"
 
 interface AssessmentFormData {
   rate: string
@@ -30,6 +35,8 @@ interface AssessmentFormData {
 interface AssessmentFormProps {
   patientCase?: string
   ecgFindings?: string
+  unitId?: string
+  courseId?: string | null
 }
 
 const STEPS = [
@@ -234,7 +241,7 @@ function CelebScreen3({ xpEarned, onContinue }: { xpEarned: number; onContinue: 
   )
 }
 
-export function AssessmentForm({ patientCase, ecgFindings }: AssessmentFormProps) {
+export function AssessmentForm({ patientCase, ecgFindings, unitId, courseId }: AssessmentFormProps) {
   const router = useRouter()
   const { user } = useAuth()
 
@@ -260,11 +267,14 @@ export function AssessmentForm({ patientCase, ecgFindings }: AssessmentFormProps
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [xpEarned, setXpEarned] = useState(0)
   const [currentStreak, setCurrentStreak] = useState(0)
+  const [isCompleting, setIsCompleting] = useState(false)
 
   // 0 = hidden, 1 = case complete, 2 = streak, 3 = xp
   const [celebrationStep, setCelebrationStep] = useState<0 | 1 | 2 | 3>(0)
 
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null)
+  const startedAt = useRef(Date.now())
+  const attemptId = useRef(createPracticeAttemptId())
 
   useEffect(() => {
     setShowValidationHint(false)
@@ -325,29 +335,26 @@ export function AssessmentForm({ patientCase, ecgFindings }: AssessmentFormProps
   }
 
   const awardCaseXP = async (accuracy: number) => {
-    if (!user) return
-    try {
-      const response = await fetch("/api/student/award-xp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          studentId: user.id,
-          action: "case_submit",
-          data: { caseId: patientCase ? JSON.parse(patientCase).id : null },
-          context: { accuracy },
-        }),
-      })
-      if (response.ok) {
-        const { xpAwarded, currentStreak: streak } = await response.json()
-        if (xpAwarded > 0) {
-          setXpEarned(xpAwarded)
-          mutate("/api/student/stats")
-        }
-        if (streak > 0) setCurrentStreak(streak)
-      }
-    } catch (error) {
-      console.error("Error awarding XP", error)
+    if (!user) throw new Error("Please sign in first")
+    const result = await submitPracticeCompletion({
+      action: "case_submit",
+      data: {
+        caseId: unitId || (patientCase ? JSON.parse(patientCase).id : null),
+        caseType: "ecg",
+        modality: "ECG",
+        courseId: courseId || undefined,
+        attemptId: attemptId.current,
+        durationSec: practiceDurationSeconds(startedAt.current),
+      },
+      context: { accuracy },
+    })
+    const xpAwarded = result.xpAwarded ?? 0
+    const streak = result.currentStreak ?? 0
+    if (xpAwarded > 0) {
+      setXpEarned(xpAwarded)
+      await mutate("/api/student/stats")
     }
+    if (streak > 0) setCurrentStreak(streak)
   }
 
   const handleGetAIFeedback = async () => {
@@ -484,15 +491,24 @@ export function AssessmentForm({ patientCase, ecgFindings }: AssessmentFormProps
 
         <div className="shrink-0 border-t border-[#F5F5F3] px-5 py-4">
           <Button size="lg" className="w-full" onClick={async () => {
+            if (isCompleting) return
             const strengths = aiFeedback?.strengths?.length ?? 0
             const corrections = aiFeedback?.corrections?.length ?? 0
             const total = strengths + corrections
             const accuracy = total > 0 ? strengths / total : 0.5
-            await awardCaseXP(accuracy)
-            setCelebrationStep(1)
-          }} disabled={isLoadingFeedback}>
-            <Check className="mr-2 h-4 w-4" />
-            Finish
+            setIsCompleting(true)
+            setFeedbackError(null)
+            try {
+              await awardCaseXP(accuracy)
+              setCelebrationStep(1)
+            } catch {
+              setFeedbackError("Your completed case could not be saved. Please try again.")
+            } finally {
+              setIsCompleting(false)
+            }
+          }} disabled={isLoadingFeedback || isCompleting}>
+            {isCompleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
+            {isCompleting ? "Saving…" : "Finish"}
           </Button>
         </div>
       </div>

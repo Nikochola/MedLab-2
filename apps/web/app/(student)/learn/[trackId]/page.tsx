@@ -3,7 +3,6 @@
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { Play, ClipboardList } from "lucide-react"
-import { RadiologyComingSoon } from "@/components/RadiologyComingSoon"
 import { getTrackById } from "@/lib/tracks/trackData"
 import type { TrackUnit } from "@/lib/tracks/trackData"
 
@@ -26,47 +25,6 @@ function UnitTile({ unit, trackId }: { unit: TrackUnit; trackId: string }) {
   const t = tileTheme(unit)
   const isCase = unit.type === "case"
   const href = `/learn/${trackId}/${unit.id}`
-  const isComingSoon = unit.id === "ecg-u10"
-
-  if (isComingSoon) {
-    return (
-      <div
-        className="relative flex flex-col justify-between rounded-[16px] p-5 overflow-hidden"
-        style={{
-          backgroundColor: t.bg,
-          border: `1.5px solid ${t.border}`,
-          minHeight: 160,
-        }}
-      >
-
-
-        {/* Top row: icon + unit number */}
-        <div className="flex items-start justify-between relative z-10">
-          <div
-            className="flex h-10 w-10 items-center justify-center rounded-[10px]"
-            style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-          >
-            <ClipboardList className="h-5 w-5" style={{ color: t.icon }} />
-          </div>
-          <span className="text-xs font-bold tabular-nums" style={{ color: t.sub }}>
-            {String(unit.number).padStart(2, "0")}
-          </span>
-        </div>
-
-        {/* Bottom: title + type */}
-        <div className="mt-4 relative z-10 flex flex-col justify-end">
-          <img src="/images/chartview.svg" alt="ChartView Logo" className="h-4 w-auto object-contain object-left mb-3 self-start" />
-          <p className="flex items-center text-[11px] font-semibold uppercase" style={{ letterSpacing: "0.1em", color: t.sub }}>
-            <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, backgroundColor: "rgba(255,255,255,0.15)", color: t.icon }}>COMING SOON</span>
-          </p>
-          <p className="mt-1 text-sm font-bold leading-snug" style={{ color: t.text }}>
-            {unit.title}
-          </p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <Link
       href={href}
@@ -131,10 +89,6 @@ export default function TrackPage() {
   const params = useParams()
   const trackId = params?.trackId as string
   const track = getTrackById(trackId)
-
-  if (trackId === "chest-xray") {
-    return <RadiologyComingSoon />
-  }
 
   if (!track) {
     return (

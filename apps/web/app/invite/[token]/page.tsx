@@ -1,16 +1,12 @@
 "use client"
 
+import Image from "next/image"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { AlertCircle, CheckCircle2, Loader2, Lock, Mail, User } from "lucide-react"
+import { AlertCircle, CheckCircle2, Loader2, Mail } from "lucide-react"
 import { toast } from "sonner"
 
 import { acceptInstitutionInvite, validateInstitutionInviteToken } from "@/server/actions/auth"
-import { supabase } from "@/lib/supabase"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 
 export default function GenericInvitePage({ params }: { params: { token: string } }) {
   const router = useRouter()
@@ -37,10 +33,7 @@ export default function GenericInvitePage({ params }: { params: { token: string 
     event.preventDefault()
     setIsAccepting(true)
 
-    const formData = new FormData(event.currentTarget)
-    const password = String(formData.get("password") || "")
-
-    const result = await acceptInstitutionInvite(params.token, password)
+    const result = await acceptInstitutionInvite(params.token)
 
     if ("error" in result && result.error) {
       toast.error(result.error)
@@ -48,90 +41,66 @@ export default function GenericInvitePage({ params }: { params: { token: string 
       return
     }
 
-    const signInResult = await supabase.auth.signInWithPassword({
-      email: result.email,
-      password
-    })
-
-    if (signInResult.error) {
-      toast.error(signInResult.error.message)
+    if (!result.confirmationUrl) {
+      toast.error("Could not create a secure sign-in link.")
       setIsAccepting(false)
       return
     }
 
-    toast.success("Account activated. Redirecting...")
-    router.push(result.destination ?? "/learn")
-    router.refresh()
+    toast.success("Access confirmed. Signing you in securely...")
+    window.location.assign(result.confirmationUrl)
   }
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f7f9fc]">
-        <Loader2 className="h-12 w-12 animate-spin text-blue-500" />
+      <div className="flex min-h-screen items-center justify-center bg-[#f5f3ed]">
+        <div className="flex items-center gap-3 text-sm font-medium text-[#65635d]"><Loader2 className="h-5 w-5 animate-spin text-[#0066ff]" /> Checking your invitation…</div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f7f9fc]">
-        <Card className="max-w-md w-full rounded-3xl border-2 border-red-100 p-8 text-center shadow-xl">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50">
-            <AlertCircle className="h-8 w-8 text-red-500" />
+      <div className="flex min-h-screen items-center justify-center bg-[#f5f3ed] p-5">
+        <div className="w-full max-w-md rounded-2xl border border-[#e1ded6] bg-white p-7 text-center shadow-[0_18px_45px_rgba(21,20,17,0.08)] sm:p-9">
+          <Image src="/images/logo_black.svg" alt="MedLab" width={112} height={24} className="mx-auto h-5 w-auto" priority />
+          <div className="mx-auto mt-8 flex h-12 w-12 items-center justify-center rounded-xl bg-[#fff1ef]">
+            <AlertCircle className="h-5 w-5 text-[#b42318]" />
           </div>
-          <h1 className="mb-4 text-2xl font-black text-[#232a39]">Invite Invalid</h1>
-          <p className="mb-8 text-sm font-bold text-[#6f7c8f]">{error}</p>
-          <Button onClick={() => router.push("/institution/login")} className="h-12 w-full rounded-xl bg-[#232a39] text-white hover:bg-black">
-            Go to Login
-          </Button>
-        </Card>
+          <h1 className="mt-5 text-2xl font-semibold tracking-[-0.03em] text-[#0e0f12]">This invitation is unavailable</h1>
+          <p className="mt-2 text-sm leading-6 text-[#77746d]">{error}</p>
+          <button onClick={() => router.push("/institution/login")} className="mt-7 inline-flex h-11 w-full items-center justify-center rounded-[9px] bg-[#0e0f12] px-4 text-sm font-semibold text-white transition hover:bg-black">Go to institution login</button>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f9fc] flex items-center justify-center p-4">
-      <Card className="max-w-md w-full p-8 border-2 border-[#e5e5e5] rounded-3xl shadow-xl">
-        <div className="text-center mb-8">
-          <div className="h-16 w-16 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+    <div className="flex min-h-screen items-center justify-center bg-[#f5f3ed] p-5">
+      <div className="w-full max-w-md rounded-2xl border border-[#e1ded6] bg-white p-7 shadow-[0_18px_45px_rgba(21,20,17,0.08)] sm:p-9">
+        <Image src="/images/logo_black.svg" alt="MedLab" width={112} height={24} className="h-5 w-auto" priority />
+        <div className="mt-9">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#edf8ef]">
+            <CheckCircle2 className="h-5 w-5 text-[#24713a]" />
           </div>
-          <h1 className="text-3xl font-black text-[#232a39] mb-2">Join {invite?.institution_name}</h1>
-          <p className="text-sm font-semibold text-[#6f7c8f]">
-            Complete your account to access the {invite?.role === "STUDENT" ? "student" : invite?.role === "EDUCATOR" ? "educator" : "administrator"} portal.
-          </p>
+          <p className="mt-6 text-[11px] font-bold uppercase tracking-[0.13em] text-[#0066ff]">Secure invitation</p>
+          <h1 className="mt-2 text-[28px] font-semibold leading-tight tracking-[-0.04em] text-[#0e0f12]">Join {invite?.institution_name}</h1>
+          <p className="mt-3 text-sm leading-6 text-[#6b6a65]">Confirm your {invite?.role === "STUDENT" ? "student" : invite?.role === "EDUCATOR" ? "educator" : "administrator"} access. We’ll sign you in securely—no password setup is needed.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-[#afafaf]">Full Name</Label>
-            <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#afafaf]" />
-              <Input disabled value={invite?.full_name} className="pl-12 h-14 rounded-xl border-2 border-[#f7f9fc] bg-[#f7f9fc] font-bold text-[#232a39]" />
-            </div>
-          </div>
+        <div className="mt-7 rounded-xl border border-[#e8e6df] bg-[#faf9f5] px-4 py-3.5">
+          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#8a8881]">Invited account</p>
+          <div className="mt-2 flex items-center gap-2 text-sm font-semibold text-[#353431]"><Mail className="h-4 w-4 text-[#77746d]" /> {invite?.email}</div>
+          {invite?.course_name ? <p className="mt-1.5 pl-6 text-xs text-[#77746d]">Class: {invite.course_name}</p> : null}
+        </div>
 
-          <div className="space-y-2">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-[#afafaf]">Email</Label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#afafaf]" />
-              <Input disabled value={invite?.email} className="pl-12 h-14 rounded-xl border-2 border-[#f7f9fc] bg-[#f7f9fc] font-bold text-[#232a39]" />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-widest text-[#afafaf]">Set Your Password</Label>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#afafaf]" />
-              <Input id="password" name="password" type="password" placeholder="At least 8 characters" required className="pl-12 h-14 rounded-xl border-2 border-[#e5e5e5] focus:border-blue-500 transition-all font-bold" />
-            </div>
-          </div>
-
-          <Button type="submit" disabled={isAccepting} className="w-full h-14 bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-emerald-200">
-            {isAccepting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Activate Account"}
-          </Button>
+        <form onSubmit={handleSubmit} className="mt-6">
+          <button type="submit" disabled={isAccepting} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-[10px] bg-[#0066ff] px-4 text-sm font-semibold text-white transition hover:bg-[#0057d9] disabled:cursor-wait disabled:opacity-70">
+            {isAccepting ? <><Loader2 className="h-4 w-4 animate-spin" /> Confirming access…</> : "Accept and sign in"}
+          </button>
         </form>
-      </Card>
+        <p className="mt-4 text-center text-[11px] leading-5 text-[#9a978f]">Only accept if you recognize this institution and email address.</p>
+      </div>
     </div>
   )
 }

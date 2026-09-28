@@ -1,8 +1,11 @@
 import Link from "next/link"
+import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import { notFound } from "next/navigation"
 import { ArrowLeft, Users, Calendar, Hash } from "lucide-react"
 
 import { supabaseAdmin, hasSupabaseServiceRole } from "@/server/supabaseAdmin"
+import { requireMedlabTeamAccess } from "@/server/internal/medlabTeam"
 
 export const dynamic = "force-dynamic"
 
@@ -61,6 +64,16 @@ async function getSetupLinks(institutionId: string) {
   return data || []
 }
 
+async function getSuccessProfile(institutionId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("institution_success_profiles")
+    .select("account_manager_name,account_manager_email,account_manager_calendar_url,review_cadence,next_review_at,review_agenda,priority_support_email,sla_response_minutes")
+    .eq("institution_id", institutionId)
+    .maybeSingle()
+  if (error) return null
+  return data
+}
+
 export default async function InstitutionDetailPage({
   params,
 }: {
@@ -72,6 +85,7 @@ export default async function InstitutionDetailPage({
   if (!institution) notFound()
 
   const members = await getMembers(institution.id)
+  const successProfile = await getSuccessProfile(institution.id)
   const activeMembers = members.filter((m: any) => m.status === "ACTIVE")
   const inactiveMembers = members.filter((m: any) => m.status !== "ACTIVE")
 
@@ -92,6 +106,35 @@ export default async function InstitutionDetailPage({
     if (role === "EDUCATOR")
       return { bg: "#F5F3FF", text: "#5B21B6", border: "#DDD6FE" }
     return { bg: "#F0FDF4", text: "#065F46", border: "#A7F3D0" }
+  }
+
+  async function updateGrowthOperationsAction(formData: FormData) {
+    "use server"
+    await requireMedlabTeamAccess("/admin/institutions")
+    const institutionId = String(formData.get("institution_id") || "")
+    const billingPlan = String(formData.get("billing_plan") || "STARTER").toUpperCase()
+    if (!institutionId || !["STARTER", "GROWTH", "ENTERPRISE"].includes(billingPlan)) throw new Error("Invalid institution plan")
+    const subdomainEnabled = formData.get("subdomain_enabled") === "on" && billingPlan !== "STARTER"
+    const slaValue = String(formData.get("sla_response_minutes") || "").trim()
+    const slaResponseMinutes = slaValue ? Number(slaValue) : null
+    if (slaResponseMinutes !== null && (!Number.isFinite(slaResponseMinutes) || slaResponseMinutes < 1)) throw new Error("SLA response target must be a positive number of minutes")
+    const { error: institutionError } = await supabaseAdmin.from("institutions").update({ billing_plan: billingPlan, subdomain_enabled: subdomainEnabled }).eq("id", institutionId)
+    if (institutionError) throw new Error(`Failed to update Growth access: ${institutionError.message}`)
+    const { error: successError } = await supabaseAdmin.from("institution_success_profiles").upsert({
+      institution_id: institutionId,
+      account_manager_name: String(formData.get("account_manager_name") || "").trim() || null,
+      account_manager_email: String(formData.get("account_manager_email") || "").trim().toLowerCase() || null,
+      account_manager_calendar_url: String(formData.get("account_manager_calendar_url") || "").trim() || null,
+      review_cadence: String(formData.get("review_cadence") || "QUARTERLY"),
+      next_review_at: String(formData.get("next_review_at") || "").trim() || null,
+      review_agenda: String(formData.get("review_agenda") || "").trim() || null,
+      priority_support_email: String(formData.get("priority_support_email") || "").trim().toLowerCase() || null,
+      sla_response_minutes: slaResponseMinutes === null ? null : Math.round(slaResponseMinutes),
+      updated_at: new Date().toISOString()
+    }, { onConflict: "institution_id" })
+    if (successError) throw new Error(`Failed to update customer success profile: ${successError.message}`)
+    revalidatePath(`/admin/institutions/${institutionId}`)
+    redirect(`/admin/institutions/${institutionId}?updated=growth`)
   }
 
   return (
@@ -186,6 +229,24 @@ export default async function InstitutionDetailPage({
           </div>
         )}
       </div>
+
+      <form action={updateGrowthOperationsAction} className="rounded-[12px] p-6" style={{ backgroundColor: "white", border: "1.5px solid #E8E6DF" }}>
+        <input type="hidden" name="institution_id" value={institution.id} />
+        <div><p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B9A94]">Growth operations</p><h2 className="mt-2 text-lg font-bold text-[#0E0F12]">Plan, portal, and customer success</h2></div>
+        <div className="mt-5 grid gap-4 md:grid-cols-2">
+          <label className="text-xs font-semibold text-[#6B6A65]">Plan<select name="billing_plan" defaultValue={institution.billing_plan || "STARTER"} className="mt-1.5 w-full rounded-[9px] border border-[#D8D5CC] bg-white px-3 py-2.5 text-sm text-[#0E0F12]"><option value="STARTER">Starter</option><option value="GROWTH">Growth</option><option value="ENTERPRISE">Enterprise</option></select></label>
+          <label className="flex items-center gap-3 self-end rounded-[9px] border border-[#D8D5CC] px-3.5 py-2.5 text-sm font-semibold text-[#353431]"><input type="checkbox" name="subdomain_enabled" defaultChecked={Boolean(institution.subdomain_enabled)} className="h-4 w-4" /> Enable {institution.slug}.getmedlab.com</label>
+          <label className="text-xs font-semibold text-[#6B6A65]">Account manager name<input name="account_manager_name" defaultValue={successProfile?.account_manager_name || ""} className="mt-1.5 w-full rounded-[9px] border border-[#D8D5CC] px-3 py-2.5 text-sm" /></label>
+          <label className="text-xs font-semibold text-[#6B6A65]">Account manager email<input name="account_manager_email" type="email" defaultValue={successProfile?.account_manager_email || ""} className="mt-1.5 w-full rounded-[9px] border border-[#D8D5CC] px-3 py-2.5 text-sm" /></label>
+          <label className="text-xs font-semibold text-[#6B6A65]">Manager calendar URL<input name="account_manager_calendar_url" type="url" defaultValue={successProfile?.account_manager_calendar_url || ""} className="mt-1.5 w-full rounded-[9px] border border-[#D8D5CC] px-3 py-2.5 text-sm" /></label>
+          <label className="text-xs font-semibold text-[#6B6A65]">Review cadence<select name="review_cadence" defaultValue={successProfile?.review_cadence || "QUARTERLY"} className="mt-1.5 w-full rounded-[9px] border border-[#D8D5CC] bg-white px-3 py-2.5 text-sm"><option value="QUARTERLY">Quarterly</option><option value="BIANNUAL">Biannual</option><option value="ANNUAL">Annual</option></select></label>
+          <label className="text-xs font-semibold text-[#6B6A65]">Next review<input name="next_review_at" type="datetime-local" defaultValue={successProfile?.next_review_at ? String(successProfile.next_review_at).slice(0, 16) : ""} className="mt-1.5 w-full rounded-[9px] border border-[#D8D5CC] px-3 py-2.5 text-sm" /></label>
+          <label className="text-xs font-semibold text-[#6B6A65]">Review agenda<input name="review_agenda" defaultValue={successProfile?.review_agenda || ""} className="mt-1.5 w-full rounded-[9px] border border-[#D8D5CC] px-3 py-2.5 text-sm" placeholder="Adoption, outcomes, next cohort" /></label>
+          <label className="text-xs font-semibold text-[#6B6A65]">Priority support email<input name="priority_support_email" type="email" defaultValue={successProfile?.priority_support_email || ""} className="mt-1.5 w-full rounded-[9px] border border-[#D8D5CC] px-3 py-2.5 text-sm" placeholder="priority@getmedlab.com" /></label>
+          <label className="text-xs font-semibold text-[#6B6A65]">SLA response target (minutes)<input name="sla_response_minutes" type="number" min={1} defaultValue={successProfile?.sla_response_minutes || ""} className="mt-1.5 w-full rounded-[9px] border border-[#D8D5CC] px-3 py-2.5 text-sm" /></label>
+        </div>
+        <button className="mt-5 rounded-[9px] bg-[#0066FF] px-4 py-2.5 text-sm font-semibold text-white">Save plan operations</button>
+      </form>
 
       {/* Active members */}
       <div>

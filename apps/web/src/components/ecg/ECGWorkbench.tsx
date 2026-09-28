@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { ECGDisplay } from "@/components/ecg/ECGDisplay"
 import { DoctorPanel } from "@/components/simulation/DoctorPanel"
@@ -13,6 +13,11 @@ import { ZoomIn, ZoomOut, Activity, X, AlertCircle, ChevronDown } from "lucide-r
 import { useAuth } from "@/contexts/AuthContext"
 import { toast } from "sonner"
 import { mutate } from "swr"
+import {
+  createPracticeAttemptId,
+  practiceDurationSeconds,
+  submitPracticeCompletion,
+} from "@/lib/institution/submitPracticeCompletion"
 
 type Mode = "simulation" | "case-based"
 
@@ -20,10 +25,14 @@ export function ECGWorkbench({
   initialMode = "simulation",
   presetCase,
   presetParams,
+  unitId,
+  courseId,
 }: {
   initialMode?: Mode
   presetCase?: PatientCase
   presetParams?: ECGWaveformParams
+  unitId?: string
+  courseId?: string | null
 }) {
   const [mode, setMode] = useState<Mode>(initialMode)
   // Use a stable default on the first render so server and client produce identical HTML.
@@ -37,6 +46,7 @@ export function ECGWorkbench({
   const [historyCollapsed, setHistoryCollapsed] = useState(false)
   const { user, setWorkbenchMode } = useAuth()
   const router = useRouter()
+  const sessionStartedAt = useRef(Date.now())
 
   // Enter workbench mode on mount, exit on unmount
   useEffect(() => {
@@ -126,6 +136,22 @@ export function ECGWorkbench({
     if (currentIndex < INTERPRETATION_STEPS.length - 1) {
       setCurrentStep(INTERPRETATION_STEPS[currentIndex + 1])
     } else {
+      const attemptId = createPracticeAttemptId()
+      void submitPracticeCompletion({
+        action: "ecg_simulation_complete",
+        data: {
+          caseId: unitId || "ecg-simulation",
+          caseType: "simulation",
+          modality: "ECG",
+          courseId: courseId || undefined,
+          attemptId,
+          durationSec: practiceDurationSeconds(sessionStartedAt.current),
+        },
+        context: { accuracy: 1 },
+      })
+        .then(() => mutate("/api/student/stats"))
+        .catch(() => toast.error("Your completed simulation could not be saved. Please try another round."))
+      sessionStartedAt.current = Date.now()
       setEcgParams(generateRandomECGParams())
       setCurrentStep(INTERPRETATION_STEPS[0])
     }
@@ -249,7 +275,7 @@ export function ECGWorkbench({
             className="w-full lg:w-[380px] flex-shrink-0 overflow-y-auto"
             style={{ borderLeft: "1px solid #E8E6DF" }}
           >
-            <AssessmentForm patientCase={JSON.stringify(currentCase)} ecgFindings={JSON.stringify(ecgParams)} />
+            <AssessmentForm patientCase={JSON.stringify(currentCase)} ecgFindings={JSON.stringify(ecgParams)} unitId={unitId} courseId={courseId} />
           </div>
         )}
       </div>

@@ -21,6 +21,10 @@ type UserRecord = {
   full_name: string | null
 }
 
+export const INVITE_TTL_MS = 14 * 24 * 60 * 60 * 1000
+// Keep under Resend's default 2 requests/second limit during bulk imports.
+const INVITE_SEND_INTERVAL_MS = 550
+
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function normalizeEmail(value: string) {
@@ -105,7 +109,7 @@ async function hasPendingInvite(input: {
 }) {
   let query = supabaseAdmin
     .from("invites")
-    .select("id")
+    .select("id,last_error")
     .eq("institution_id", input.institutionId)
     .eq("email", input.email)
     .eq("role", input.role)
@@ -125,7 +129,24 @@ async function hasPendingInvite(input: {
     throw new Error(`Failed to inspect pending invite: ${error.message}`)
   }
 
-  return Boolean(data?.length)
+  const pending = data?.[0] as { id: string; last_error: string | null } | undefined
+  if (!pending) return false
+
+  // An invite whose email never went out shouldn't block a fresh attempt.
+  if (pending.last_error) {
+    const { error: expireError } = await supabaseAdmin
+      .from("invites")
+      .update({ expires_at: new Date().toISOString() })
+      .eq("id", pending.id)
+
+    if (expireError) {
+      throw new Error(`Failed to replace undelivered invite: ${expireError.message}`)
+    }
+
+    return false
+  }
+
+  return true
 }
 
 async function userAlreadyActiveInCourse(courseId: string, userId: string, role: "EDUCATOR" | "STUDENT") {
@@ -203,6 +224,7 @@ export async function inviteMembers(input: {
       .from("courses")
       .select("name")
       .eq("id", input.courseId)
+      .eq("institution_id", input.institutionId)
       .maybeSingle()
 
     if (courseError || !course) {
@@ -213,6 +235,7 @@ export async function inviteMembers(input: {
   }
 
   const seenEmails = new Set<string>()
+  let lastSendAt = 0
 
   for (const row of input.rows) {
     const rawEmail = row.email || ""
@@ -316,7 +339,7 @@ export async function inviteMembers(input: {
         email,
         role: input.role,
         token_hash: tokenHash,
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        expires_at: new Date(Date.now() + INVITE_TTL_MS).toISOString(),
         created_by_user_id: input.invitedByUserId,
         metadata: row.metadata || (row.name ? { name: row.name } : null),
         last_error: null
@@ -333,6 +356,10 @@ export async function inviteMembers(input: {
       })
       continue
     }
+
+    const waitMs = lastSendAt + INVITE_SEND_INTERVAL_MS - Date.now()
+    if (waitMs > 0) await new Promise((resolve) => setTimeout(resolve, waitMs))
+    lastSendAt = Date.now()
 
     const emailResult = await sendInviteEmail({
       email,
@@ -381,5 +408,48 @@ export async function removeMember(input: {
 
   if (error) {
     throw new Error(`Failed to remove member from course: ${error.message}`)
+  }
+
+  if (input.role === "STUDENT") {
+    await suspendStudentWithoutActiveCourses(input.courseId, input.userId)
+  }
+}
+
+// A student dropped from their last class loses institution access (and the
+// Pro entitlement it grants). Re-inviting them reactivates the membership.
+async function suspendStudentWithoutActiveCourses(courseId: string, userId: string) {
+  const { data: course, error: courseError } = await supabaseAdmin
+    .from("courses")
+    .select("institution_id")
+    .eq("id", courseId)
+    .maybeSingle()
+
+  if (courseError || !course) {
+    throw new Error(`Failed to load course for member removal: ${courseError?.message || "Not found"}`)
+  }
+
+  const { data: remaining, error: remainingError } = await supabaseAdmin
+    .from("course_memberships")
+    .select("id,courses!inner(institution_id)")
+    .eq("user_id", userId)
+    .eq("status", "ACTIVE")
+    .eq("courses.institution_id", course.institution_id)
+    .limit(1)
+
+  if (remainingError) {
+    throw new Error(`Failed to inspect remaining course memberships: ${remainingError.message}`)
+  }
+
+  if (remaining?.length) return
+
+  const { error: suspendError } = await supabaseAdmin
+    .from("institution_memberships")
+    .update({ status: "SUSPENDED" })
+    .eq("institution_id", course.institution_id)
+    .eq("user_id", userId)
+    .eq("role", "STUDENT")
+
+  if (suspendError) {
+    throw new Error(`Failed to suspend institution membership: ${suspendError.message}`)
   }
 }

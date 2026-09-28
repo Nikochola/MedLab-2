@@ -16,7 +16,7 @@ export default function NotFound() {
           Page not found
         </h1>
         <p style={{ fontSize: 15, color: "#9B9A94", margin: "0 0 32px" }}>
-          This page doesn't exist or was moved.
+          This page doesn’t exist or was moved.
         </p>
         <Button asChild>
           <Link href="/">Back to home</Link>

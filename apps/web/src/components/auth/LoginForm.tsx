@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
+import Image from "next/image";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { buildAuthCallbackUrl, buildInstitutionUrl, buildStudentAppUrl, buildMarketingUrl } from "@/lib/runtimeUrls";
@@ -22,16 +23,19 @@ export default function LoginForm({
     type,
     institutionName,
     onSubdomain,
+    institutionBranding,
 }: {
     type: "student" | "institution"
     institutionName?: string
     onSubdomain?: boolean
+    institutionBranding?: { name?: string; logoUrl: string | null; primaryColor: string; accentColor: string; hideMedlabBranding: boolean } | null
 }) {
     const searchParams = useSearchParams();
     const [isLoading, setIsLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
     const isStudent = type === "student";
+    const primaryColor = institutionBranding?.primaryColor || "#0066FF";
     const next = searchParams.get("next");
 
     async function handleGoogleSignIn() {
@@ -53,6 +57,16 @@ export default function LoginForm({
         primaryRole?: string | null;
         memberships?: Array<{ role?: string | null; status?: string | null }>;
     }) {
+        // Institution access is resolved by the protected server layout, which
+        // has authoritative membership visibility. Client-side RLS may hide
+        // memberships during the first post-login request.
+        if (!isStudent) {
+            if (input.next && input.next.startsWith("/")) {
+                return onSubdomain ? input.next : buildInstitutionUrl(input.next);
+            }
+            return onSubdomain ? "/institution/overview" : buildInstitutionUrl("/institution/overview");
+        }
+
         const activeRoles = new Set(
             (input.memberships || [])
                 .filter((membership) => membership.status === "ACTIVE")
@@ -68,7 +82,7 @@ export default function LoginForm({
         // On a subdomain: use relative paths so the user stays on slug.medlabinteractive.com
         if (onSubdomain) {
             if (input.next && input.next.startsWith("/")) return input.next;
-            if (hasPortalAccess) return "/institution/courses";
+            if (hasPortalAccess) return "/institution/overview";
             if (hasAnyInstitutionMembership) return "/learn";
             if (input.primaryRole === "institution") return "/institution/onboarding";
             return "/learn";
@@ -81,7 +95,7 @@ export default function LoginForm({
                 : buildStudentAppUrl(input.next);
         }
 
-        if (hasPortalAccess) return buildInstitutionUrl("/institution/courses");
+        if (hasPortalAccess) return buildInstitutionUrl("/institution/overview");
         if (hasAnyInstitutionMembership) return buildInstitutionUrl("/learn");
         if (input.primaryRole === "institution") return buildInstitutionUrl("/institution/onboarding");
         return buildStudentAppUrl("/learn");
@@ -125,11 +139,11 @@ export default function LoginForm({
     const showGoogleOAuth = !onSubdomain;
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: "#F8F7F2" }}>
+        <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: institutionBranding?.accentColor || "#F8F7F2" }}>
             <div className="w-full max-w-[400px]">
                 {/* Logo */}
                 <div className="flex justify-center mb-10">
-                    <img src="/images/logo_black.svg" alt="MedLab" style={{ height: 22 }} />
+                    {institutionBranding?.logoUrl ? <img src={institutionBranding.logoUrl} alt={institutionBranding.name || institutionName || "Institution"} className="max-h-12 max-w-[220px] object-contain" /> : institutionBranding?.name ? <span className="text-2xl font-semibold tracking-[-.04em] text-[#0e0f12]">{institutionBranding.name}</span> : <Image src="/images/logo_black.svg" alt="MedLab" width={110} height={22} priority />}
                 </div>
 
                 {/* Heading */}
@@ -192,21 +206,21 @@ export default function LoginForm({
                         <label htmlFor="email" className="block text-xs font-medium" style={{ color: "#6B6A65" }}>
                             Email
                         </label>
-                        <div className="relative">
-                            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "#9B9A94" }} />
+                        <div>
                             <input
                                 id="email"
                                 name="email"
                                 type="email"
+                                autoComplete="email"
                                 placeholder="you@example.com"
                                 required
-                                className="w-full h-12 pl-11 pr-4 rounded-[9px] text-sm font-medium outline-none transition-colors"
+                                className="h-12 w-full rounded-[9px] px-4 text-sm font-medium outline-none transition-colors"
                                 style={{
                                     backgroundColor: "white",
                                     border: "1.5px solid #E8E6DF",
                                     color: "#0E0F12",
                                 }}
-                                onFocus={(e) => e.currentTarget.style.borderColor = "#0066FF"}
+                                onFocus={(e) => e.currentTarget.style.borderColor = primaryColor}
                                 onBlur={(e) => e.currentTarget.style.borderColor = "#E8E6DF"}
                             />
                         </div>
@@ -216,21 +230,21 @@ export default function LoginForm({
                         <label htmlFor="password" className="block text-xs font-medium" style={{ color: "#6B6A65" }}>
                             Password
                         </label>
-                        <div className="relative">
-                            <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "#9B9A94" }} />
+                        <div>
                             <input
                                 id="password"
                                 name="password"
                                 type="password"
+                                autoComplete="current-password"
                                 placeholder="••••••••"
                                 required
-                                className="w-full h-12 pl-11 pr-4 rounded-[9px] text-sm font-medium outline-none transition-colors"
+                                className="h-12 w-full rounded-[9px] px-4 text-sm font-medium outline-none transition-colors"
                                 style={{
                                     backgroundColor: "white",
                                     border: "1.5px solid #E8E6DF",
                                     color: "#0E0F12",
                                 }}
-                                onFocus={(e) => e.currentTarget.style.borderColor = "#0066FF"}
+                                onFocus={(e) => e.currentTarget.style.borderColor = primaryColor}
                                 onBlur={(e) => e.currentTarget.style.borderColor = "#E8E6DF"}
                             />
                         </div>
@@ -241,18 +255,15 @@ export default function LoginForm({
                         disabled={isLoading}
                         className="w-full h-12 rounded-[9px] text-sm font-semibold text-white flex items-center justify-center gap-2 transition-all disabled:opacity-50"
                         style={{
-                            backgroundColor: "#0066FF",
-                            border: "1.5px solid #0047CC",
-                            boxShadow: "0 3px 0 #0047CC",
+                            backgroundColor: primaryColor,
+                            border: `1.5px solid color-mix(in srgb, ${primaryColor} 72%, black)`,
+                            boxShadow: `0 3px 0 color-mix(in srgb, ${primaryColor} 72%, black)`,
                         }}
                     >
                         {isLoading ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                            <>
-                                Sign In
-                                <ArrowRight className="h-4 w-4" />
-                            </>
+                            "Sign In"
                         )}
                     </button>
 

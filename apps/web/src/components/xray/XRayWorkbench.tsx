@@ -173,10 +173,14 @@ export function XRayWorkbench({
   initialMode = "simulation",
   modality = "XRAY",
   presetCase,
+  unitId,
+  courseId,
 }: {
   initialMode?: Mode,
   modality?: "XRAY" | "CT"
   presetCase?: XRayCase
+  unitId?: string
+  courseId?: string | null
 }) {
   const [mode, setMode] = useState<Mode>(initialMode)
   const [currentCase, setCurrentCase] = useState<XRayCase>(() => presetCase ?? getRandomCase())
@@ -241,7 +245,7 @@ export function XRayWorkbench({
     } finally {
       setIsGenerating(false)
     }
-  }, [effectiveSeed, pathology, severity, view, source])
+  }, [effectiveSeed, pathology, severity, view, source, modality])
 
   useEffect(() => {
     generateImage()
@@ -473,7 +477,7 @@ export function XRayWorkbench({
             className="w-full lg:w-[380px] flex-shrink-0 overflow-y-auto"
             style={{ borderLeft: "1px solid #E8E6DF" }}
           >
-            <XRayAssessmentForm patientCase={currentCase} xrayFindings={{ pathology, severity, view }} />
+            <XRayAssessmentForm patientCase={currentCase} xrayFindings={{ pathology, severity, view }} unitId={unitId} courseId={courseId} />
           </div>
         )}
       </div>

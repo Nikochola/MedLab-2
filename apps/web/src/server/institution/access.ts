@@ -106,7 +106,19 @@ function generateSetupToken() {
 }
 
 function generateVerificationCode() {
-  return String(Math.floor(100000 + Math.random() * 900000))
+  return String(crypto.randomInt(100000, 1000000))
+}
+
+const MAX_VERIFICATION_ATTEMPTS = 5
+const VERIFICATION_RESEND_COOLDOWN_MS = 60 * 1000
+
+function escapeHtml(value: string | number | null | undefined) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
 }
 
 function emailDomain(email: string) {
@@ -196,18 +208,18 @@ async function sendInternalInstitutionRequestNotification(payload: {
       ? resend.emails.send({
           from: notificationFrom,
           to: teamNotificationEmail,
-          subject: `New institution request: ${payload.institutionName}`,
+          subject: `New institution request: ${payload.institutionName.replace(/[\r\n]+/g, " ")}`,
           replyTo: replyToEmail,
           html: `
             <h1>New institution request</h1>
-            <p><strong>Institution:</strong> ${payload.institutionName}</p>
-            <p><strong>Requester:</strong> ${payload.fullName}</p>
-            <p><strong>Work email:</strong> ${payload.workEmail}</p>
-            <p><strong>Type:</strong> ${payload.institutionType}</p>
-            <p><strong>Estimated students:</strong> ${payload.estimatedStudents}</p>
+            <p><strong>Institution:</strong> ${escapeHtml(payload.institutionName)}</p>
+            <p><strong>Requester:</strong> ${escapeHtml(payload.fullName)}</p>
+            <p><strong>Work email:</strong> ${escapeHtml(payload.workEmail)}</p>
+            <p><strong>Type:</strong> ${escapeHtml(payload.institutionType)}</p>
+            <p><strong>Estimated students:</strong> ${escapeHtml(payload.estimatedStudents)}</p>
             <p><strong>Meeting requested:</strong> ${payload.wantsMeeting ? "Yes" : "No"}</p>
             ${payload.wantsMeeting ? `<p><strong>Scheduling link:</strong> <a href="${calBookingUrl}">${calBookingUrl}</a></p>` : ""}
-            <p><strong>Message:</strong> ${payload.message || "—"}</p>
+            <p><strong>Message:</strong> ${escapeHtml(payload.message || "—")}</p>
             <p><strong>Request id:</strong> ${payload.requestId}</p>
             <p><a href="${dashboardUrl}">Review requests</a></p>
           `
@@ -314,9 +326,9 @@ async function sendInstitutionRequestRejectionEmail(input: {
       subject: `Update on your MedLab request for ${input.institutionName}`,
       html: `
         <h1>Institution request update</h1>
-        <p>Hello ${input.fullName},</p>
+        <p>Hello ${escapeHtml(input.fullName)},</p>
         <p>Thank you for your interest in MedLab. We are not able to approve this request right now.</p>
-        ${input.reason ? `<p><strong>Reason:</strong> ${input.reason}</p>` : ""}
+        ${input.reason ? `<p><strong>Reason:</strong> ${escapeHtml(input.reason)}</p>` : ""}
         <p>If you have additional context to share, reply to this email and our team will follow up.</p>
       `
     })
@@ -345,7 +357,7 @@ async function sendInstitutionRequestManualReplyEmail(input: {
       to: input.email,
       replyTo: replyToEmail,
       subject: input.subject,
-      html: `<div style="font-family:system-ui,sans-serif;white-space:pre-wrap">${input.body}</div>`
+      html: `<div style="font-family:system-ui,sans-serif;white-space:pre-wrap">${escapeHtml(input.body)}</div>`
     })
 
     return { sent: true, error: null }
@@ -806,7 +818,8 @@ export async function getInstitutionSetupContextByToken(token: string) {
 
   const { data: setupLink, error } = await supabaseAdmin
     .from("institution_setup_links")
-    .select("id,request_id,full_name,work_email,institution_name,institution_type,estimated_students,expires_at,verification_code_hash,verification_code_sent_at,email_verified_at,claimed_at,created_at")
+    // "*" keeps this working before the verification_attempts migration is applied.
+    .select("*")
     .eq("token_hash", tokenHash)
     .maybeSingle()
 
@@ -823,6 +836,8 @@ export async function getInstitutionSetupContextByToken(token: string) {
 
   return {
     ...setupLink,
+    supportsAttemptLimit: "verification_attempts" in setupLink,
+    verification_attempts: Number(setupLink.verification_attempts || 0),
     isExpired,
     existingInstitution
   }
@@ -835,13 +850,21 @@ export async function sendInstitutionSetupVerificationCode(token: string) {
     throw new Error("This setup link is invalid or expired.")
   }
 
+  if (
+    setupLink.verification_code_sent_at &&
+    Date.now() - new Date(setupLink.verification_code_sent_at).getTime() < VERIFICATION_RESEND_COOLDOWN_MS
+  ) {
+    throw new Error("Please wait a minute before requesting another code.")
+  }
+
   const code = generateVerificationCode()
   const now = new Date().toISOString()
   const { error } = await supabaseAdmin
     .from("institution_setup_links")
     .update({
       verification_code_hash: hashToken(code),
-      verification_code_sent_at: now
+      verification_code_sent_at: now,
+      ...(setupLink.supportsAttemptLimit ? { verification_attempts: 0 } : {})
     })
     .eq("id", setupLink.id)
 
@@ -927,7 +950,21 @@ export async function activateInstitutionSetupAccount(input: {
     throw new Error("Your verification code has expired. Request a new code and try again.")
   }
 
-  if (hashToken(input.verificationCode.trim()) !== setupLink.verification_code_hash) {
+  if (setupLink.verification_attempts >= MAX_VERIFICATION_ATTEMPTS) {
+    throw new Error("Too many incorrect attempts. Request a new code and try again.")
+  }
+
+  const submittedHash = Buffer.from(hashToken(input.verificationCode.trim()), "hex")
+  const expectedHash = Buffer.from(String(setupLink.verification_code_hash || ""), "hex")
+  const codeMatches = expectedHash.length === submittedHash.length && crypto.timingSafeEqual(submittedHash, expectedHash)
+
+  if (!codeMatches) {
+    if (setupLink.supportsAttemptLimit) {
+      await supabaseAdmin
+        .from("institution_setup_links")
+        .update({ verification_attempts: setupLink.verification_attempts + 1 })
+        .eq("id", setupLink.id)
+    }
     throw new Error("The verification code is incorrect.")
   }
 

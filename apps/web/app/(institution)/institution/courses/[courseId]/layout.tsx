@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
 import type { ReactNode } from "react"
+import { ArrowLeft } from "lucide-react"
 
 import { getSessionWithRole } from "@/server/auth/session"
 import { getCourseById, requireInstitutionRole, userCanAccessCourse } from "@/server/institution"
@@ -14,7 +15,7 @@ export default async function CourseLayout({ children, params }: CourseLayoutPro
   const sessionWithRole = await getSessionWithRole()
 
   if (!sessionWithRole) {
-    redirect(`/login?next=/institution/courses/${params.courseId}/students`)
+    redirect(`/institution/login?next=/institution/courses/${params.courseId}/students`)
   }
   const ensuredSession = sessionWithRole
 
@@ -39,20 +40,15 @@ export default async function CourseLayout({ children, params }: CourseLayoutPro
 
   return (
     <main className="space-y-4">
-      <div className="surface-card p-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Course</p>
-        <h1 className="mt-2 text-2xl font-semibold text-slate-900">{ensuredCourse.name}</h1>
-        <p className="mt-1 text-sm text-slate-600">Code: {ensuredCourse.code || "—"}</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Link href={`/institution/courses/${ensuredCourse.id}/students`} className="rounded-md bg-slate-100 px-3 py-1.5 text-sm font-medium hover:bg-slate-200">
-            Students
-          </Link>
-          <Link href={`/institution/courses/${ensuredCourse.id}/educators`} className="rounded-md bg-slate-100 px-3 py-1.5 text-sm font-medium hover:bg-slate-200">
-            Educators
-          </Link>
-          <Link href={`/institution/courses/${ensuredCourse.id}/analytics`} className="rounded-md bg-slate-100 px-3 py-1.5 text-sm font-medium hover:bg-slate-200">
-            Analytics
-          </Link>
+      <div className="institution-panel p-5">
+        <Link href="/institution/courses" className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#77746d]"><ArrowLeft className="h-3.5 w-3.5" /> All classes</Link>
+        <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div><p className="institution-eyebrow">Class workspace</p><h1 className="mt-1 text-2xl font-semibold tracking-[-0.03em] text-[#0e0f12]">{ensuredCourse.name}</h1><p className="mt-1 text-xs text-[#8a8881]">{ensuredCourse.code || "No class code"}</p></div>
+          <div className="flex flex-wrap gap-2">
+            <Link href={`/institution/courses/${ensuredCourse.id}/students`} className="institution-button-secondary h-9 px-3 text-xs">Roster & CSV</Link>
+            <Link href={`/institution/assignments?courseId=${ensuredCourse.id}`} className="institution-button-secondary h-9 px-3 text-xs">Assignments</Link>
+            <Link href={`/institution/analytics?courseId=${ensuredCourse.id}`} className="institution-button-secondary h-9 px-3 text-xs">Analytics</Link>
+          </div>
         </div>
       </div>
       {children}

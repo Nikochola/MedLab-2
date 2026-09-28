@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "@/server/auth/session"
 import { supabaseAdmin } from "@/server/supabaseAdmin"
 import { calculateXPForAction } from "@/lib/xp/xpConfig"
+import { recordInstitutionalPracticeOutcome } from "@/server/institution"
 
 // Server-authoritative anti-abuse: the client cannot be trusted to report which
 // action happened (it can loop POSTs to mint unlimited XP). We bound every
@@ -54,6 +55,9 @@ export async function POST(request: Request) {
     if (!ALLOWED_ACTIONS.has(action)) {
       return NextResponse.json({ error: "Unknown action" }, { status: 400 })
     }
+    if (action === "case_submit" && !String(data?.caseId || "").trim()) {
+      return NextResponse.json({ error: "Missing case identifier" }, { status: 400 })
+    }
 
     // Calculate XP from server-trusted context only (no spoofable bonuses).
     const { amount, reason } = calculateXPForAction(action, sanitizeContext(context))
@@ -94,6 +98,20 @@ export async function POST(request: Request) {
 
     // Atomic, race-free award: dedup + daily cap + activity insert + XP/counter
     // increment, all under a per-student advisory lock inside the DB.
+    let institutionAttemptIds: string[] | null = null
+    try {
+      institutionAttemptIds = await recordInstitutionalPracticeOutcome({
+        userId: studentId,
+        action,
+        data,
+        context,
+        source: "web"
+      })
+    } catch (attemptError) {
+      console.error("[award-xp] institution attempt recording error:", attemptError)
+      return NextResponse.json({ error: "Practice could not be saved. Please retry." }, { status: 503 })
+    }
+
     const { data: awardRows, error: awardError } = await supabaseAdmin.rpc("award_student_xp", {
       p_student_id: studentId,
       p_action: action,
@@ -108,6 +126,14 @@ export async function POST(request: Request) {
 
     if (awardError) {
       console.error("[award-xp] award_student_xp rpc error:", awardError)
+      if (institutionAttemptIds?.length) {
+        return NextResponse.json({
+          xpAwarded: 0,
+          reason: "Practice saved; XP is temporarily unavailable",
+          attemptRecorded: true,
+          currentStreak: 0
+        })
+      }
       return NextResponse.json({ error: "Failed to award XP" }, { status: 500 })
     }
 
@@ -115,7 +141,12 @@ export async function POST(request: Request) {
     const awarded = result?.awarded ?? 0
 
     if (awarded === 0) {
-      return NextResponse.json({ xpAwarded: 0, reason: result?.reason ?? "No XP awarded" })
+      return NextResponse.json({
+        xpAwarded: 0,
+        reason: result?.reason ?? "No XP awarded",
+        attemptRecorded: Boolean(institutionAttemptIds?.length),
+        currentStreak: 0
+      })
     }
 
     // Recalculate streak from the (now-updated) activity ledger and persist it.
@@ -162,6 +193,7 @@ export async function POST(request: Request) {
       reason: result?.reason ?? reason,
       newLevel: result?.leveled_up ? result?.current_level : undefined,
       currentStreak,
+      attemptRecorded: Boolean(institutionAttemptIds?.length),
     })
   } catch (error) {
     console.error("[award-xp] Unexpected error:", error)

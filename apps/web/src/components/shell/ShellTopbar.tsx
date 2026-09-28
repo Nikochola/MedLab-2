@@ -30,7 +30,7 @@ function getTitle(pathname: string): string {
   return "MedLab"
 }
 
-export function ShellTopbar() {
+export function ShellTopbar({ branding }: { branding?: { name: string | null; logoUrl: string | null; hideMedlabBranding: boolean } | null }) {
   const pathname = usePathname() || ""
   const title = useMemo(() => getTitle(pathname), [pathname])
   const { user, logout } = useAuth()
@@ -73,12 +73,7 @@ export function ShellTopbar() {
           </Link>
         ) : (
           <>
-            <img
-              src="/images/logo_black.svg"
-              alt="MedLab"
-              className="lg:hidden shrink-0"
-              style={{ height: 17 }}
-            />
+            {branding?.logoUrl ? <img src={branding.logoUrl} alt={branding.name || "Institution"} className="max-w-[120px] shrink-0 object-contain lg:hidden" style={{ height: 23 }} /> : branding?.name ? <span className="max-w-[140px] truncate text-sm font-semibold tracking-[-.02em] text-[#0e0f12] lg:hidden">{branding.name}</span> : <img src="/images/logo_black.svg" alt="MedLab" className="shrink-0 lg:hidden" style={{ height: 17 }} />}
             <h1
               className="hidden lg:block text-lg font-semibold truncate"
               style={{ color: "#0E0F12" }}

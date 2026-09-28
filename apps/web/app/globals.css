@@ -157,10 +157,93 @@
 @layer components {
   .institution-shell {
     @apply min-h-screen;
+    --institution-primary: #0066ff;
+    --institution-primary-dark: color-mix(in srgb, var(--institution-primary) 72%, black);
+    --institution-accent: #eef3ff;
     background:
-      radial-gradient(circle at 0% 0%, rgba(43, 113, 242, 0.16), transparent 38%),
-      radial-gradient(circle at 100% 0%, rgba(45, 191, 163, 0.12), transparent 36%),
-      linear-gradient(180deg, #f7faff 0%, #eef4ff 100%);
+      linear-gradient(rgba(14, 15, 18, 0.018) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(14, 15, 18, 0.018) 1px, transparent 1px),
+      #f7f6f1;
+    background-size: 28px 28px;
+  }
+
+  .institution-shell-grid {
+    @apply mx-auto grid min-h-screen w-full max-w-[1600px] lg:grid-cols-[248px_minmax(0,1fr)];
+  }
+
+  .institution-rail {
+    @apply relative z-20 flex border-b border-[#dfddd5] bg-[#fdfcf8] lg:sticky lg:top-0 lg:h-screen lg:flex-col lg:border-b-0 lg:border-r;
+  }
+
+  .institution-brand-block {
+    @apply hidden border-b border-[#e8e6df] px-6 pb-6 pt-7 lg:block;
+  }
+
+  .institution-nav {
+    @apply flex flex-1 gap-1 overflow-x-auto px-3 py-3 lg:flex-col lg:overflow-visible lg:px-4 lg:py-5;
+    scrollbar-width: none;
+  }
+
+  .institution-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .institution-nav-link {
+    @apply inline-flex shrink-0 items-center gap-2 rounded-[9px] px-3 py-2.5 text-[13px] font-medium text-[#65635d] transition-colors hover:bg-[#f0eee8] hover:text-[#0e0f12] lg:w-full;
+  }
+
+  .institution-nav-link[data-active="true"] {
+    @apply text-white;
+    background: var(--institution-primary);
+    box-shadow: 0 3px 0 var(--institution-primary-dark);
+  }
+
+  .institution-user-card {
+    @apply hidden border-t border-[#e8e6df] p-4 lg:block;
+  }
+
+  .institution-page-header {
+    @apply mb-7 flex flex-col gap-4 border-b border-[#d8d5cc] pb-6 sm:flex-row sm:items-end sm:justify-between;
+  }
+
+  .institution-eyebrow {
+    @apply text-[10px] font-bold uppercase tracking-[0.18em] text-[#7a7770];
+  }
+
+  .institution-title {
+    @apply mt-2 text-[clamp(1.75rem,3vw,2.5rem)] font-semibold leading-none tracking-[-0.035em] text-[#0e0f12];
+  }
+
+  .institution-subtitle {
+    @apply mt-3 max-w-2xl text-sm leading-6 text-[#6b6a65];
+  }
+
+  .institution-stat-card {
+    @apply rounded-[14px] border border-[#dedbd2] bg-[#fffefa] p-5 shadow-[0_4px_0_rgba(14,15,18,0.055)];
+  }
+
+  .institution-panel {
+    @apply rounded-[16px] border border-[#dedbd2] bg-[#fffefa] shadow-[0_4px_0_rgba(14,15,18,0.045)];
+  }
+
+  .institution-button-primary {
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-[9px] border px-4 text-sm font-semibold text-white transition-transform active:translate-y-[3px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-50;
+    border-color: var(--institution-primary-dark);
+    background: var(--institution-primary);
+    box-shadow: 0 3px 0 var(--institution-primary-dark);
+  }
+
+  .institution-button-secondary {
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-[9px] border border-[#d8d5cc] bg-[#fffefa] px-4 text-sm font-semibold text-[#353431] shadow-[0_3px_0_#d8d5cc] transition-transform active:translate-y-[3px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .institution-input {
+    @apply h-11 w-full rounded-[9px] border border-[#d8d5cc] bg-white px-3.5 text-sm text-[#0e0f12] outline-none transition;
+  }
+
+  .institution-input:focus {
+    border-color: var(--institution-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--institution-primary) 12%, transparent);
   }
 
   .surface-card {

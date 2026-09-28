@@ -79,18 +79,15 @@ export function GatingProvider({ children }: { children: React.ReactNode }) {
         if (showLoading) setIsLoading(true);
 
         try {
-            const { data: subData, error: subError } = await supabase
-                .from("subscriptions")
-                .select("*")
-                .eq("user_id", userId)
-                .maybeSingle();
-
-            if (subError) {
-                throw subError;
+            // Resolved server-side so institution-granted access is included.
+            const planResponse = await fetch("/api/billing/plan", { cache: "no-store" });
+            if (!planResponse.ok) {
+                throw new Error(`Failed to load plan (${planResponse.status})`);
             }
+            const subData = await planResponse.json() as { plan: Plan; status: string };
 
-            const newPlan: Plan = subData ? (subData.plan as Plan) : "free";
-            const newStatus: string = subData ? subData.status : "inactive";
+            const newPlan: Plan = subData.plan === "pro" ? "pro" : "free";
+            const newStatus: string = subData.status || "inactive";
 
             setPlan(newPlan);
             setStatus(newStatus);

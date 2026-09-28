@@ -20,6 +20,7 @@ export interface InstitutionRecord {
   student_access_policy?: string | null
   onboarding_completed_at?: string | null
   access_request_id?: string | null
+  subdomain_enabled?: boolean
   created_at: string
 }
 

@@ -40,7 +40,7 @@ export default function PrivacyPage() {
           </div>
 
           <Section title="Overview">
-            <P>MedLab ("we", "us", or "our") operates the MedLab platform — a medical education tool for students and institutions. This Privacy Policy explains what data we collect, how we use it, and the choices you have. By using MedLab, you agree to the practices described here.</P>
+            <P>MedLab (“we”, “us”, or “our”) operates the MedLab platform — a medical education tool for students and institutions. This Privacy Policy explains what data we collect, how we use it, and the choices you have. By using MedLab, you agree to the practices described here.</P>
             <P>We do not sell your personal data. We do not use your data to train AI models without explicit consent. Medical education data is handled with the same care we would expect from any platform we would trust with our own learning.</P>
           </Section>
 
@@ -65,7 +65,7 @@ export default function PrivacyPage() {
           </Section>
 
           <Section title="Institutional Accounts">
-            <P>If you access MedLab through a university or medical school, your institution's administrator may have access to your performance data, including case scores, completion rates, and reasoning analytics. This is disclosed at the point of enrollment.</P>
+            <P>If you access MedLab through a university or medical school, your institution’s administrator may have access to your performance data, including case scores, completion rates, and reasoning analytics. This is disclosed at the point of enrollment.</P>
             <P>Institutions are considered joint data controllers for the data their students generate within the platform. Our Data Processing Agreement (DPA) governs this relationship and is available upon request.</P>
           </Section>
 

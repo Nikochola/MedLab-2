@@ -23,11 +23,21 @@ export async function getCurrentInstitutionForUser(userId: string): Promise<Inst
 
   const selectedMembership = memberships.find((membership: { user_id: string }) => membership.user_id === userId) || memberships[0]
 
-  const { data: institution, error: institutionError } = await supabaseAdmin
+  let { data: institution, error: institutionError } = await supabaseAdmin
     .from("institutions")
-    .select("id,name,slug,logo_url,timezone,institution_type,country_region,estimated_students,billing_plan,billing_status,billing_interval,billing_code,billing_contact_name,billing_card_brand,billing_card_last4,content_library,student_access_policy,onboarding_completed_at,access_request_id,created_at")
+    .select("id,name,slug,logo_url,timezone,institution_type,country_region,estimated_students,billing_plan,billing_status,billing_interval,billing_code,billing_contact_name,billing_card_brand,billing_card_last4,content_library,student_access_policy,onboarding_completed_at,access_request_id,subdomain_enabled,created_at")
     .eq("id", selectedMembership.institution_id)
     .maybeSingle()
+
+  if (institutionError?.message.includes("subdomain_enabled")) {
+    const legacyResult = await supabaseAdmin
+      .from("institutions")
+      .select("id,name,slug,logo_url,timezone,institution_type,country_region,estimated_students,billing_plan,billing_status,billing_interval,billing_code,billing_contact_name,billing_card_brand,billing_card_last4,content_library,student_access_policy,onboarding_completed_at,access_request_id,created_at")
+      .eq("id", selectedMembership.institution_id)
+      .maybeSingle()
+    institution = legacyResult.data ? { ...legacyResult.data, subdomain_enabled: false } as typeof institution : null
+    institutionError = legacyResult.error
+  }
 
   if (institutionError) {
     throw new Error(`Failed to load institution: ${institutionError.message}`)

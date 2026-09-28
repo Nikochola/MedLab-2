@@ -1,16 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@supabase/ssr"
 import { getInstitutionAppOrigin, getStudentAppOrigin } from "@/lib/runtimeUrls"
-
-const MAIN_DOMAIN = "medlabinteractive.com"
-
-function getSubdomainSlug(rawHost: string): string | null {
-  const host = rawHost.split(":")[0]
-  if (!host.endsWith(`.${MAIN_DOMAIN}`)) return null
-  const sub = host.slice(0, -(`.${MAIN_DOMAIN}`.length))
-  if (!sub || sub === "www" || sub === "app") return null
-  return sub
-}
+import { getInstitutionSubdomainSlug } from "@/lib/institutionDomains"
 
 function isLocalRequest(request: NextRequest) {
   const hostname = request.nextUrl.hostname
@@ -49,7 +40,7 @@ function resolveSafeNextRedirect(request: NextRequest, next: string | null) {
 
 export async function middleware(request: NextRequest) {
   const rawHost = request.headers.get("host") || request.nextUrl.host
-  const institutionSlug = !isLocalRequest(request) ? getSubdomainSlug(rawHost) : null
+  const institutionSlug = !isLocalRequest(request) ? getInstitutionSubdomainSlug(rawHost) : null
   const isSubdomainRequest = Boolean(institutionSlug)
 
   let response = NextResponse.next({
@@ -86,27 +77,9 @@ export async function middleware(request: NextRequest) {
   if (isSubdomainRequest) {
     // Root or /login → institution login page (rewrite, not redirect, so URL stays clean)
     if (pathname === "/" || pathname === "/login") {
-      if (!user) {
-        const url = request.nextUrl.clone()
-        url.pathname = "/institution/login"
-        return NextResponse.rewrite(url)
-      }
-      // Authenticated at root — route to their dashboard (stays on subdomain)
-      const [{ data: profile }, { data: memberships }] = await Promise.all([
-        supabase.from("profiles").select("primary_role").eq("id", user.id).single(),
-        supabase.from("institution_memberships").select("role,status").eq("user_id", user.id).eq("status", "ACTIVE"),
-      ])
-      const roles = new Set((memberships || []).map((m: { role?: string | null }) => String(m.role || "").toLowerCase()))
-      const hasPortalAccess = roles.has("institution_admin") || roles.has("admin") || roles.has("educator") || roles.has("teacher")
-      const hasMembership = roles.size > 0
-      const dest = hasPortalAccess
-        ? new URL("/institution/courses", request.nextUrl.origin)
-        : hasMembership
-          ? new URL("/learn", request.nextUrl.origin)
-          : profile?.primary_role === "institution"
-            ? new URL("/institution/onboarding", request.nextUrl.origin)
-            : new URL("/learn", request.nextUrl.origin)
-      return NextResponse.redirect(dest)
+      const url = request.nextUrl.clone()
+      url.pathname = "/institution/login"
+      return NextResponse.rewrite(url)
     }
   }
 
@@ -145,6 +118,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/profile") ||
     pathname.startsWith("/shop") ||
     pathname.startsWith("/more") ||
+    pathname.startsWith("/institution-cases") ||
     pathname.startsWith("/xray") ||
     pathname.startsWith("/ecg") ||
     pathname.startsWith("/ct") ||
@@ -190,7 +164,7 @@ export async function middleware(request: NextRequest) {
     if (isSubdomainRequest) {
       // Stay on the subdomain for all redirects
       const dest = hasInstitutionPortalAccess
-        ? new URL("/institution/courses", request.nextUrl.origin)
+        ? new URL("/institution/overview", request.nextUrl.origin)
         : hasAnyInstitutionMembership
           ? new URL("/learn", request.nextUrl.origin)
           : profile?.primary_role === "institution"
@@ -200,7 +174,7 @@ export async function middleware(request: NextRequest) {
     }
 
     const destination = hasInstitutionPortalAccess
-      ? buildAppUrl(request, "institution", "/institution/courses")
+      ? buildAppUrl(request, "institution", "/institution/overview")
       : hasAnyInstitutionMembership
         ? buildAppUrl(request, "institution", "/learn")
         : profile?.primary_role === "institution"
@@ -214,11 +188,17 @@ export async function middleware(request: NextRequest) {
     const isInstitutionPath = pathname.startsWith("/institution")
     const isOnboardingPath = pathname.startsWith("/institution/onboarding")
     const isStudentPath = pathname.startsWith("/practice") || pathname.startsWith("/learn") ||
-      pathname.startsWith("/xray") || pathname.startsWith("/ecg") || pathname.startsWith("/ct")
+      pathname.startsWith("/xray") || pathname.startsWith("/ecg") || pathname.startsWith("/ct") || pathname.startsWith("/institution-cases")
 
     const appsOnSameHost = isSubdomainRequest || getInstitutionAppOrigin() === getStudentAppOrigin()
 
-    if (isInstitutionPath || isStudentPath) {
+    // Protected institution layouts perform the authoritative role check with
+    // service-role visibility. Avoid duplicating that decision through anon
+    // RLS here, which can hide a just-authenticated membership and redirect a
+    // completed workspace between onboarding and courses indefinitely.
+    if (isInstitutionPath) return response
+
+    if (isStudentPath) {
       const [{ data: profile }, { data: memberships }] = await Promise.all([
         supabase.from("profiles").select("primary_role").eq("id", user.id).single(),
         supabase.from("institution_memberships").select("role,status").eq("user_id", user.id).eq("status", "ACTIVE"),
@@ -258,8 +238,8 @@ export async function middleware(request: NextRequest) {
       if (isStudentPath && hasInstitutionPortalAccess) {
         return NextResponse.redirect(
           isSubdomainRequest
-            ? new URL("/institution/courses", request.nextUrl.origin)
-            : buildAppUrl(request, "institution", "/institution/courses")
+            ? new URL("/institution/overview", request.nextUrl.origin)
+            : buildAppUrl(request, "institution", "/institution/overview")
         )
       }
 

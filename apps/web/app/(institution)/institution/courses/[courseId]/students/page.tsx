@@ -30,10 +30,14 @@ function getField(row: Record<string, string>, candidates: string[]) {
   return ""
 }
 
+// Bulk CSV imports send emails one at a time; allow time for large cohorts.
+export const maxDuration = 300
+
 function compactSummary(summary: InviteSummary) {
   return {
     ...summary,
-    results: summary.results.slice(0, 40)
+    // Only problem rows travel in the URL; successful invites are counted, not listed.
+    results: summary.results.filter((result) => result.status !== "INVITED").slice(0, 20)
   }
 }
 

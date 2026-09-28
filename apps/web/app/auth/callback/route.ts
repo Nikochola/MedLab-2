@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
     roles.has("institution_admin") || roles.has("admin") || roles.has("educator") || roles.has("teacher")
 
   if (hasInstitutionPortalAccess) {
-    return redirectWithAuthCookies(new URL("/institution/courses", request.url))
+    return redirectWithAuthCookies(new URL("/institution/overview", request.url))
   }
 
   if (roles.size > 0) {

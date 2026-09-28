@@ -41,21 +41,21 @@ type StudentAccessPolicy = "INVITE_ONLY" | "SSO"
 type TeamInviteRole = "EDUCATOR" | "INSTITUTION_ADMIN"
 type WizardStep = 1 | 2 | 3 | 4 | 5 | 6
 
-const planCopy: Record<BillingPlan, { monthly: string; annual: string; summary: string }> = {
+const planCopy: Record<BillingPlan, { price: string; minimum: string; summary: string }> = {
   STARTER: {
-    monthly: "$299/mo",
-    annual: "$249/mo billed annually",
-    summary: "Up to 100 students, 5 educators, logo branding, ECG library."
+    price: "$30 per student / year",
+    minimum: "Minimum 50 students",
+    summary: "Full case library, educator dashboard, class progress, CSV exports, and email support."
   },
   GROWTH: {
-    monthly: "$799/mo",
-    annual: "$649/mo billed annually",
-    summary: "Up to 500 students, unlimited educators, ECG + Radiology, advanced analytics."
+    price: "$50 per student / year",
+    minimum: "Minimum 200 students",
+    summary: "Everything in Starter plus custom subdomain, Moodle and Canvas integration, and managed reviews."
   },
   ENTERPRISE: {
-    monthly: "Custom",
-    annual: "Custom",
-    summary: "Unlimited scale, SSO, LMS integrations, custom branding, dedicated support."
+    price: "Custom annual contract",
+    minimum: "500+ students",
+    summary: "Everything in Growth plus white-label branding, case authoring, API access, and priority SLA support."
   }
 }
 
@@ -147,7 +147,7 @@ export function InstitutionOnboardingWizard(input: {
   const [phone, setPhone] = useState("")
 
   const [billingPlan, setBillingPlan] = useState<BillingPlan>("STARTER")
-  const [billingInterval, setBillingInterval] = useState<BillingInterval>("MONTHLY")
+  const [billingInterval] = useState<BillingInterval>("ANNUAL")
   const [billingCode, setBillingCode] = useState("")
   const [billingCodeState, setBillingCodeState] = useState<{
     valid: boolean
@@ -200,10 +200,10 @@ export function InstitutionOnboardingWizard(input: {
 
   const workspaceUrlPreview = useMemo(() => {
     const slug = slugifyWorkspace(workspaceSlug)
-    return slug ? `${slug}.medlab.io` : "your-workspace.medlab.io"
+    return slug || "your-workspace"
   }, [workspaceSlug])
 
-  const cardRequired = billingPlan !== "ENTERPRISE" && !billingCodeState?.waivesCard
+  const cardRequired = false
 
   function validateStep(step: WizardStep) {
     if (step === 1 && input.setupLink) {
@@ -346,7 +346,7 @@ export function InstitutionOnboardingWizard(input: {
     { step: 1, label: "Account Creation", icon: ShieldCheck, hidden: !input.setupLink },
     { step: 2, label: "Institution Setup", icon: Building2 },
     { step: 3, label: "Admin Profile", icon: BriefcaseBusiness },
-    { step: 4, label: "Plan & Billing", icon: CreditCard },
+    { step: 4, label: "Contract Plan", icon: CreditCard },
     { step: 5, label: "Workspace Config", icon: Sparkles },
     { step: 6, label: "Invite Team", icon: Users },
   ]
@@ -588,31 +588,15 @@ export function InstitutionOnboardingWizard(input: {
               </div>
             ) : null}
 
-            {/* Step 4: Plan & Billing */}
+            {/* Step 4: Contract plan */}
             {currentStep === 4 ? (
               <div className="rounded-[12px] p-7" style={{ backgroundColor: "white", border: "1.5px solid #E8E6DF" }}>
-                <StepHeader step={4} icon={CreditCard} title="Plan & Billing" color="#F59E0B" />
+                <StepHeader step={4} icon={CreditCard} title="Contract Plan" color="#F59E0B" />
 
-                {/* Interval toggle */}
-                <div className="mt-6 flex gap-1.5 rounded-[9px] p-1" style={{ backgroundColor: "#F8F7F2", border: "1.5px solid #E8E6DF" }}>
-                  {(["MONTHLY", "ANNUAL"] as BillingInterval[]).map((value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => setBillingInterval(value)}
-                      className="flex-1 rounded-[7px] px-4 py-2.5 text-sm font-semibold transition-all"
-                      style={{
-                        backgroundColor: billingInterval === value ? "white" : "transparent",
-                        color: billingInterval === value ? "#0E0F12" : "#9B9A94",
-                        boxShadow: billingInterval === value ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
-                      }}
-                    >
-                      {value === "MONTHLY" ? "Monthly" : "Annual"}
-                    </button>
-                  ))}
+                <div className="mt-6 rounded-[10px] border border-[#CFE2D2] bg-[#F3FAF4] px-4 py-3 text-xs leading-5 text-[#4F7658]">
+                  Institutional access is billed annually under your signed agreement. No payment details are collected in this setup flow.
                 </div>
 
-                {/* Plan cards */}
                 <div className="mt-4 grid gap-3 md:grid-cols-3">
                   {(["STARTER", "GROWTH", "ENTERPRISE"] as BillingPlan[]).map((plan) => (
                     <button
@@ -629,61 +613,13 @@ export function InstitutionOnboardingWizard(input: {
                         {plan === "STARTER" ? "Starter" : plan === "GROWTH" ? "Growth" : "Enterprise"}
                       </p>
                       <p className="mt-1 text-sm font-bold" style={{ color: "#0066FF" }}>
-                        {billingInterval === "MONTHLY" ? planCopy[plan].monthly : planCopy[plan].annual}
+                        {planCopy[plan].price}
                       </p>
+                      <p className="mt-1 text-[11px] font-semibold" style={{ color: "#9B9A94" }}>{planCopy[plan].minimum}</p>
                       <p className="mt-2 text-xs leading-5" style={{ color: "#6B6A65" }}>{planCopy[plan].summary}</p>
                     </button>
                   ))}
                 </div>
-
-                {/* Billing code */}
-                <div className="mt-5 grid gap-4 md:grid-cols-2">
-                  <Field label="Promo / Contract Code">
-                    <div className="flex gap-2">
-                      <input className={inputCls} style={{ ...inputStyle, flex: 1 }} value={billingCode}
-                        onChange={(e) => { setBillingCode(e.target.value); setBillingCodeState(null) }} placeholder="SPRING-2026"
-                        onFocus={(e) => (e.currentTarget.style.borderColor = "#0066FF")} onBlur={(e) => (e.currentTarget.style.borderColor = "#E8E6DF")} />
-                      <button type="button" onClick={applyBillingCode} className="flex h-11 items-center rounded-[9px] px-4 text-sm font-semibold" style={{ backgroundColor: "#F8F7F2", color: "#0E0F12", border: "1.5px solid #E8E6DF" }}>
-                        Apply
-                      </button>
-                    </div>
-                    {billingCodeState && (
-                      <p className="mt-1 text-xs font-semibold" style={{ color: billingCodeState.valid ? "#15803D" : "#B91C1C" }}>
-                        {billingCodeState.message}
-                      </p>
-                    )}
-                  </Field>
-                  <div className="rounded-[9px] p-4 text-xs" style={{ backgroundColor: "#F8F7F2", color: "#6B6A65" }}>
-                    <p className="font-semibold" style={{ color: "#0E0F12" }}>Billing rules</p>
-                    <p className="mt-1">Starter and Growth require a card unless a promo code waives it. Enterprise proceeds sales-led.</p>
-                  </div>
-                </div>
-
-                {/* Card fields */}
-                {cardRequired && (
-                  <div className="mt-5 grid gap-4 md:grid-cols-2">
-                    <div className="md:col-span-2">
-                      <Field label="Cardholder Name">
-                        <input className={inputCls} style={inputStyle} value={cardholderName} onChange={(e) => setCardholderName(e.target.value)} placeholder="Jordan Smith"
-                          onFocus={(e) => (e.currentTarget.style.borderColor = "#0066FF")} onBlur={(e) => (e.currentTarget.style.borderColor = "#E8E6DF")} />
-                      </Field>
-                    </div>
-                    <div className="md:col-span-2">
-                      <Field label="Card Number">
-                        <input className={inputCls} style={inputStyle} value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} placeholder="4242 4242 4242 4242"
-                          onFocus={(e) => (e.currentTarget.style.borderColor = "#0066FF")} onBlur={(e) => (e.currentTarget.style.borderColor = "#E8E6DF")} />
-                      </Field>
-                    </div>
-                    <Field label="Expiry">
-                      <input className={inputCls} style={inputStyle} value={cardExpiry} onChange={(e) => setCardExpiry(e.target.value)} placeholder="MM/YY"
-                        onFocus={(e) => (e.currentTarget.style.borderColor = "#0066FF")} onBlur={(e) => (e.currentTarget.style.borderColor = "#E8E6DF")} />
-                    </Field>
-                    <Field label="CVC">
-                      <input className={inputCls} style={inputStyle} value={cardCvc} onChange={(e) => setCardCvc(e.target.value)} placeholder="123"
-                        onFocus={(e) => (e.currentTarget.style.borderColor = "#0066FF")} onBlur={(e) => (e.currentTarget.style.borderColor = "#E8E6DF")} />
-                    </Field>
-                  </div>
-                )}
               </div>
             ) : null}
 
@@ -693,7 +629,7 @@ export function InstitutionOnboardingWizard(input: {
                 <StepHeader step={5} icon={Sparkles} title="Workspace Configuration" color="#6366F1" />
 
                 <div className="mt-6 space-y-5">
-                  <Field label="Workspace Name / Subdomain">
+                  <Field label="Workspace Identifier">
                     <div className="relative">
                       <Globe2 className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: "#9B9A94" }} />
                       <input
@@ -705,53 +641,14 @@ export function InstitutionOnboardingWizard(input: {
                         onFocus={(e) => (e.currentTarget.style.borderColor = "#0066FF")} onBlur={(e) => (e.currentTarget.style.borderColor = "#E8E6DF")}
                       />
                     </div>
-                    <p className="mt-1 text-xs" style={{ color: "#9B9A94" }}>URL: {workspaceUrlPreview}</p>
+                    <p className="mt-1 text-xs" style={{ color: "#9B9A94" }}>Internal identifier: {workspaceUrlPreview}. Custom subdomains are configured for Growth and Enterprise contracts.</p>
                     {isCheckingWorkspace && <p className="text-xs" style={{ color: "#9B9A94" }}>Checking availability...</p>}
                     {workspaceStatus && <p className="text-xs font-semibold" style={{ color: workspaceStatus.available ? "#15803D" : "#B91C1C" }}>{workspaceStatus.message}</p>}
                   </Field>
 
-                  <div>
-                    <p className="mb-2 text-[11px] font-bold uppercase" style={{ letterSpacing: "0.12em", color: "#9B9A94" }}>Content Library</p>
-                    <div className="grid gap-2 md:grid-cols-3">
-                      {[{ value: "ECG", title: "ECG Cases" }, { value: "RADIOLOGY", title: "Radiology" }, { value: "BOTH", title: "Both" }].map((library) => (
-                        <button
-                          key={library.value}
-                          type="button"
-                          onClick={() => setContentLibrary(library.value as ContentLibrary)}
-                          className="rounded-[9px] p-4 text-left"
-                          style={{
-                            backgroundColor: contentLibrary === library.value ? "#EEF3FF" : "#F8F7F2",
-                            border: contentLibrary === library.value ? "1.5px solid #C7D9FF" : "1.5px solid #E8E6DF",
-                          }}
-                        >
-                          <p className="text-sm font-bold" style={{ color: contentLibrary === library.value ? "#0047CC" : "#0E0F12" }}>{library.title}</p>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="mb-2 text-[11px] font-bold uppercase" style={{ letterSpacing: "0.12em", color: "#9B9A94" }}>Student Access Policy</p>
-                    <div className="grid gap-2 md:grid-cols-2">
-                      {[
-                        { value: "INVITE_ONLY", title: "Invite-Only", detail: "Administrators control all access." },
-                        { value: "SSO", title: "SSO", detail: "Enterprise only. Identity-provider based." }
-                      ].map((policy) => (
-                        <button
-                          key={policy.value}
-                          type="button"
-                          onClick={() => setStudentAccessPolicy(policy.value as StudentAccessPolicy)}
-                          className="rounded-[9px] p-4 text-left"
-                          style={{
-                            backgroundColor: studentAccessPolicy === policy.value ? "#EEF3FF" : "#F8F7F2",
-                            border: studentAccessPolicy === policy.value ? "1.5px solid #C7D9FF" : "1.5px solid #E8E6DF",
-                          }}
-                        >
-                          <p className="text-sm font-bold" style={{ color: studentAccessPolicy === policy.value ? "#0047CC" : "#0E0F12" }}>{policy.title}</p>
-                          <p className="mt-1 text-xs" style={{ color: "#6B6A65" }}>{policy.detail}</p>
-                        </button>
-                      ))}
-                    </div>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div className="rounded-[10px] border border-[#C7D9FF] bg-[#EEF3FF] p-4"><p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#4D8AFF]">Included library</p><p className="mt-2 text-sm font-bold text-[#0E0F12]">ECG + Chest X-Ray</p><p className="mt-1 text-xs leading-5 text-[#6B6A65]">The full student case library is enabled for every institutional plan.</p></div>
+                    <div className="rounded-[10px] border border-[#E8E6DF] bg-[#F8F7F2] p-4"><p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#9B9A94]">Student access</p><p className="mt-2 text-sm font-bold text-[#0E0F12]">Administrator invitations</p><p className="mt-1 text-xs leading-5 text-[#6B6A65]">Students receive controlled access after being assigned to a class.</p></div>
                   </div>
                 </div>
               </div>
