@@ -114,11 +114,13 @@ export default async function InstitutionDetailPage({
     const institutionId = String(formData.get("institution_id") || "")
     const billingPlan = String(formData.get("billing_plan") || "STARTER").toUpperCase()
     if (!institutionId || !["STARTER", "GROWTH", "ENTERPRISE"].includes(billingPlan)) throw new Error("Invalid institution plan")
+    const billingStatus = String(formData.get("billing_status") || "active").toLowerCase()
+    if (!["active", "draft", "pending", "inactive"].includes(billingStatus)) throw new Error("Invalid billing status")
     const subdomainEnabled = formData.get("subdomain_enabled") === "on" && billingPlan !== "STARTER"
     const slaValue = String(formData.get("sla_response_minutes") || "").trim()
     const slaResponseMinutes = slaValue ? Number(slaValue) : null
     if (slaResponseMinutes !== null && (!Number.isFinite(slaResponseMinutes) || slaResponseMinutes < 1)) throw new Error("SLA response target must be a positive number of minutes")
-    const { error: institutionError } = await supabaseAdmin.from("institutions").update({ billing_plan: billingPlan, subdomain_enabled: subdomainEnabled }).eq("id", institutionId)
+    const { error: institutionError } = await supabaseAdmin.from("institutions").update({ billing_plan: billingPlan, billing_status: billingStatus, subdomain_enabled: subdomainEnabled }).eq("id", institutionId)
     if (institutionError) throw new Error(`Failed to update Growth access: ${institutionError.message}`)
     const { error: successError } = await supabaseAdmin.from("institution_success_profiles").upsert({
       institution_id: institutionId,
@@ -235,6 +237,7 @@ export default async function InstitutionDetailPage({
         <div><p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9B9A94]">Growth operations</p><h2 className="mt-2 text-lg font-bold text-[#0E0F12]">Plan, portal, and customer success</h2></div>
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <label className="text-xs font-semibold text-[#6B6A65]">Plan<select name="billing_plan" defaultValue={institution.billing_plan || "STARTER"} className="mt-1.5 w-full rounded-[9px] border border-[#D8D5CC] bg-white px-3 py-2.5 text-sm text-[#0E0F12]"><option value="STARTER">Starter</option><option value="GROWTH">Growth</option><option value="ENTERPRISE">Enterprise</option></select></label>
+          <label className="text-xs font-semibold text-[#6B6A65]">Access status<select name="billing_status" defaultValue={institution.billing_status || "draft"} className="mt-1.5 w-full rounded-[9px] border border-[#D8D5CC] bg-white px-3 py-2.5 text-sm text-[#0E0F12]"><option value="active">Active: members get Pro (paid or free contract)</option><option value="pending">Pending</option><option value="draft">Draft</option><option value="inactive">Inactive (access paused)</option></select></label>
           <label className="flex items-center gap-3 self-end rounded-[9px] border border-[#D8D5CC] px-3.5 py-2.5 text-sm font-semibold text-[#353431]"><input type="checkbox" name="subdomain_enabled" defaultChecked={Boolean(institution.subdomain_enabled)} className="h-4 w-4" /> Enable {institution.slug}.getmedlab.com</label>
           <label className="text-xs font-semibold text-[#6B6A65]">Account manager name<input name="account_manager_name" defaultValue={successProfile?.account_manager_name || ""} className="mt-1.5 w-full rounded-[9px] border border-[#D8D5CC] px-3 py-2.5 text-sm" /></label>
           <label className="text-xs font-semibold text-[#6B6A65]">Account manager email<input name="account_manager_email" type="email" defaultValue={successProfile?.account_manager_email || ""} className="mt-1.5 w-full rounded-[9px] border border-[#D8D5CC] px-3 py-2.5 text-sm" /></label>
